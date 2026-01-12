@@ -1,4 +1,23 @@
-﻿import tkinter as tk
+﻿"""Experiment Designer GUI.
+
+Interactive Tkinter application to build and visualise experimental run designs.
+Provides:
+ - A simple run-list editor (add, clone, delete runs).
+ - Per-run trial-level parameters (number of events, event durations, ISIs,
+   trial counts, conditions, categories, and post-run breaks).
+ - Live visualisation:
+     * Trial-level structure: events and ISIs scaled to duration.
+     * Experiment timeline: runs with active durations and breaks.
+ - Summary panel with total durations and trials-per-category estimates.
+
+Usage:
+    python checks/task_design_vis.py
+
+Notes:
+ - No external dependencies beyond the Python standard library (tkinter, dataclasses).
+ - Controls update the visualisation after applying or when switching runs.
+"""
+import tkinter as tk
 from tkinter import ttk, messagebox
 from dataclasses import dataclass, field
 from typing import List
