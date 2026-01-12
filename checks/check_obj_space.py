@@ -1,4 +1,24 @@
-﻿import streamlit as st
+﻿"""Streamlit app to inspect object-space stimulus layouts and distributions.
+
+Displays a 10x10 grid of stimuli sampled from a selected object-space folder,
+overlays a 2D Gaussian density (configurable mean and SD per axis), and draws
+an approximate 95% confidence ellipse. Labels for the selected space are read
+from a CSV file (expected columns: 'group', 'top_labels', 'mid_labels',
+'bot_labels'). Image filenames are expected to follow the pattern
+"{gid}_{F0}_{F1}.png" or ".jpg" where F0 and F1 are normalized coordinates.
+
+Usage:
+    streamlit run checks/check_obj_space.py
+
+Dependencies:
+    streamlit, numpy, pandas, matplotlib, scipy
+
+Notes:
+    - The parent stimuli directory and label CSV path are selected via the
+      sidebar inputs in the running Streamlit app.
+"""
+
+import streamlit as st
 import os
 import numpy as np
 import pandas as pd
@@ -31,7 +51,7 @@ def main():
     st.title(" Object Space Distribution Checker")
 
     # --- SIDEBAR GUI ---
-    st.sidebar.header("📁 Path Settings")
+    st.sidebar.header("Path Settings")
     parent_dir = st.sidebar.text_input("Parent Stimuli Directory", "renamed_images")
     label_csv = st.sidebar.text_input("Label CSV Path", "full_results_v1.csv")
 
@@ -48,13 +68,13 @@ def main():
         st.sidebar.warning("Stimuli directory not found.")
         spaces = []
 
-    st.sidebar.header("⚙️ Parameters (SD Units)")
-    selected_space = st.sidebar.selectbox("Select Object Space (Group)", spaces)
+    st.sidebar.header("Parameters (SD Units)")
+    selected_space = st.sidebar.selectbox("Select Object Space", spaces)
     
     mu_f0 = st.sidebar.slider("Mean F0", 0.0, 1.0, 0.5, 0.01)
     mu_f1 = st.sidebar.slider("Mean F1", 0.0, 1.0, 0.5, 0.01)
     
-    # Changed from Variance to SD
+    # SD
     sd_f0 = st.sidebar.slider("SD F0", 0.01, 0.5, 0.15, 0.01)
     sd_f1 = st.sidebar.slider("SD F1", 0.01, 0.5, 0.15, 0.01)
 
@@ -102,7 +122,7 @@ def main():
             st.pyplot(fig)
 
     with col2:
-        st.subheader("🏷️ Object Space Labels")
+        st.subheader("Object Space Labels")
         space_data = df_labels[df_labels['group'].astype(str) == str(selected_space)]
         if not space_data.empty:
             st.info("**TOP LABELS (Congruent)**")
