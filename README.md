@@ -73,29 +73,29 @@ Below is an overview of the files and directories in this repository:
 ├── .gitignore                   # Git configuration
 ├── README.md                    # Project documentation
 ├── checks/                      # Quality assurance and validation scripts
-│   ├── check_obj_space.py       # Validates object space consistency
-│   ├── label_consistency.py     # Ensures labels match across files
-│   ├── sampling_test.py         # Tests the random sampling logic for distractors
-│   └── task_design_vis.py       # Visualizes trial timing/distribution
+│   ├── check_obj_space.py       # Browser tool for visualising object spaces and model labels
+│   ├── label_consistency.py     # Checks model labelling metrics
+│   ├── sampling_test.py         # Visualises participant sampling distributions
+│   └── task_design_vis.py       # Visualizes trial/task timing
 ├── experimental_task/           # Core experiment runtime files
 │   ├── experimental_task.py     # MAIN RUNNER: The primary PsychoPy script
-│   ├── practice_task.py         # Simplified version for participant training
-│   ├── label_files/             # CSVs defining category labels (Targets/Distractors)
+│   ├── practice_task.py         # Practice task to be completed before main task
+│   ├── label_files/             # CSVs defining category labels for each object space
 │   │   ├── practice_labels.csv  # Labels for training
 │   │   ├── v1-6cat.csv          # 6-category version labels
 │   │   └── v1-9cat.csv          # 9-category version labels
 │   ├── resources/               # UI assets (e.g., instruction images)
 │   └── task_designs/            # CSVs defining trial order, timing, and conditions
 │       ├── v1_6cat/             # Designs for 6-category condition
-│       ├── v1_6cat_wider/       # Designs with wider variability
+│       ├── v1_6cat_wider/       # Designs for 6-category wider sampling distribution
 │       ├── v1_9cat/             # Designs for 9-category condition
-│       └── v1_9cat_wider/       # Designs for 9-category wider variability
+│       └── v1_9cat_wider/       # Designs for 9-category wider sampling distribution
 ├── images/                      # Stimulus image repository
 │   └── task_images/             # (Download from OneDrive) Contains main experimental stimuli
 │   └── practice_images/         # Images specific to the practice phase
 └── setup/                       # Scripts for generating experimental designs
     ├── create_runs.py           # Generates the randomized trial CSVs
-    ├── model_class.py           # Python class definitions for concept models
+    ├── model_class.py           # Category labelling with vision models
     ├── rename_imgs.py           # Utility to standardize image filenames
     ├── output/                  # Generated output from setup scripts
     └── labelling/               # External labelling files from human validation
