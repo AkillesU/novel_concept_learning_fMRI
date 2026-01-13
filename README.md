@@ -58,7 +58,7 @@ Upon launching, a dialog box will ask for:
 
 * **Sub:** Subject ID (e.g., `001`).
 * **Design CSV:** Path to the schedule design file (inside `experimental_task/task_designs/`).
-* **Label CSV:** Path to the category mapping file (e.g., inside `experimental_task/label_files/`).
+* **Label CSV:** Path to the category mapping file (e.g., inside `experimental_task/label_files/`). Remember to match the label file to the design (6-cat vs 9-cat, wide).
 * **Image Dir:** Path to the folder containing stimulus images.
 * **Feedback Delay:** (Boolean) Enable ISI2 delay logic.
 * **Demo Mode:** (Boolean) Enable on-screen debug text and trial skipping.
