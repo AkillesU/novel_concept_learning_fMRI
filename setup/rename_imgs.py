@@ -1,3 +1,15 @@
+"""
+Normalize per-directory feature values and rename image files.
+
+Treats each subdirectory as an "object space", parses embedded `F#Level`
+tokens from filenames, normalizes each feature dimension to [0,1] within
+that directory, and copies files to a mirrored output tree using names of
+the form: "{gid}_{F0_norm}_{F1_norm}_...{ext}".
+
+Usage:
+    No args on this script. It uses hardcoded input/output paths at the bottom... (I know, I know.)
+    python setup/rename_imgs.py
+"""
 import os
 import re
 import shutil
@@ -76,5 +88,5 @@ def run_renamer(source_folder, output_folder):
     print("--- Done. ---")
 
 if __name__ == "__main__":
-    # usage
+    # Use
     run_renamer("blender_output/", "blender_output_renamed/")
