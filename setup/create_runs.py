@@ -2,16 +2,37 @@
 """
 create_runs.py
 
-GUI tool to generate event-related timing CSVs.
-Supports:
- 1. Standard (2-Event) & Self-Paced (3-Event) Designs.
- 2. Advanced Jitter (Uniform, Normal, Exponential).
- 3. Study 3 Specifics:
-    - Counterbalances Groups (Latin Square rotation based on Sub ID).
-    - Counterbalances Conditions (Cong/Med/Inc) to Groups.
-    - No 1-back Group repetition.
-"""
+Design generator GUI for event-related fMRI experiments.
 
+Primary function:
+ - Provide a small GUI to configure and generate event-timing CSVs for two
+   supported designs:
+     * Standard (2-event): Decision -> Feedback
+     * Self-Paced (3-event): Image -> Decision (self-paced) -> Feedback
+ - Configure flexible jitter distributions (uniform, truncated normal, exponential)
+   for inter-stimulus intervals and other timing jitter.
+ - Produce session CSV files per participant with built-in counterbalancing:
+     * Latin-square style rotation of ObjectSpaces by participant ID.
+     * Assignment of conditions (Congruent/Medium/Incongruent) to ObjectSpaces
+       in a balanced manner.
+     * Heuristics to avoid immediate 1-back repeats within the session.
+ - Save per-session master CSV files into an output prefix folder.
+
+Usage:
+    python setup/create_runs.py
+
+Notes / implementation details:
+ - Jitter sampling supports rejection sampling for truncated normal values
+   and an exponential mode that can be reversed to bias toward the high end.
+ - The core balancing routine first ensures session-level counts are satisfied,
+   then pre-allocates items to runs to preserve per-run balance, and finally
+   applies a swap-based heuristic to eliminate adjacent repeats while keeping
+   run counts stable.
+ - The GUI estimates mean/min/max trial durations live so the operator can
+   check approximate session lengths before generation.
+ - No functional behaviour of generation logic is changed by this file's comments;
+   comments are for readability and maintenance.
+"""
 import csv
 import os
 import tkinter as tk
@@ -23,10 +44,26 @@ from typing import List, Tuple, Optional
 import dataclasses
 
 # ==================== JITTER UTILITIES ==================== #
-
+# Utility for sampling jitter values using common distributions.
+# The function intentionally clamps/rejects values so returned jitter always
+# lies within [jmin, jmax].
 def sample_jitter(rng, mode, jmin, jmax, norm_mu=None, norm_sd=None, exp_scale=None, exp_reverse=False):
     """
-    Full Jitter logic restored from original script.
+    Sample a jitter value in [jmin, jmax] according to the requested distribution.
+
+    Parameters:
+      - rng: numpy random Generator instance
+      - mode: 'uniform' | 'normal' | 'exponential' (fallback returns jmin)
+      - jmin, jmax: inclusive numeric bounds for the sampled value
+      - norm_mu, norm_sd: optional parameters for truncated normal (mu, sigma)
+      - exp_scale: scale parameter (lambda) for exponential sampling
+      - exp_reverse: if True and mode == 'exponential' bias toward jmax instead of jmin
+
+    Behaviour:
+      - Uniform: draws uniformly on [jmin, jmax].
+      - Normal: performs truncated normal via rejection sampling (bounded to [jmin,jmax]).
+      - Exponential: draws an exponential offset from jmin (or from jmax when exp_reverse).
+      - If bounds equal or invalid span, returns jmin as deterministic fallback.
     """
     if jmin == jmax:
         return float(jmin)
@@ -41,24 +78,28 @@ def sample_jitter(rng, mode, jmin, jmax, norm_mu=None, norm_sd=None, exp_scale=N
         mu = float(norm_mu) if norm_mu is not None else 0.5 * (jmin + jmax)
         mu = float(np.clip(mu, jmin, jmax))
         sigma = float(norm_sd) if (norm_sd is not None and norm_sd > 0) else span / 4.0
-        # Rejection sampling to stay within bounds
+        # Rejection sampling to enforce bounds (limited iterations for safety)
         for _ in range(1000):
             val = rng.normal(mu, sigma)
             if jmin <= val <= jmax:
                 return float(val)
+        # Fallback to the bounded mean when rejection fails
         return float(np.clip(mu, jmin, jmax))
 
     if mode == "exponential":
         scale = float(exp_scale) if (exp_scale is not None and exp_scale > 0) else span / 3.0
+        # Exponential offset from jmin (or reversed from jmax)
         if not exp_reverse:
             val = jmin + rng.exponential(scale=scale)
         else:
             val = jmax - rng.exponential(scale=scale)
         return float(np.clip(val, jmin, jmax))
 
+    # Conservative fallback if an unknown mode was supplied
     return float(jmin)
 
 # ==================== DATA CONFIGS ==================== #
+# Small dataclasses that hold configuration values passed around the generator.
 
 @dataclass
 class JitterConfig:
@@ -70,6 +111,18 @@ class JitterConfig:
 
 @dataclass
 class DesignConfig:
+    """
+    High-level container for a design configuration used by the generator.
+
+    Attributes:
+      - design_type: '2event' or '3event'
+      - n_runs, trials_per_run: run structure for session
+      - start_time: initial offset for the first trial
+      - n_categories_to_select: how many ObjectSpaces to select for this participant
+      - label_csv_path: path to stimulus label CSV (must contain 'ObjectSpace' + feature stats)
+      - jitter_config: instance of JitterConfig controlling distribution parameters
+      - additional fields store the timing constants for the selected design type
+    """
     design_type: str  # "2event" or "3event"
     n_runs: int
     trials_per_run: int
@@ -102,16 +155,26 @@ class DesignConfig:
 
 # ==================== STUDY 3 LOGIC ==================== #
 def load_and_parse_groups(csv_path):
-    # Detect separator and load directly using 'ObjectSpace'
+    """Load the label CSV robustly (auto-detect separator) and normalise column names.
+
+    Returns a pandas DataFrame where the 'ObjectSpace' column is kept as string.
+    """
     df = pd.read_csv(csv_path, sep=None, dtype={'ObjectSpace': str}, engine="python")
+    # Trim whitespace from column names to reduce common CSV formatting issues
     df.columns = [c.strip() for c in df.columns]
     return df
 
 
 def find_closest_image(stim_dir, space_id, target_coords):
     """
-    Finds the image file in the object-space folder closest to sampled coordinates.
-    Expects structure: stim_dir / {space_id} / {space_id}_{F0:.3f}_{F1:.3f}.ext
+    Find the stimulus file in stim_dir/<space_id> whose embedded F0/F1 coordinates
+    are closest to the requested target_coords.
+
+    The function expects filenames with the convention:
+        {gid}_{F0}_{F1}.ext
+
+    Returns:
+      - filename (basename) of the closest image, or the string "MISSING" if none found.
     """
     from pathlib import Path
     import numpy as np
@@ -125,43 +188,57 @@ def find_closest_image(stim_dir, space_id, target_coords):
         if img_file.suffix.lower() not in ['.png', '.jpg', '.jpeg']:
             continue
         try:
-            # Parse format: {gid}_{F0}_{F1}.ext
+            # Parse expected naming format and compute Euclidean distance
             parts = img_file.stem.split('_')
-            # Extract F0 and F1 from parts index 1 and 2
             feat_coords = np.array([float(p) for p in parts[1:3]])
             dist = np.linalg.norm(feat_coords - target_coords)
             if dist < min_dist:
                 min_dist, best_img = dist, img_file.name
         except:
+            # Ignore files that do not conform to naming assumptions
             continue
     return best_img if best_img else "MISSING"
 
 
 def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_override: Optional[dict] = None) -> List[dict]:
     """
-    Ensures ObjectSpace trials are balanced across the entire session 
-    AND as balanced as possible within each individual run.
+    Generate a flat list of trial dictionaries for one session.
+
+    Balancing approach (high-level):
+     - Determine which ObjectSpaces are active for this subject (space_cond_map).
+     - Compute session-level totals and distribute items to per-run pools so each
+       run is as balanced as possible across the selected ObjectSpaces.
+     - Flatten run pools into a session sequence and iteratively swap items to
+       remove 1-back repeats while preserving run-level counts whenever possible.
+     - For each trial, sample F0/F1 coordinates from the per-space feature distributions
+       and select the best matching image, then compute timing onsets/durations
+       according to design_type and jitter configuration.
+
+    Returns:
+      A list of dicts, each representing a trial row suitable for CSV writing.
     """
     df_labels = load_and_parse_groups(cfg.label_csv_path)
     all_spaces = df_labels['ObjectSpace'].tolist()
+    # Allow caller to override the map; otherwise build a default counterbalanced map
     space_cond_map = space_cond_map_override if space_cond_map_override is not None else get_counterbalanced_map(all_spaces, sub_id, cfg.n_categories_to_select)
     active_spaces = list(space_cond_map.keys())
+    # dist_params holds per-space statistics like Mean F0, SD F0, Mean F1, SD F1
     dist_params = df_labels.set_index('ObjectSpace').to_dict('index')
 
     # --- SESSION BALANCING LOGIC ---
     total_session_trials = cfg.n_runs * cfg.trials_per_run
     n_cats = len(active_spaces)
     
-    # 1. Determine guaranteed session-wide totals
+    # 1. Extra items to evenly distribute when totals do not divide evenly
     session_extras = rng.permutation(active_spaces)[:total_session_trials % n_cats]
     
-    # 2. Pre-allocate items to runs to ensure run-level balance
+    # 2. Pre-allocate each run's base allocations: repeat the active_spaces base_per_run times
     run_pools = [[] for _ in range(cfg.n_runs)]
     base_per_run = cfg.trials_per_run // n_cats
     for r_idx in range(cfg.n_runs):
         run_pools[r_idx].extend(active_spaces * base_per_run)
     
-    # 3. Distribute leftovers from the session pool into the run pools
+    # 3. Compute session leftovers (items needed to reach the total) and distribute
     session_leftovers = {s: (total_session_trials // n_cats) - (base_per_run * cfg.n_runs) + (1 if s in session_extras else 0) for s in active_spaces}
     leftover_items = []
     for s, count in session_leftovers.items():
@@ -169,33 +246,38 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
     rng.shuffle(leftover_items)
     
     rem_per_run = cfg.trials_per_run % n_cats
+    # Spread leftovers across run pools (slice-based) then shuffle each run to randomise order
     for r_idx in range(cfg.n_runs):
         run_pools[r_idx].extend(leftover_items[r_idx * rem_per_run : (r_idx + 1) * rem_per_run])
         rng.shuffle(run_pools[r_idx])
     
-    # 4. Flatten and fix 1-back repeats while preserving the balanced run counts
+    # 4. Flatten runs into a session sequence and attempt to remove 1-back repeats
     session_seq = []
-    for p in run_pools: session_seq.extend(p)
+    for p in run_pools:
+        session_seq.extend(p)
     
+    # Iterative swapping heuristic: within-run swaps preferred to preserve per-run balance
     for _ in range(1000):
         conflict = False
         for i in range(1, len(session_seq)):
             if session_seq[i] == session_seq[i-1]:
-                # Prioritize a swap within the same run to maintain run-level counts
                 run_id = i // cfg.trials_per_run
                 r_start, r_end = run_id * cfg.trials_per_run, (run_id + 1) * cfg.trials_per_run
+                # Choose candidates within the same run that avoid creating new conflicts
                 swap_idx = [j for j in range(r_start, r_end) if session_seq[j] != session_seq[i-1] 
                             and (j==0 or session_seq[j-1]!=session_seq[i]) 
                             and (j<len(session_seq)-1 and session_seq[j+1]!=session_seq[i])]
-                if not swap_idx: # Session-wide fallback
+                if not swap_idx:  # Session-wide fallback if no within-run swap found
                     swap_idx = [j for j in range(len(session_seq)) if session_seq[j] != session_seq[i-1]]
                 if swap_idx:
                     k = rng.choice(swap_idx)
                     session_seq[i], session_seq[k] = session_seq[k], session_seq[i]
-                else: conflict = True
-        if not conflict: break
+                else:
+                    conflict = True
+        if not conflict:
+            break
 
-    # --- TRIAL PROCESSING ---
+    # --- TRIAL PROCESSING: generate timing rows using the computed session_seq ---
     rows = []
     trial_id_global = 0
     def get_jit(r):
@@ -213,6 +295,7 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
             cond = space_cond_map[space_id]
             info = dist_params[space_id]
             
+            # Sample feature coordinates from the per-space Gaussian and clamp to [0,1]
             f0 = np.clip(rng.normal(info['Mean F0'], info['SD F0']), 0, 1)
             f1 = np.clip(rng.normal(info['Mean F1'], info['SD F1']), 0, 1)
             img_file = find_closest_image(cfg.stim_dir, space_id, np.array([f0, f1]))
@@ -225,6 +308,7 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
             }
 
             if cfg.design_type == "3event":
+                # Compute ISI1/ISI2 and absolute onsets for self-paced design (max durations used for schedule)
                 isi1, isi2 = get_jit(cfg.jit_isi1_range), get_jit(cfg.jit_isi2_range)
                 t_img, t_dec = current_time, current_time + cfg.img_dur + isi1
                 t_fb, t_end  = t_dec + cfg.max_dec_dur + isi2, t_dec + cfg.max_dec_dur + isi2 + cfg.fb_dur
@@ -236,6 +320,7 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
                 })
                 current_time = t_end + iti
             else:
+                # Standard 2-event timeline using configured dec and feedback durations and jitter
                 jit = get_jit(cfg.jit_dec_fb_range)
                 t_trial, t_fb = current_time, current_time + cfg.dec_dur + jit
                 t_end = t_fb + cfg.dec_fb_dur
@@ -251,7 +336,11 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
 
 # 2. Restore the Latin Square (Order of selection changes per participant)
 def get_counterbalanced_map(all_spaces, participant_id, n_select):
-    """Counterbalances ObjectSpaces using Latin Square rotation."""
+    """
+    Map a rotated selection of ObjectSpaces to conditions using a simple
+    Latin-square-like rotation based on participant_id. This provides a
+    deterministic but participant-dependent assignment.
+    """
     conditions = ['Congruent', 'Medium', 'Incongruent']
     n_total = len(all_spaces)
     n_select = min(n_select, n_total)
@@ -283,12 +372,15 @@ def select_spaces_rotated(all_spaces: List[str], participant_id: int, n_select: 
 
 
 def make_balanced_condition_list(rng, n_items: int, conditions: List[str]) -> List[str]:
-    """Return a list of conditions with counts as equal as possible (e.g., 2,2,2 or 3,3,2)."""
+    """
+    Construct a shuffled list of conditions of length n_items where counts across
+    conditions differ by at most one (e.g., for 8 items and 3 conditions -> 3,3,2).
+    """
     k = len(conditions)
     if k == 0 or n_items <= 0:
         return []
     q, r = divmod(n_items, k)
-    # Randomly choose which conditions get the +1 when n_items not divisible by k
+    # Randomly choose which conditions receive the extra +1 when n_items not divisible by k
     conds = list(conditions)
     rng.shuffle(conds)
     counts = {c: q for c in conditions}
@@ -311,19 +403,21 @@ def optimise_space_condition_map(
     lambda_pair: float = 1.0,
 ) -> dict:
     """
-    Constrained randomisation:
-      - Hard constraint: within-participant condition counts are as equal as possible.
-      - Objective: diversify (space,condition) usage and avoid deterministic coupling between spaces' assignments.
+    Constrained randomisation to assign conditions to the selected spaces.
 
-    Scoring (lower is better):
-      sc_term   = sum over spaces of current count for assigning that space to that condition
-      pair_term = sum over (space_i, space_j) pairs of current count for that ordered condition-pair
-      score = sc_term + lambda_pair * pair_term
+    Goals:
+      - Within-participant: produce as balanced a distribution across conditions as possible.
+      - Across participants: avoid repeating the same (space,condition) pairs too often
+        and penalise frequently observed ordered pairs of assignments (pair_term).
+
+    The routine generates multiple candidate maps, scores them, and selects
+    the candidate with the lowest score. Global trackers are updated with the
+    chosen assignment for use by subsequent participant iterations.
     """
     if not selected_spaces:
         return {}
 
-    # Ensure globals contain needed keys
+    # Ensure global trackers contain required keys
     for s in selected_spaces:
         if s not in global_sc_counts:
             global_sc_counts[s] = {c: 0 for c in conditions}
@@ -332,7 +426,7 @@ def optimise_space_condition_map(
                 global_sc_counts[s].setdefault(c, 0)
 
     def pair_key_and_condpair(sa, sb, ca, cb):
-        # store pair key with sorted spaces; condpair aligned to that order
+        # canonical ordering for pair keys and their corresponding condition-pair
         if sa <= sb:
             return (sa, sb), (ca, cb)
         else:
@@ -342,7 +436,7 @@ def optimise_space_condition_map(
     best_score = None
 
     n_candidates = int(max(1, n_candidates))
-    # Candidate generation
+    # Candidate-generation loop: sample many balanced assignments and score them
     for _ in range(n_candidates):
         cond_list = make_balanced_condition_list(rng, len(selected_spaces), conditions)
         cand_map = {s: c for s, c in zip(selected_spaces, cond_list)}
@@ -367,11 +461,11 @@ def optimise_space_condition_map(
             best_map = cand_map
 
     if best_map is None:
-        # Fallback: greedy least-used per space (still balanced-ish)
+        # Fallback: simple balanced assignment if no candidate chosen
         cond_list = make_balanced_condition_list(rng, len(selected_spaces), conditions)
         best_map = {s: c for s, c in zip(selected_spaces, cond_list)}
 
-    # Update global trackers
+    # Update global trackers to reflect the selected assignment
     for s, c in best_map.items():
         global_sc_counts[s][c] = global_sc_counts[s].get(c, 0) + 1
 
@@ -389,7 +483,12 @@ def optimise_space_condition_map(
 
 # 3. Add safety checks in the 'run' method to prevent IndexError
 def parse_range(val_str, field_name):
-    """Safely split comma-separated strings to avoid IndexError."""
+    """
+    Parse a 'Min,Max' string into two floats.
+
+    Raises a ValueError with a helpful message if parsing fails so callers can
+    present the error to the user via the GUI.
+    """
     try:
         parts = [float(x) for x in val_str.split(',')]
         if len(parts) < 2:
@@ -400,7 +499,14 @@ def parse_range(val_str, field_name):
 
 
 def generate_sequence_no_repeat(rng, items, length):
-    """Generates sequence ensuring no 1-back repeats."""
+    """
+    Create a sequence of the requested length using items such that there
+    are no immediate (1-back) repeats if possible.
+
+    The function builds an initial balanced pool and then applies a swapping
+    heuristic to remove adjacent matches. If items has length 1, repeats are
+    unavoidable and the sequence is the repeated item.
+    """
     if not items: return []
     if len(items) == 1: return items * length
     
@@ -410,28 +516,30 @@ def generate_sequence_no_repeat(rng, items, length):
     pool = items * base + list(rng.choice(items, size=rem, replace=False))
     rng.shuffle(pool)
     
-    # Swapping heuristic to fix repeats
+    # Swapping heuristic to fix 1-back repeats
     for _ in range(500):
         conflict = False
         for i in range(1, len(pool)):
             if pool[i] == pool[i-1]:
-                # Find swap candidate
+                # Find swap candidate that avoids creating new adjacent conflicts
                 swap_idx = [j for j in range(len(pool)) if pool[j] != pool[i-1] and (j==0 or pool[j-1]!=pool[i]) and (j<len(pool)-1 and pool[j+1]!=pool[i])]
                 if not swap_idx: 
-                    # fallback: any non-match
+                    # fallback: any non-match in the sequence
                     swap_idx = [j for j in range(len(pool)) if pool[j] != pool[i-1]]
                 
                 if swap_idx:
                     k = rng.choice(swap_idx)
                     pool[i], pool[k] = pool[k], pool[i]
                 else:
-                    conflict = True # Could not fix
+                    conflict = True # Could not fix this conflict
         if not conflict: break
     
     return pool
 
 
 # ==================== GUI ==================== #
+# The remainder of the file implements a Tk-based interface for operator configuration
+# and a 'run' method that saves per-subject session CSVs using the generation routines above.
 
 class DesignGUI(tk.Tk):
     def __init__(self):
@@ -439,23 +547,24 @@ class DesignGUI(tk.Tk):
         self.title("Study 3 Design Generator")
         self.geometry("1100x800")
         self._build_ui()
+        # Update the estimated timings display as soon as the window is created
         self.update_estimates()
 
     def _init_vars(self):
-        """Initialize all variables with traces for live updates."""
-        # Global
+        """Initialize tracked Tk variables and attach traces for live estimate updates."""
+        # Global defaults (these may be replaced by explicit widget initializers)
         self.v_runs = tk.StringVar(value="2")
         self.v_trials = tk.StringVar(value="30")
         self.v_runs_s2 = tk.StringVar(value="2")
         self.v_trials_s2 = tk.StringVar(value="20")
         
-        # 2-Event Timing
+        # 2-Event Timing defaults
         self.v_2_dec = tk.StringVar(value="2.0")
         self.v_2_fb = tk.StringVar(value="1.0")
         self.v_2_jit = tk.StringVar(value="0.5,1.5")
         self.v_2_iti = tk.StringVar(value="1.0,3.0")
         
-        # 3-Event Timing
+        # 3-Event Timing defaults
         self.v_3_img = tk.StringVar(value="1.0")
         self.v_3_max = tk.StringVar(value="3.0")
         self.v_3_fb = tk.StringVar(value="1.0")
@@ -463,7 +572,7 @@ class DesignGUI(tk.Tk):
         self.v_3_isi2 = tk.StringVar(value="0.5,1.0")
         self.v_3_iti = tk.StringVar(value="1.0,3.0")
 
-        # Add traces to all timing-relevant variables
+        # Add traces so updates recalc estimates on change
         vars_to_trace = [
             self.v_runs, self.v_trials, self.v_runs_s2, self.v_trials_s2,
             self.v_2_dec, self.v_2_fb, self.v_2_jit, self.v_2_iti,
@@ -473,16 +582,19 @@ class DesignGUI(tk.Tk):
             v.trace_add("write", lambda *a: self.update_estimates())
 
     def get_float(self, var, default=0.0):
+        """Parse a Tk StringVar into float, allowing comma decimal separators."""
         try:
             val = var.get().replace(',', '.') # Handle comma decimal separators
             return float(val)
         except: return default
 
     def get_int(self, var, default):
+        """Parse Tk StringVar into integer with safe fallback."""
         try: return int(var.get())
         except: return default
 
     def _build_ui(self):
+        """Construct the GUI layout: file inputs, global settings, timing tabs, and action button."""
         main = ttk.Frame(self, padding=10)
         main.pack(fill="both", expand=True)
 
@@ -518,7 +630,7 @@ class DesignGUI(tk.Tk):
         ttk.Entry(fr_glob, textvariable=self.v_n_subs, width=4).pack(side="left", padx=2)
       
 
-        # Session 1 and Session 2 specific parameters
+        # Session 1 and Session 2 specific parameters (compact layout)
         sep = ttk.Separator(fr_glob, orient="vertical")
         sep.pack(side="left", fill="y", padx=5)
         
@@ -557,7 +669,7 @@ class DesignGUI(tk.Tk):
         self.v_test_samples = tk.StringVar(value="3")
         ttk.Entry(fr_glob, textvariable=self.v_test_samples, width=4).pack(side="left", padx=2)
 
-        # 3. Timing Tabs
+        # 3. Timing Tabs (2-event vs 3-event configuration)
         self.nb = ttk.Notebook(main)
         self.nb.pack(fill="x", pady=10)
         self.nb.bind("<<NotebookTabChanged>>", lambda e: self.update_estimates())
@@ -570,7 +682,7 @@ class DesignGUI(tk.Tk):
         self.nb.add(self.tab3, text="Self-Paced (3-Event)")
         self._build_3event_tab(self.tab3)
 
-        # 3.5 ESTIMATES PANEL (New Section)
+        # 3.5 ESTIMATES PANEL (New Section) - shows operator approximate timings
         fr_est = ttk.LabelFrame(main, text="Estimated Timings")
         fr_est.pack(fill="x", pady=10)
         
@@ -627,6 +739,7 @@ class DesignGUI(tk.Tk):
         self.log_box.pack(fill="both")
 
     def _build_2event_tab(self, p):
+        """Construct controls for the 2-event timing parameters."""
         f = ttk.Frame(p); f.pack(fill="both", padx=10, pady=10)
         ttk.Label(f, text="Dec Dur:").pack(side="left")
         self.v_2_dec = tk.StringVar(value="2.0")
@@ -642,6 +755,7 @@ class DesignGUI(tk.Tk):
         ttk.Entry(f, textvariable=self.v_2_iti, width=8).pack(side="left")
 
     def _build_3event_tab(self, p):
+        """Construct controls for the 3-event timing parameters."""
         f = ttk.Frame(p); f.pack(fill="both", padx=10, pady=10)
         # Simplified row layout
         r1 = ttk.Frame(f); r1.pack(fill="x")
@@ -667,14 +781,20 @@ class DesignGUI(tk.Tk):
         ttk.Entry(r2, textvariable=self.v_3_iti, width=8).pack(side="left")
 
     def browse_csv(self):
+        """Open a file dialog to select the label CSV and set the entry field."""
         f = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
         if f: self.v_csv.set(f)
 
     def log(self, txt):
+        """Append a line to the GUI log box and scroll to the bottom."""
         self.log_box.insert("end", txt+"\n"); self.log_box.see("end")
 
     def _save_session_data(self, rows, sub_id, sess_id, prefix, mode):
-            """Helper to save one consolidated CSV for the entire session."""
+            """Helper to save one consolidated CSV for a participant/session.
+
+            Creates prefix/session-<sess_id>/ and writes a single master CSV containing
+            all runs for that session. Fieldnames are inferred from the first row.
+            """
             sess_dir = os.path.join(prefix, f"session-{sess_id}")
             os.makedirs(sess_dir, exist_ok=True)
         
@@ -690,7 +810,11 @@ class DesignGUI(tk.Tk):
             self.log(f"Generated Session {sess_id} master file: {fname}")
 
     def update_estimates(self):
-        """Live calculation for trial, total task lengths, and test run durations."""
+        """Live calculation for trial, total task lengths, and test run durations.
+
+        This uses the current GUI parameter values to compute approximate min/max/mean
+        trial durations (with and without ISI2) so operators can preview session lengths.
+        """
         try:
             tab = self.nb.index(self.nb.select())
             n_runs1 = self.get_int(self.v_runs, 0)
@@ -708,7 +832,7 @@ class DesignGUI(tk.Tk):
             # Total test trials across all test runs
             total_test_trials = n_cats * test_repeats * test_samples * n_test_runs
             
-            # 1. Calculate Base and Jitter components
+            # 1. Calculate Base and Jitter components based on selected tab
             if tab == 0: # 2-Event
                 dec = self.get_float(self.v_2_dec)
                 fb = self.get_float(self.v_2_fb)
@@ -717,7 +841,7 @@ class DesignGUI(tk.Tk):
                 
                 # Full Trial (with jitter)
                 t_min, t_max = dec + fb + j_min + i_min, dec + fb + j_max + i_max
-                # Without Jitter (ISI 2 equivalent in 2-event)
+                # Without Jitter (e.g., no ISI2)
                 tn_min, tn_max = dec + fb + i_min, dec + fb + i_max
                 # Test Trial (No Jitter/Feedback)
                 test_t_min, test_t_max = dec + i_min, dec + i_max
@@ -744,13 +868,13 @@ class DesignGUI(tk.Tk):
             tn_mean = (tn_min + tn_max) / 2
             test_t_mean = (test_t_min + test_t_max) / 2
 
-            # 2. Update Labels
+            # 2. Update GUI labels with formatted values
             self.lbl_trial_mean.config(text=f"{t_mean:.2f}s")
             self.lbl_trial_mean_nojit.config(text=f"(No-ISI2: {tn_mean:.2f}s)")
             self.lbl_trial_range.config(text=f"{t_min:.1f}s - {t_max:.1f}s")
             self.lbl_trial_range_nojit.config(text=f"(No-ISI2: {tn_min:.1f}s - {tn_max:.1f}s)")
 
-            # Total session time without test runs
+            # Total session time without test runs (approximation in minutes)
             s1_full = (n_runs1 * n_trials1 * t_mean) / 60
             s1_no_isi2 = (n_runs1 * n_trials1 * tn_mean) / 60
             s2_full = (n_runs2 * n_trials2 * t_mean) / 60
@@ -759,7 +883,7 @@ class DesignGUI(tk.Tk):
             # Test run duration (total across all specified test runs)
             test_dur = (total_test_trials * test_t_mean) / 60 if include_test else 0.0
 
-            # 3. Final String Formatting
+            # 3. Final String Formatting for display
             self.lbl_s1_total.config(text=f"~{s1_full:.2f} min")
             self.lbl_s1_total_nojit.config(text=f"No-ISI2: ~{s1_no_isi2:.2f} min | test length: ~{test_dur:.2f} min")
             
@@ -767,8 +891,14 @@ class DesignGUI(tk.Tk):
             self.lbl_s2_total_nojit.config(text=f"No-ISI2: ~{s2_no_isi2:.2f} min | test length: ~{test_dur:.2f} min")
 
         except Exception:
+            # Silent guard: GUI should remain responsive even if a transient parse error occurs
             pass
     def run(self):
+        """Main entry invoked by the 'Generate Designs' button.
+
+        Reads GUI values, assembles DesignConfig objects for session 1 and 2,
+        and iterates over requested participants to write per-session CSV master files.
+        """
         if not os.path.exists(self.v_csv.get()):
             messagebox.showerror("Error", "CSV not found")
             return
@@ -776,7 +906,7 @@ class DesignGUI(tk.Tk):
             selected_tab = self.nb.select()
             mode = "2event" if selected_tab == str(self.tab2) else "3event"
             
-            # Initial config from GUI (Session 1 parameters)
+            # Construct jitter configuration from GUI controls
             jconf = JitterConfig(
                 mode=self.v_jmode.get(), 
                 norm_mu=self.get_float(self.v_nmu, None), 
@@ -785,6 +915,7 @@ class DesignGUI(tk.Tk):
                 exp_reverse=self.v_erev.get()
             )
             
+            # Build session 1 config from GUI values
             cfg_s1 = DesignConfig(
                 design_type=mode, 
                 n_runs=self.get_int(self.v_runs, 2), 
@@ -795,6 +926,7 @@ class DesignGUI(tk.Tk):
                 jitter_config=jconf
             )
             
+            # Attach timing parameters depending on the selected mode
             if mode == "2event":
                 cfg_s1.dec_dur, cfg_s1.dec_fb_dur = self.get_float(self.v_2_dec, 2.0), self.get_float(self.v_2_fb, 1.0)
                 cfg_s1.jit_dec_fb_range, cfg_s1.jit_iti_range = parse_range(self.v_2_jit.get(), "Jitter"), parse_range(self.v_2_iti.get(), "ITI")
@@ -802,7 +934,7 @@ class DesignGUI(tk.Tk):
                 cfg_s1.img_dur, cfg_s1.max_dec_dur, cfg_s1.fb_dur = self.get_float(self.v_3_img, 1.0), self.get_float(self.v_3_max, 3.0), self.get_float(self.v_3_fb, 1.0)
                 cfg_s1.jit_isi1_range, cfg_s1.jit_isi2_range, cfg_s1.jit_iti_range = parse_range(self.v_3_isi1.get(), "ISI1"), parse_range(self.v_3_isi2.get(), "ISI2"), parse_range(self.v_3_iti.get(), "ITI")
 
-            # Create Session 2 Config by overriding S1
+            # Create Session 2 config via dataclasses.replace (S2 differs only by run counts)
             cfg_s2 = dataclasses.replace(
                 cfg_s1, 
                 n_runs=self.get_int(self.v_runs_s2, 2), 
@@ -813,12 +945,14 @@ class DesignGUI(tk.Tk):
             prefix = self.v_prefix.get()
             os.makedirs(prefix, exist_ok=True)
             
+            # Load master label CSV and initialise global tracking structures for balancing
             df_master = load_and_parse_groups(self.v_csv.get())
             all_spaces_master = [str(s) for s in df_master['ObjectSpace'].tolist()]
             cond_master = ['Congruent', 'Medium', 'Incongruent']
             global_sc = {s: {c: 0 for c in cond_master} for s in all_spaces_master}
             global_pair = {}
 
+            # Iterate requested number of participants, creating a balanced map and generating rows
             for i in range(self.get_int(self.v_n_subs, 5)):
                 sub_id = self.get_int(self.v_start_id, 1) + i
                 sub_rng = np.random.default_rng(base_rng.integers(0, 2**32))
@@ -827,11 +961,11 @@ class DesignGUI(tk.Tk):
                 selected = select_spaces_rotated(all_spaces_master, sub_id, cfg_s1.n_categories_to_select)
                 sc_map = optimise_space_condition_map(sub_rng, selected, cond_master, global_sc, global_pair)
                 
-                # Generate Session 1
+                # Generate Session 1 rows and save
                 rows_s1 = generate_design_rows(sub_rng, cfg_s1, sub_id, sc_map)
                 self._save_session_data(rows_s1, sub_id, 1, prefix, mode)
                 
-                # Generate Session 2 (Retains exact same sc_map)
+                # Generate Session 2 rows (reusing the same sc_map so assignments remain consistent)
                 rows_s2 = generate_design_rows(sub_rng, cfg_s2, sub_id, sc_map)
                 self._save_session_data(rows_s2, sub_id, 2, prefix, mode)
                 
@@ -839,6 +973,7 @@ class DesignGUI(tk.Tk):
 
             self.log("All participants generated."); messagebox.showinfo("Success", "Design files generated for 2 sessions.")
         except Exception as e:
+            # Surface the error both in the GUI log and a popup dialog
             self.log(f"Error: {e}"); messagebox.showerror("Error", str(e))
 
 if __name__ == "__main__":
