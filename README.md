@@ -30,7 +30,7 @@ cd novel_concept_learning_fMRI
 Use the requirements file included in this repository to install the necessary dependencies.
 ```bash
 conda env create -f environment.yml
-conda activate novel_concepts
+conda activate study3-task-env
 
 ```
 
