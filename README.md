@@ -27,11 +27,11 @@ cd novel_concept_learning_fMRI
 
 
 2. **Create the Conda environment:**
-Use the requirements file included in this repository to install the necessary dependencies.
+Use the requirements file included in this repository to install the necessary dependencies. Install the specific PsychoPy version as follows using pip:
 ```bash
 conda env create -f environment.yml
 conda activate study3-task-env
-
+python -m pip install -r requirements-psychopy.txt
 ```
 
 
