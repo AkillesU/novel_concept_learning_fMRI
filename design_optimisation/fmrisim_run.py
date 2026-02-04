@@ -53,6 +53,7 @@ from brainiak.utils import fmrisim
 
 REQUIRED_COLS = {"run_id","trial_id","img_onset","img_dur","dec_onset_est","isi2_dur","fb_dur"}
 
+from scipy.stats import spearmanr
 from scipy.stats import gamma
 from scipy.ndimage import binary_closing, binary_opening, binary_fill_holes, label
 
@@ -114,6 +115,172 @@ def corr_rows(A: np.ndarray, B: np.ndarray, eps: float = 1e-12) -> np.ndarray:
     return num / np.maximum(den, eps)
 
 
+
+# ------------------------
+# Anchored RSA recovery metrics
+# ------------------------
+def _zscore_rows(X: np.ndarray, eps: float = 1e-8) -> np.ndarray:
+    X = X.astype(np.float64, copy=False)
+    mu = X.mean(axis=1, keepdims=True)
+    sd = X.std(axis=1, keepdims=True)
+    return (X - mu) / (sd + eps)
+
+def _rowwise_pearson_to_set(A: np.ndarray, B: np.ndarray, eps: float = 1e-8) -> np.ndarray:
+    """Return C where C[i, j] = corr(A[i], B[j]) (Pearson), computed efficiently.
+
+    A: (nA, v), B: (nB, v)
+    """
+    A = _zscore_rows(A, eps)
+    B = _zscore_rows(B, eps)
+    return (A @ B.T) / A.shape[1]
+
+def anchored_trial_rsa(G: np.ndarray, E: np.ndarray) -> np.ndarray:
+    """Per-trial anchored RSA score.
+
+    For each trial i:
+      v_gt = corr(G[i], G[others])
+      v_an = corr(E[i], G[others])   # anchored against GT patterns to avoid E-E collinearity artifacts
+      score_i = Spearman(v_gt, v_an)
+    """
+    if G.shape != E.shape:
+        raise ValueError(f"G shape {G.shape} != E shape {E.shape}")
+    n = G.shape[0]
+    C_gt = _rowwise_pearson_to_set(G, G)   # (n, n)
+    C_an = _rowwise_pearson_to_set(E, G)   # (n, n)
+
+    scores = np.zeros(n, dtype=np.float64)
+    for i in range(n):
+        mask = np.ones(n, dtype=bool)
+        mask[i] = False
+        v_gt = C_gt[i, mask]
+        v_an = C_an[i, mask]
+        rho = spearmanr(v_gt, v_an).correlation
+        if rho is None or np.isnan(rho):
+            rho = 0.0
+        scores[i] = float(rho)
+    return scores
+
+def anchored_trial_rsa_voxelshuffle_null(
+    G: np.ndarray,
+    E: np.ndarray,
+    null_perms: int,
+    rng: np.random.Generator,
+    shuffle_mode: str = "global",
+) -> dict:
+    """Voxel-shuffle null for anchored RSA.
+
+    Shuffles voxel values within the *estimated* patterns E to break voxel-to-voxel correspondence,
+    then recomputes the *mean* anchored RSA score across trials.
+
+    shuffle_mode:
+      - 'global': same voxel permutation applied to all trials each perm (fast, usually sufficient)
+      - 'per_row': independent voxel permutation per trial each perm (stronger null)
+    """
+    if not null_perms or int(null_perms) <= 0:
+        return {"null_mean": float("nan"), "null_p05": float("nan"), "null_p95": float("nan")}
+
+    if G.shape != E.shape:
+        raise ValueError(f"G shape {G.shape} != E shape {E.shape}")
+    n, v = G.shape
+
+    # Pre-zscore GT once for fast Pearson correlation via dot-products
+    Gz = _zscore_rows(G)
+    Gz_T = Gz.T
+    C_gt = (Gz @ Gz_T) / v
+
+    def corr_E_to_G(E_in: np.ndarray) -> np.ndarray:
+        Ez = _zscore_rows(E_in)
+        return (Ez @ Gz_T) / v
+
+    null_means = np.zeros(int(null_perms), dtype=np.float64)
+    for p in range(int(null_perms)):
+        if shuffle_mode == "global":
+            perm_vox = rng.permutation(v)
+            E_shuf = E[:, perm_vox]
+        elif shuffle_mode == "per_row":
+            E_shuf = np.empty_like(E)
+            for i in range(n):
+                E_shuf[i] = E[i, rng.permutation(v)]
+        else:
+            raise ValueError("shuffle_mode must be 'global' or 'per_row'")
+
+        C_an = corr_E_to_G(E_shuf)
+        srow = np.zeros(n, dtype=np.float64)
+        for i in range(n):
+            mask = np.ones(n, dtype=bool)
+            mask[i] = False
+            v_gt = C_gt[i, mask]
+            v_an = C_an[i, mask]
+            rho = spearmanr(v_gt, v_an).correlation
+            if rho is None or np.isnan(rho):
+                rho = 0.0
+            srow[i] = float(rho)
+        null_means[p] = float(np.mean(srow))
+
+    return {
+        "null_mean": float(np.mean(null_means)),
+        "null_p05": float(np.percentile(null_means, 5)),
+        "null_p95": float(np.percentile(null_means, 95)),
+    }
+
+def category_mismatch_null_indices(df_run: pd.DataFrame) -> np.ndarray | None:
+    """Return an array of category labels per trial, or None if not available."""
+    for col in ("class_id", "category", "cat", "label", "condition"):
+        if col in df_run.columns:
+            return df_run[col].to_numpy()
+    return None
+
+def anchored_trial_rsa_category_null(
+    G: np.ndarray,
+    E: np.ndarray,
+    cats: np.ndarray,
+) -> dict:
+    """Category-mismatch null for anchored RSA.
+
+    For each trial i, we take an *estimated* pattern from a different category (within the run),
+    use it as the 'E' for trial i, compute anchored RSA against G, and average across trials.
+    This gives a null that respects category-level similarity structure.
+
+    This is deterministic given the provided cats; it is not a permutation distribution, but a
+    mismatch baseline.
+    """
+    if cats is None:
+        return {"null_mean": float("nan")}
+    n = G.shape[0]
+    if len(cats) != n:
+        return {"null_mean": float("nan")}
+
+    # Precompute the GT geometry vectors
+    C_gt = _rowwise_pearson_to_set(G, G)
+    # For each i, build v_gt once
+    v_gt_list = []
+    masks = []
+    for i in range(n):
+        mask = np.ones(n, dtype=bool); mask[i] = False
+        masks.append(mask)
+        v_gt_list.append(C_gt[i, mask])
+
+    # For each trial, pick a donor trial from a *different* category (first occurrence)
+    mismatch_scores = []
+    for i in range(n):
+        donor = np.where(cats != cats[i])[0]
+        if donor.size == 0:
+            continue
+        k = int(donor[0])
+        # anchored similarities for donor pattern against GT others for trial i
+        # v_an = corr(E_k, G_others_of_i)
+        # compute correlations between E_k and all G_j
+        c = _rowwise_pearson_to_set(E[[k]], G)[0]  # (n,)
+        v_an = c[masks[i]]
+        rho = spearmanr(v_gt_list[i], v_an).correlation
+        if rho is None or np.isnan(rho):
+            rho = 0.0
+        mismatch_scores.append(float(rho))
+
+    if len(mismatch_scores) == 0:
+        return {"null_mean": float("nan")}
+    return {"null_mean": float(np.mean(mismatch_scores))}
+
 # ------------------------
 # fmrisim helpers
 # ------------------------
@@ -147,7 +314,7 @@ def convolve_to_TR(stim, TR, tres, n_scans, hrf_type='double_gamma'):
         tr_duration=TR,
         temporal_resolution=tres,
         scale_function=False,
-        # hrf_type=hrf_vector # Use standard canonical (default)
+        #hrf_library=hrf_vector
     )
 
     n_tp_run = sig.shape[0]
@@ -520,7 +687,9 @@ def simulate_one_run(df_run: pd.DataFrame,
                      decision_mix: float,
                      feedback_mix: float,
                      hrf_latency_mismatch_sd: float,
-                     nuisance_model: str) -> dict:
+                     nuisance_model: str,
+                     rsa_null_perms: int = 0,
+                     rsa_shuffle_mode: str = "global") -> dict:
 
     # 1. Build Design Matrices (Uses the fixed convolve_to_TR)
     X_enc, X_dec, X_fb = build_event_mats(df_run, TR, pad_s, dec_dur_s, tres, hrf_type_sim)
@@ -579,6 +748,25 @@ def simulate_one_run(df_run: pd.DataFrame,
         b = pinv_beta(X_lss, Y)
         Bhat_enc_lss[j] = b[0, :]
 
+
+    # 8. Anchored RSA recovery (per trial), plus null baselines
+    rsa_anchor_lsa = anchored_trial_rsa(P_enc, Bhat_enc_lsa)
+    rsa_anchor_lss = anchored_trial_rsa(P_enc, Bhat_enc_lss)
+
+    # Voxel-shuffle null (break voxel correspondence; better than trial-identity shuffles when categories repeat)
+    rsa_anchor_lsa_null = anchored_trial_rsa_voxelshuffle_null(
+    P_enc, Bhat_enc_lsa,
+    null_perms=rsa_null_perms,
+    rng=rng,
+    shuffle_mode=rsa_shuffle_mode
+    )
+    rsa_anchor_lss_null = anchored_trial_rsa_voxelshuffle_null(P_enc, Bhat_enc_lss, null_perms=rsa_null_perms, rng=rng, shuffle_mode="global")
+
+    # Optional category-mismatch null if category labels exist in df_run
+    cats = category_mismatch_null_indices(df_run)
+    rsa_anchor_lsa_catnull = anchored_trial_rsa_category_null(P_enc, Bhat_enc_lsa, cats) if cats is not None else {"null_mean": float("nan")}
+    rsa_anchor_lss_catnull = anchored_trial_rsa_category_null(P_enc, Bhat_enc_lss, cats) if cats is not None else {"null_mean": float("nan")}
+
     return {
         "Y": Y,
         "P_enc": P_enc,
@@ -586,6 +774,12 @@ def simulate_one_run(df_run: pd.DataFrame,
         "Bhat_enc_lss": Bhat_enc_lss,
         "rec_lsa": corr_rows(P_enc, Bhat_enc_lsa),
         "rec_lss": corr_rows(P_enc, Bhat_enc_lss),
+        "rsa_anchor_lsa": rsa_anchor_lsa,
+        "rsa_anchor_lss": rsa_anchor_lss,
+        "rsa_anchor_lsa_null": rsa_anchor_lsa_null,
+        "rsa_anchor_lss_null": rsa_anchor_lss_null,
+        "rsa_anchor_lsa_catnull": rsa_anchor_lsa_catnull,
+        "rsa_anchor_lss_catnull": rsa_anchor_lss_catnull,
     }
 
 
@@ -607,6 +801,8 @@ def main():
     ap.add_argument("--feedback_mix", type=float, default=0.80)
 
     ap.add_argument("--n_reps", type=int, default=20)
+    ap.add_argument("--rsa_null_perms", type=int, default=200,
+                    help="Number of permutations for voxel-shuffle null of anchored RSA (0 to disable).")
     ap.add_argument("--seed", type=int, default=0)
 
     ap.add_argument("--hrf_latency_mismatch_sd", type=float, default=0.0)
@@ -656,17 +852,8 @@ def main():
     # Load patterns
     patterns = np.load(args.patterns_npz, allow_pickle=True)
     P_all = patterns["patterns_enc_200"].astype(np.float32)
-    # Allow simulating fewer voxels than exist in patterns (e.g., if your sampled ROI has fewer voxels).
-    # We deterministically take the first n_vox columns to keep alignment stable.
-    if args.n_vox > P_all.shape[1]:
-        raise ValueError(
-            f"--n_vox={args.n_vox} but patterns_enc_200 has only {P_all.shape[1]} columns. "
-            "Either regenerate patterns with at least n_vox columns, or reduce --n_vox."
-        )
-    if args.n_vox < P_all.shape[1]:
-        print(f"[fmrisim_run] NOTE: patterns_enc_200 has {P_all.shape[1]} columns but --n_vox={args.n_vox}. "
-              "Using the first --n_vox columns of the patterns for simulation.")
-        P_all = P_all[:, :args.n_vox]
+    if P_all.shape[1] != args.n_vox:
+        raise ValueError(f"patterns_enc_200 has {P_all.shape[1]} dims, expected n_vox={args.n_vox}")
     if len(df) != P_all.shape[0]:
         raise ValueError(f"CSV has {len(df)} rows but patterns have {P_all.shape[0]} rows. "
                          "Regenerate patterns from the same CSV/order, or align explicitly.")
@@ -775,7 +962,9 @@ def main():
                 decision_mix=args.decision_mix,
                 feedback_mix=args.feedback_mix,
                 hrf_latency_mismatch_sd=args.hrf_latency_mismatch_sd,
-                nuisance_model=args.nuisance_model
+                nuisance_model=args.nuisance_model,
+                rsa_null_perms=args.rsa_null_perms,
+                rsa_shuffle_mode="global",
             )
 
             rows.append({
@@ -797,7 +986,17 @@ def main():
                 "lsa_p05": float(np.percentile(res["rec_lsa"], 5)),
                 "lss_mean": float(res["rec_lss"].mean()),
                 "lss_p05": float(np.percentile(res["rec_lss"], 5)),
-            })
+                "rsa_anchor_lsa_mean": float(np.nanmean(res["rsa_anchor_lsa"])),
+                "rsa_anchor_lsa_p05": float(np.nanpercentile(res["rsa_anchor_lsa"], 5)),
+                "rsa_anchor_lsa_null_mean": float(res["rsa_anchor_lsa_null"].get("null_mean", float("nan"))),
+                "rsa_anchor_lsa_null_p95": float(res["rsa_anchor_lsa_null"].get("null_p95", float("nan"))),
+                "rsa_anchor_lsa_catnull_mean": float(res["rsa_anchor_lsa_catnull"].get("null_mean", float("nan"))),
+                "rsa_anchor_lss_mean": float(np.nanmean(res["rsa_anchor_lss"])),
+                "rsa_anchor_lss_p05": float(np.nanpercentile(res["rsa_anchor_lss"], 5)),
+                "rsa_anchor_lss_null_mean": float(res["rsa_anchor_lss_null"].get("null_mean", float("nan"))),
+                "rsa_anchor_lss_null_p95": float(res["rsa_anchor_lss_null"].get("null_p95", float("nan"))),
+                "rsa_anchor_lss_catnull_mean": float(res["rsa_anchor_lss_catnull"].get("null_mean", float("nan"))),
+                })
 
             if rep == 0:
                 np.savez_compressed(
@@ -810,14 +1009,17 @@ def main():
                     rec_lss=res["rec_lss"].astype(np.float32),
                 )
 
-    summary = pd.DataFrame(rows)
-    summary.to_csv(out_dir / "recovery_summary.csv", index=False)
+        summary = pd.DataFrame(rows)
+        summary.to_csv(out_dir / "recovery_summary.csv", index=False)
 
     print(f"LOC space: {args.loc_space}")
     print(f"LOC center (world mm): {tuple(center_world.tolist())}")
     print(f"LOC center (voxel): {tuple(center_vox.tolist())}")
     print(f"ROI voxels (mask): {n_roi} | radius_mm≈{radius_mm:.2f} | sampled n_vox={args.n_vox}")
-    print(summary.groupby("run_id")[["lsa_mean","lsa_p05","lss_mean","lss_p05"]].mean().round(4))
+    print(summary.groupby("run_id")[["lsa_mean","lsa_p05","lss_mean","lss_p05",
+                                "rsa_anchor_lsa_mean","rsa_anchor_lss_mean",
+                                "rsa_anchor_lsa_null_mean","rsa_anchor_lss_null_mean",
+                                "rsa_anchor_lsa_catnull_mean","rsa_anchor_lss_catnull_mean"]].mean().round(4))
     print(f"\nWrote: {out_dir / 'recovery_summary.csv'}")
     if args.write_roi_mask:
         print(f"Wrote: {out_dir / 'loc_roi_mask.nii.gz'}")
