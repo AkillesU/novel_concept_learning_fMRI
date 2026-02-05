@@ -47,6 +47,8 @@ import numpy as np
 import pandas as pd
 import nibabel as nib
 from nibabel.affines import apply_affine
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, CheckButtons
 
 from brainiak.utils import fmrisim
 
@@ -115,6 +117,50 @@ def corr_rows(A: np.ndarray, B: np.ndarray, eps: float = 1e-12) -> np.ndarray:
     return num / np.maximum(den, eps)
 
 
+# ------------------------
+# Simple AR(1) prewhitening (SPM-like idea, simplified)
+# ------------------------
+def _estimate_ar1_rho_from_resid(resid: np.ndarray, eps: float = 1e-8) -> float:
+    """Estimate a single AR(1) rho from residuals (T x V) using median across voxels."""
+    if resid.shape[0] < 3:
+        return 0.0
+    r0 = resid[:-1, :]
+    r1 = resid[1:, :]
+    num = np.sum(r1 * r0, axis=0)
+    den = np.sum(r0 * r0, axis=0) + eps
+    rho_v = num / den
+    rho = float(np.nanmedian(rho_v))
+    # keep stable
+    return float(np.clip(rho, -0.99, 0.99))
+
+
+def ar1_prewhiten(Y: np.ndarray, X_list: list[np.ndarray], C_hp: np.ndarray) -> tuple[np.ndarray, list[np.ndarray], float]:
+    """Prewhiten Y and design matrices with an estimated AR(1) rho.
+
+    We estimate rho on residuals after removing high-pass DCT (C_hp), then apply
+    the same filter to Y and each X in X_list:
+        y'_t = y_t - rho * y_{t-1}
+    The first sample is left unchanged.
+    """
+    # Residualize Y by high-pass only to estimate rho robustly
+    try:
+        Bhp = np.linalg.pinv(C_hp) @ Y
+        resid = Y - (C_hp @ Bhp)
+    except Exception:
+        resid = Y - Y.mean(axis=0, keepdims=True)
+    rho = _estimate_ar1_rho_from_resid(resid)
+
+    def filt(M: np.ndarray) -> np.ndarray:
+        M = np.asarray(M)
+        out = M.copy()
+        out[1:, ...] = out[1:, ...] - rho * out[:-1, ...]
+        return out
+
+    Yw = filt(Y)
+    Xw = [filt(X) for X in X_list]
+    return Yw, Xw, rho
+
+
 
 # ------------------------
 # Anchored RSA recovery metrics
@@ -159,6 +205,82 @@ def anchored_trial_rsa(G: np.ndarray, E: np.ndarray) -> np.ndarray:
             rho = 0.0
         scores[i] = float(rho)
     return scores
+
+
+def category_labels_from_df(df_run: pd.DataFrame) -> np.ndarray | None:
+    """Return category labels (one per trial) if present, else None."""
+    for col in ("ObjectSpace","group","class_id", "category", "cat", "label", "condition"):
+        if col in df_run.columns:
+            return df_run[col].to_numpy()
+    return None
+
+
+def anchored_category_rsa(G: np.ndarray, E: np.ndarray, cats: np.ndarray) -> dict:
+    """Anchored RSA computed at the *category-mean* level.
+
+    Steps (within a run):
+      1) Average patterns within each category for GT (G) and estimated (E)
+      2) Compute anchored RSA per-category, analogous to anchored_trial_rsa
+      3) Also compute a single summary correlation between (GT category RDM) and
+         (anchored estimated-to-GT category RDM).
+
+    Returns dict with fields:
+      - scores: per-category anchored RSA (Spearman), shape (n_cat,)
+      - mean: mean(scores)
+      - rdm_spearman: Spearman between upper triangles of category similarity matrices
+    """
+    if cats is None:
+        return {"scores": None, "mean": float("nan"), "rdm_spearman": float("nan"), "n_cat": 0}
+    if G.shape != E.shape:
+        raise ValueError(f"G shape {G.shape} != E shape {E.shape}")
+    if len(cats) != G.shape[0]:
+        return {"scores": None, "mean": float("nan"), "rdm_spearman": float("nan"), "n_cat": 0}
+
+    # Stable category ordering
+    cats = np.asarray(cats)
+    uniq = pd.unique(cats)
+    if len(uniq) < 2:
+        return {"scores": None, "mean": float("nan"), "rdm_spearman": float("nan"), "n_cat": int(len(uniq))}
+
+    Gc = []
+    Ec = []
+    for c in uniq:
+        idx = np.where(cats == c)[0]
+        if idx.size == 0:
+            continue
+        Gc.append(G[idx].mean(axis=0))
+        Ec.append(E[idx].mean(axis=0))
+    Gc = np.asarray(Gc, dtype=np.float64)
+    Ec = np.asarray(Ec, dtype=np.float64)
+    n_cat = Gc.shape[0]
+    if n_cat < 2:
+        return {"scores": None, "mean": float("nan"), "rdm_spearman": float("nan"), "n_cat": int(n_cat)}
+
+    # Per-category anchored RSA
+    C_gt = _rowwise_pearson_to_set(Gc, Gc)   # (n_cat, n_cat)
+    C_an = _rowwise_pearson_to_set(Ec, Gc)   # (n_cat, n_cat)
+    scores = np.zeros(n_cat, dtype=np.float64)
+    for i in range(n_cat):
+        mask = np.ones(n_cat, dtype=bool); mask[i] = False
+        rho = spearmanr(C_gt[i, mask], C_an[i, mask]).correlation
+        if rho is None or np.isnan(rho):
+            rho = 0.0
+        scores[i] = float(rho)
+
+    # RDM-level summary (upper triangle Spearman)
+    iu = np.triu_indices(n_cat, k=1)
+    v_gt = C_gt[iu]
+    v_an = C_an[iu]
+    rdm_rho = spearmanr(v_gt, v_an).correlation
+    if rdm_rho is None or np.isnan(rdm_rho):
+        rdm_rho = 0.0
+
+    return {
+        "scores": scores,
+        "mean": float(np.mean(scores)),
+        "rdm_spearman": float(rdm_rho),
+        "n_cat": int(n_cat),
+    }
 
 def anchored_trial_rsa_voxelshuffle_null(
     G: np.ndarray,
@@ -225,7 +347,7 @@ def anchored_trial_rsa_voxelshuffle_null(
 
 def category_mismatch_null_indices(df_run: pd.DataFrame) -> np.ndarray | None:
     """Return an array of category labels per trial, or None if not available."""
-    for col in ("class_id", "category", "cat", "label", "condition"):
+    for col in ("ObjectSpace","group","class_id", "category", "cat", "label", "condition"):
         if col in df_run.columns:
             return df_run[col].to_numpy()
     return None
@@ -297,30 +419,26 @@ def convolve_to_TR(stim, TR, tres, n_scans, hrf_type='double_gamma'):
     Convolve high-res stimulation vector to TR resolution.
     Returns 1D array of length n_scans.
     """
-    # Force stim to be 2D (time x conditions) for brainiak requirements
     if stim.ndim == 1:
         stim = stim.reshape(-1, 1)
 
     if isinstance(hrf_type, str):
-        hrf_vector = get_double_gamma_hrf(temporal_resolution=tres)
+        hrf_vector = get_double_gamma_hrf(temporal_resolution=tres).flatten()
     else:
-        hrf_vector = hrf_type
-
-    if hasattr(hrf_vector, 'flatten'):
-        hrf_vector = hrf_vector.flatten()
+        hrf_vector = np.asarray(hrf_type).flatten()
 
     sig = fmrisim.convolve_hrf(
         stimfunction=stim,
         tr_duration=TR,
         temporal_resolution=tres,
         scale_function=False,
-        #hrf_library=hrf_vector
+        #hrf_library=hrf_vector,   # <-- use the HRF you computed
     )
 
-    n_tp_run = sig.shape[0]
-    t_high = np.arange(n_tp_run, dtype=float) / float(tres)
-    t_tr = np.arange(n_scans, dtype=float) * float(TR)
-    return np.interp(t_tr, t_high, sig[:, 0])
+    out = np.zeros((n_scans,), dtype=float)
+    L = min(n_scans, sig.shape[0])
+    out[:L] = sig[:L, 0]
+    return out
 
 
 def generate_noise_volume(noise_dict: Dict, mask3d: np.ndarray, template3d: np.ndarray, n_scans: int, TR: float) -> np.ndarray:
@@ -441,6 +559,60 @@ def estimate_loc_center_from_mask(brain_mask: np.ndarray, frac_xyz: Tuple[float,
     center = mins + (maxs - mins) * np.array(frac_xyz, dtype=float)
     return center
 
+
+def snap_vox_to_brain_mask(center_vox: np.ndarray, brain_mask: np.ndarray, max_radius_vox: int = 25) -> np.ndarray:
+    """Snap a (possibly non-integer) voxel coordinate to the nearest in-brain voxel."""
+    if brain_mask.size == 0:
+        return center_vox
+    c = np.array(center_vox, dtype=float)
+    c_round = np.round(c).astype(int)
+    c_round = np.clip(c_round, [0,0,0], np.array(brain_mask.shape) - 1)
+    if brain_mask[tuple(c_round)] > 0:
+        return c_round.astype(float)
+
+    # Expanding cube search around the rounded center
+    ci, cj, ck = c_round.tolist()
+    best = None
+    best_d2 = 1e18
+    for r in range(1, max_radius_vox + 1):
+        i0, i1 = max(0, ci - r), min(brain_mask.shape[0], ci + r + 1)
+        j0, j1 = max(0, cj - r), min(brain_mask.shape[1], cj + r + 1)
+        k0, k1 = max(0, ck - r), min(brain_mask.shape[2], ck + r + 1)
+        sub = brain_mask[i0:i1, j0:j1, k0:k1]
+        if not np.any(sub):
+            continue
+        coords = np.argwhere(sub > 0) + np.array([i0, j0, k0])
+        d2 = np.sum((coords - c[None, :])**2, axis=1)
+        idx = int(np.argmin(d2))
+        if float(d2[idx]) < best_d2:
+            best_d2 = float(d2[idx])
+            best = coords[idx]
+        # Early exit if we found something very close
+        if best is not None and best_d2 <= 1.0:
+            break
+    if best is None:
+        # Fall back to any in-brain voxel (centroid)
+        coords = np.argwhere(brain_mask > 0)
+        if coords.size == 0:
+            return c_round.astype(float)
+        best = np.round(np.mean(coords, axis=0)).astype(int)
+    return best.astype(float)
+
+def estimate_occipital_center_from_mask(brain_mask: np.ndarray, aff: np.ndarray, posterior_quantile: float = 0.10) -> np.ndarray:
+    """Pick a conservative posterior (occipital-ish) in-brain center using world Y (posterior-most quantile)."""
+    coords = np.argwhere(brain_mask > 0)
+    if coords.size == 0:
+        raise RuntimeError("Brain mask is empty; cannot estimate occipital center.")
+    # Convert to world and use Y as posterior/anterior axis
+    xyz = apply_affine(aff, coords)
+    y = xyz[:, 1]
+    thr = float(np.quantile(y, posterior_quantile))
+    post = coords[y <= thr]
+    if post.size == 0:
+        post = coords
+    center = np.median(post, axis=0)
+    center = snap_vox_to_brain_mask(center, brain_mask, max_radius_vox=25)
+    return center
 def roi_mask_target_voxels(shape3d: Tuple[int,int,int],
                            aff: np.ndarray,
                            brain_mask: np.ndarray,
@@ -658,16 +830,123 @@ def make_noisy_event_patterns(P_enc: np.ndarray, rng: np.random.Generator, mix: 
     P = (1.0 - mix) * P_enc + mix * R
     return rownorm(P)
 
-def apply_voxel_latency_shift(Y_sig: np.ndarray, TR: float, rng: np.random.Generator, sd_s: float) -> np.ndarray:
+def apply_voxel_latency_shift(
+    Y_sig: np.ndarray,
+    TR: float,
+    rng: np.random.Generator,
+    sd_s: float,
+    return_shifts: bool = False,
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     if sd_s <= 0:
-        return Y_sig
+        shifts = np.zeros(Y_sig.shape[1], dtype=float)
+        return (Y_sig, shifts) if return_shifts else Y_sig
+
     T, V = Y_sig.shape
     t = np.arange(T) * TR
     out = np.empty_like(Y_sig)
     shifts = rng.normal(0.0, sd_s, size=V)
     for v in range(V):
         out[:, v] = np.interp(t, t - shifts[v], Y_sig[:, v], left=Y_sig[0, v], right=Y_sig[-1, v])
-    return out
+
+    return (out, shifts) if return_shifts else out
+
+
+def apply_voxel_latency_shift_to_components(
+    comps: list[np.ndarray],
+    TR: float,
+    shifts: np.ndarray,
+) -> list[np.ndarray]:
+    """Apply pre-sampled voxel shifts to each component time series."""
+    if shifts is None:
+        return comps
+    T, V = comps[0].shape
+    t = np.arange(T) * TR
+    out_list = []
+    for comp in comps:
+        out = np.empty_like(comp)
+        for v in range(V):
+            out[:, v] = np.interp(t, t - shifts[v], comp[:, v], left=comp[0, v], right=comp[-1, v])
+        out_list.append(out)
+    return out_list
+
+
+def interactive_plot_true_components(
+    TR: float,
+    comp_enc: np.ndarray,
+    comp_dec: np.ndarray,
+    comp_fb: np.ndarray,
+    Y_total: np.ndarray | None = None,
+    title_prefix: str = "",
+):
+    """
+    Interactive plot (matplotlib) to browse voxels.
+    X-axis is TR index (0..T-1).
+    """
+    T, V = comp_enc.shape
+    x = np.arange(T)
+
+    # Initial voxel
+    v0 = 0
+
+    fig, ax = plt.subplots(figsize=(11, 5))
+    plt.subplots_adjust(bottom=0.25, right=0.82)
+
+    l_enc, = ax.plot(x, comp_enc[:, v0], label="Encoding")
+    l_dec, = ax.plot(x, comp_dec[:, v0], label="Decision")
+    l_fb,  = ax.plot(x, comp_fb[:, v0],  label="Feedback")
+    l_sum, = ax.plot(x, comp_enc[:, v0] + comp_dec[:, v0] + comp_fb[:, v0], label="Sum")
+
+    l_y = None
+    if Y_total is not None:
+        l_y, = ax.plot(x, Y_total[:, v0], label="Y (signal+noise)")
+
+    ax.set_xlabel("TR index")
+    ax.set_ylabel("Amplitude (a.u.)")
+    ax.set_title(f"{title_prefix}Voxel {v0} | TR={TR:.3f}s | Time={T} TRs")
+    ax.legend(loc="upper left")
+
+    # Slider for voxel index
+    ax_vox = plt.axes([0.10, 0.10, 0.60, 0.04])
+    s_vox = Slider(ax_vox, "Voxel", 0, V - 1, valinit=v0, valstep=1)
+
+    # Checkbuttons to toggle lines
+    labels = ["Encoding", "Decision", "Feedback", "Sum"] + (["Y (signal+noise)"] if l_y is not None else [])
+    visibility = [True, True, True, True] + ([True] if l_y is not None else [])
+    ax_chk = plt.axes([0.84, 0.35, 0.15, 0.25])
+    chk = CheckButtons(ax_chk, labels, visibility)
+
+    line_map = {
+        "Encoding": l_enc,
+        "Decision": l_dec,
+        "Feedback": l_fb,
+        "Sum": l_sum,
+    }
+    if l_y is not None:
+        line_map["Y (signal+noise)"] = l_y
+
+    def update(vox_idx):
+        v = int(s_vox.val)
+        l_enc.set_ydata(comp_enc[:, v])
+        l_dec.set_ydata(comp_dec[:, v])
+        l_fb.set_ydata(comp_fb[:, v])
+        l_sum.set_ydata(comp_enc[:, v] + comp_dec[:, v] + comp_fb[:, v])
+        if l_y is not None:
+            l_y.set_ydata(Y_total[:, v])
+
+        ax.set_title(f"{title_prefix}Voxel {v} | TR={TR:.3f}s | Time={T} TRs")
+        ax.relim()
+        ax.autoscale_view()
+        fig.canvas.draw_idle()
+
+    def toggle(label):
+        line = line_map[label]
+        line.set_visible(not line.get_visible())
+        fig.canvas.draw_idle()
+
+    s_vox.on_changed(update)
+    chk.on_clicked(toggle)
+
+    plt.show()
 
 
 # ------------------------
@@ -688,8 +967,10 @@ def simulate_one_run(df_run: pd.DataFrame,
                      feedback_mix: float,
                      hrf_latency_mismatch_sd: float,
                      nuisance_model: str,
+                     prewhiten: str = "ar1",
                      rsa_null_perms: int = 0,
-                     rsa_shuffle_mode: str = "global") -> dict:
+                     rsa_shuffle_mode: str = "global",
+                     signal_psc: float = 0.5) -> dict:
 
     # 1. Build Design Matrices (Uses the fixed convolve_to_TR)
     X_enc, X_dec, X_fb = build_event_mats(df_run, TR, pad_s, dec_dur_s, tres, hrf_type_sim)
@@ -702,9 +983,35 @@ def simulate_one_run(df_run: pd.DataFrame,
     P_dec = make_noisy_event_patterns(P_enc, rng, decision_mix)
     P_fb  = make_noisy_event_patterns(P_enc, rng, feedback_mix)
 
+    comp_enc = (X_enc @ P_enc)
+    comp_dec = (X_dec @ P_dec)
+    comp_fb  = (X_fb  @ P_fb)
+    Y_sig = comp_enc + comp_dec + comp_fb
+
     # 3. Generate Signal
-    Y_sig = (X_enc @ P_enc) + (X_dec @ P_dec) + (X_fb @ P_fb)
-    Y_sig = apply_voxel_latency_shift(Y_sig, TR, rng, hrf_latency_mismatch_sd)
+    if signal_psc is not None and signal_psc > 0:
+        # baseline intensity from the real noise timeseries (ROI sampled)
+        baseline = float(np.mean(noise_2d))  # ~550 in your plot
+
+        # target RMS amplitude in intensity units
+        target_rms = (signal_psc / 100.0) * baseline
+
+        cur_rms = float(np.std(Y_sig))
+        if cur_rms > 0:
+            scale = target_rms / cur_rms
+            comp_enc *= scale
+            comp_dec *= scale
+            comp_fb  *= scale
+            Y_sig    *= scale
+
+
+    # Apply voxel latency mismatch consistently
+    if hrf_latency_mismatch_sd and hrf_latency_mismatch_sd > 0:
+        Y_sig, shifts = apply_voxel_latency_shift(Y_sig, TR, rng, hrf_latency_mismatch_sd, return_shifts=True)
+        comp_enc, comp_dec, comp_fb = apply_voxel_latency_shift_to_components([comp_enc, comp_dec, comp_fb], TR, shifts)
+    else:
+        shifts = np.zeros(Y_sig.shape[1], dtype=float)
+
     # 4. Noise (doc-style pipeline)
     # Noise is generated outside this function using the BrainIAK example pipeline
     # (mask_brain -> calc_noise -> generate_noise), then we sample n_vox voxels from the ROI
@@ -718,6 +1025,18 @@ def simulate_one_run(df_run: pd.DataFrame,
 
     # 7. GLM Fitting (LS-A / LS-S)
     C = dct_basis(n_scans, TR, hp_cutoff)
+
+    # Prewhitening (after simulation, as in typical fMRI pipelines)
+    # NOTE: This is a simplified global AR(1) prewhitening; SPM uses a richer model.
+    ar1_rho = float("nan")
+    if prewhiten and prewhiten.lower() != "none":
+        if prewhiten.lower() != "ar1":
+            raise ValueError("prewhiten must be 'none' or 'ar1'")
+        Y, (X_enc, X_dec, X_fb, C), ar1_rho = ar1_prewhiten(
+            Y=Y,
+            X_list=[X_enc, X_dec, X_fb, C],
+            C_hp=C,
+        )
 
     if nuisance_model == "summed":
         x_dec = X_dec.sum(axis=1, keepdims=True)
@@ -753,6 +1072,15 @@ def simulate_one_run(df_run: pd.DataFrame,
     rsa_anchor_lsa = anchored_trial_rsa(P_enc, Bhat_enc_lsa)
     rsa_anchor_lss = anchored_trial_rsa(P_enc, Bhat_enc_lss)
 
+    # Category-level anchored RSA (if category labels available)
+    cats = category_labels_from_df(df_run)
+    rsa_cat_lsa = anchored_category_rsa(P_enc, Bhat_enc_lsa, cats) if cats is not None else {
+        "scores": None, "mean": float("nan"), "rdm_spearman": float("nan"), "n_cat": 0
+    }
+    rsa_cat_lss = anchored_category_rsa(P_enc, Bhat_enc_lss, cats) if cats is not None else {
+        "scores": None, "mean": float("nan"), "rdm_spearman": float("nan"), "n_cat": 0
+    }
+
     # Voxel-shuffle null (break voxel correspondence; better than trial-identity shuffles when categories repeat)
     rsa_anchor_lsa_null = anchored_trial_rsa_voxelshuffle_null(
     P_enc, Bhat_enc_lsa,
@@ -772,14 +1100,22 @@ def simulate_one_run(df_run: pd.DataFrame,
         "P_enc": P_enc,
         "Bhat_enc_lsa": Bhat_enc_lsa,
         "Bhat_enc_lss": Bhat_enc_lss,
+        "prewhiten": prewhiten,
+        "ar1_rho": ar1_rho,
         "rec_lsa": corr_rows(P_enc, Bhat_enc_lsa),
         "rec_lss": corr_rows(P_enc, Bhat_enc_lss),
         "rsa_anchor_lsa": rsa_anchor_lsa,
         "rsa_anchor_lss": rsa_anchor_lss,
+        "rsa_cat_lsa": rsa_cat_lsa,
+        "rsa_cat_lss": rsa_cat_lss,
         "rsa_anchor_lsa_null": rsa_anchor_lsa_null,
         "rsa_anchor_lss_null": rsa_anchor_lss_null,
         "rsa_anchor_lsa_catnull": rsa_anchor_lsa_catnull,
         "rsa_anchor_lss_catnull": rsa_anchor_lss_catnull,
+        "comp_enc": comp_enc,
+        "comp_dec": comp_dec,
+        "comp_fb": comp_fb,
+
     }
 
 
@@ -788,19 +1124,26 @@ def main():
     ap.add_argument("--csv", required=True)
     ap.add_argument("--patterns_npz", required=True)
     ap.add_argument("--noise_nii", required=True, help="Real 4D NIfTI used to estimate noise + provide affine/shape.")
+    ap.add_argument("--plot_true", action="store_true",
+                    help="Interactive plot of true voxel responses (encoding/decision/feedback) for rep 0.")
+    ap.add_argument("--plot_run_id", default=None,
+                    help="If provided, plot only this run_id (default: first run) when --plot_true is set.")
 
     ap.add_argument("--TR", type=float, required=True)
     ap.add_argument("--hp_cutoff", type=float, default=128.0)
     ap.add_argument("--pad_s", type=float, default=32.0)
     ap.add_argument("--dec_dur_s", type=float, default=2.0)
     ap.add_argument("--temporal_resolution", type=float, default=100.0)
+    ap.add_argument("--signal_psc", type=float, default=0.5,
+                help="Scale simulated signal to target percent signal change relative to noise mean (e.g., 0.5 means 0.5%% PSC).")
 
     ap.add_argument("--n_vox", type=int, default=200)
 
     ap.add_argument("--decision_mix", type=float, default=0.55)
     ap.add_argument("--feedback_mix", type=float, default=0.80)
 
-    ap.add_argument("--n_reps", type=int, default=20)
+    ap.add_argument("--n_reps", type=int, default=1,
+                    help="Number of simulation repetitions to run (each rep simulates all runs once).")
     ap.add_argument("--rsa_null_perms", type=int, default=200,
                     help="Number of permutations for voxel-shuffle null of anchored RSA (0 to disable).")
     ap.add_argument("--seed", type=int, default=0)
@@ -808,6 +1151,9 @@ def main():
     ap.add_argument("--hrf_latency_mismatch_sd", type=float, default=0.0)
 
     ap.add_argument("--nuisance_model", choices=["summed","trialwise"], default="summed")
+
+    ap.add_argument("--prewhiten", choices=["none","ar1"], default="ar1",
+                    help="Prewhitening applied after simulation and before GLM. 'ar1' applies a simplified global AR(1) filter; 'none' disables.")
 
     ap.add_argument("--loc_space", choices=["mni", "voxel", "frac"], default="frac",
                     help="Coordinate space for LOC center: MNI mm, voxel indices, or brain-mask fractions.")
@@ -817,6 +1163,10 @@ def main():
                     help="LOC center in voxel indices (i j k). Used when --loc_space=voxel.")
     ap.add_argument("--loc_vox_frac", type=float, nargs=3, default=[0.80, 0.15, 0.35],
                     help="LOC center as fractions of brain-mask bounds (x y z). Used when --loc_space=frac.")
+    ap.add_argument("--loc_from_summary_csv", default=None,
+                    help="Optional: path to a previously written recovery_summary.csv. If provided, the LOC center "
+                         "(world + voxel coordinates) will be fixed to the first row of that file, overriding "
+                         "--loc_space/--loc_*.")
     ap.add_argument("--roi_target_vox", type=int, default=200, help="Target voxels in the LOC blob before sampling.")
     ap.add_argument("--roi_r0_mm", type=float, default=10.0, help="Initial radius guess for ROI sphere (mm).")
     ap.add_argument("--brainmask_frac", type=float, default=0.2, help="Threshold fraction for auto brain mask.")
@@ -877,15 +1227,32 @@ def main():
     )
 
     # Build LOC ROI mask in this space
-    if args.loc_space == "mni":
-        center_world = np.array(args.loc_mni, dtype=float)
-        center_vox = apply_affine(np.linalg.inv(aff), center_world)
-    elif args.loc_space == "voxel":
-        center_vox = np.array(args.loc_vox, dtype=float)
-        center_world = apply_affine(aff, center_vox)
+    # Optionally: fix the LOC center to a previously written recovery_summary.csv
+    if args.loc_from_summary_csv:
+        prev = pd.read_csv(args.loc_from_summary_csv)
+        need = {"loc_world_x","loc_world_y","loc_world_z","loc_vox_x","loc_vox_y","loc_vox_z"}
+        if not need.issubset(set(prev.columns)):
+            raise ValueError(
+                "--loc_from_summary_csv is missing required columns. Expected at least: " + ", ".join(sorted(need))
+            )
+        r0 = prev.iloc[0]
+        center_world = np.array([r0["loc_world_x"], r0["loc_world_y"], r0["loc_world_z"]], dtype=float)
+        center_vox = np.array([r0["loc_vox_x"], r0["loc_vox_y"], r0["loc_vox_z"]], dtype=float)
+        loc_source = "from_summary"
     else:
-        center_vox = estimate_loc_center_from_mask(brain_mask, tuple(args.loc_vox_frac))
-        center_world = apply_affine(aff, center_vox)
+        loc_source = args.loc_space
+        if args.loc_space == "mni":
+            center_world = np.array(args.loc_mni, dtype=float)
+            center_vox = apply_affine(np.linalg.inv(aff), center_world)
+        elif args.loc_space == "voxel":
+            center_vox = np.array(args.loc_vox, dtype=float)
+            center_world = apply_affine(aff, center_vox)
+        else:
+            # Fractional placement is fragile in cropped/native EPIs; snap to the nearest in-brain voxel.
+            center_vox = estimate_loc_center_from_mask(brain_mask, tuple(args.loc_vox_frac))
+            center_vox = snap_vox_to_brain_mask(center_vox, brain_mask, max_radius_vox=40)
+            center_world = apply_affine(aff, center_vox)
+
 
     roi_mask, radius_mm = roi_mask_target_voxels(
         shape3d=shape3d,
@@ -901,6 +1268,24 @@ def main():
     if n_roi == 0:
         raise RuntimeError("LOC ROI mask is empty. The coordinate may be outside the brain mask. "
                            "Try a different --loc_space setting or coordinate.")
+
+    # If frac-based placement yields a tiny ROI (common when the EPI is cropped), fall back to a conservative
+    # occipital (posterior) in-brain center and retry once.
+    if n_roi < args.n_vox and loc_source == "frac":
+        center_vox = estimate_occipital_center_from_mask(brain_mask, aff, posterior_quantile=0.10)
+        center_world = apply_affine(aff, center_vox)
+        roi_mask, radius_mm = roi_mask_target_voxels(
+            shape3d=shape3d,
+            aff=aff,
+            brain_mask=brain_mask,
+            center_mni=center_world,
+            target_n_vox=args.roi_target_vox,
+            r0_mm=args.roi_r0_mm,
+            max_iter=12
+        )
+        n_roi = int(roi_mask.sum())
+        loc_source = "occipital_fallback"
+
     if n_roi < args.n_vox:
         raise RuntimeError(f"LOC ROI has only {n_roi} voxels but you requested n_vox={args.n_vox}. "
                            "Increase --roi_target_vox or --roi_r0_mm.")
@@ -963,14 +1348,32 @@ def main():
                 feedback_mix=args.feedback_mix,
                 hrf_latency_mismatch_sd=args.hrf_latency_mismatch_sd,
                 nuisance_model=args.nuisance_model,
+                prewhiten=args.prewhiten,
                 rsa_null_perms=args.rsa_null_perms,
                 rsa_shuffle_mode="global",
+                signal_psc=args.signal_psc
             )
+            if args.plot_true and rep == 0:
+                # Choose which run to plot
+                want = args.plot_run_id
+                if want is None or str(want) == str(rid):
+                    interactive_plot_true_components(
+                        TR=args.TR,
+                        comp_enc=res["comp_enc"],
+                        comp_dec=res["comp_dec"],
+                        comp_fb=res["comp_fb"],
+                        Y_total=res["Y"],  # show signal+noise too; you can set to None if you only want true components
+                        title_prefix=f"Run {rid} | ",
+                    )
+                    # If user specified a particular run_id, avoid repeated windows
+                    if want is not None:
+                        args.plot_true = False
 
             rows.append({
                 "rep": rep,
                 "run_id": rid,
-                "loc_space": args.loc_space,
+                "loc_space": loc_source,
+                "loc_from_summary_csv": bool(args.loc_from_summary_csv),
                 "loc_world_x": float(center_world[0]),
                 "loc_world_y": float(center_world[1]),
                 "loc_world_z": float(center_world[2]),
@@ -982,6 +1385,8 @@ def main():
                 "n_vox_sampled": args.n_vox,
                 "hrf_latency_mismatch_sd": args.hrf_latency_mismatch_sd,
                 "nuisance_model": args.nuisance_model,
+                "prewhiten": str(res.get("prewhiten", "")),
+                "ar1_rho": float(res.get("ar1_rho", float("nan"))),
                 "lsa_mean": float(res["rec_lsa"].mean()),
                 "lsa_p05": float(np.percentile(res["rec_lsa"], 5)),
                 "lss_mean": float(res["rec_lss"].mean()),
@@ -991,11 +1396,17 @@ def main():
                 "rsa_anchor_lsa_null_mean": float(res["rsa_anchor_lsa_null"].get("null_mean", float("nan"))),
                 "rsa_anchor_lsa_null_p95": float(res["rsa_anchor_lsa_null"].get("null_p95", float("nan"))),
                 "rsa_anchor_lsa_catnull_mean": float(res["rsa_anchor_lsa_catnull"].get("null_mean", float("nan"))),
+                "rsa_cat_lsa_mean": float(res["rsa_cat_lsa"].get("mean", float("nan"))),
+                "rsa_cat_lsa_rdm_spearman": float(res["rsa_cat_lsa"].get("rdm_spearman", float("nan"))),
+                "rsa_cat_lsa_n_cat": int(res["rsa_cat_lsa"].get("n_cat", 0)),
                 "rsa_anchor_lss_mean": float(np.nanmean(res["rsa_anchor_lss"])),
                 "rsa_anchor_lss_p05": float(np.nanpercentile(res["rsa_anchor_lss"], 5)),
                 "rsa_anchor_lss_null_mean": float(res["rsa_anchor_lss_null"].get("null_mean", float("nan"))),
                 "rsa_anchor_lss_null_p95": float(res["rsa_anchor_lss_null"].get("null_p95", float("nan"))),
                 "rsa_anchor_lss_catnull_mean": float(res["rsa_anchor_lss_catnull"].get("null_mean", float("nan"))),
+                "rsa_cat_lss_mean": float(res["rsa_cat_lss"].get("mean", float("nan"))),
+                "rsa_cat_lss_rdm_spearman": float(res["rsa_cat_lss"].get("rdm_spearman", float("nan"))),
+                "rsa_cat_lss_n_cat": int(res["rsa_cat_lss"].get("n_cat", 0)),
                 })
 
             if rep == 0:
@@ -1012,7 +1423,7 @@ def main():
         summary = pd.DataFrame(rows)
         summary.to_csv(out_dir / "recovery_summary.csv", index=False)
 
-    print(f"LOC space: {args.loc_space}")
+    print(f"LOC source: {loc_source}")
     print(f"LOC center (world mm): {tuple(center_world.tolist())}")
     print(f"LOC center (voxel): {tuple(center_vox.tolist())}")
     print(f"ROI voxels (mask): {n_roi} | radius_mm≈{radius_mm:.2f} | sampled n_vox={args.n_vox}")
