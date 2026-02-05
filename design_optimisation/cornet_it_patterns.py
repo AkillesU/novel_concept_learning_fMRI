@@ -57,6 +57,8 @@ import torch
 from PIL import Image
 from torchvision import transforms
 
+import matplotlib.pyplot as plt
+
 
 IMG_EXTS = (".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp")
 
@@ -289,6 +291,94 @@ def pca_transform(X: np.ndarray, meta: Dict) -> np.ndarray:
     return Z
 
 
+
+# ----------------------------
+# RDM utilities (Representational Dissimilarity Matrices)
+# ----------------------------
+def _safe_rowwise_zscore(X: np.ndarray, eps: float = 1e-12) -> np.ndarray:
+    """Z-score each row; rows with ~0 variance become zeros."""
+    X = np.asarray(X, float)
+    mu = X.mean(axis=1, keepdims=True)
+    sd = X.std(axis=1, keepdims=True)
+    sd = np.where(sd < eps, 1.0, sd)
+    return (X - mu) / sd
+
+
+def rdm_correlation_distance(patterns: np.ndarray, zscore_rows: bool = False) -> np.ndarray:
+    """
+    Correlation-distance RDM: D[i,j] = 1 - corr(pattern_i, pattern_j)
+    patterns: (n_items, n_features)
+    Returns: (n_items, n_items)
+    """
+    X = np.asarray(patterns, float)
+    if zscore_rows:
+        X = _safe_rowwise_zscore(X)
+
+    C = np.corrcoef(X)  # correlation between rows/items
+    C = np.clip(C, -1.0, 1.0)
+    D = 1.0 - C
+    np.fill_diagonal(D, 0.0)
+    return D
+
+
+def rdm_upper_triangle_vector(D: np.ndarray) -> np.ndarray:
+    """Vectorize upper triangle (excluding diagonal) for RDM comparisons."""
+    D = np.asarray(D)
+    if D.ndim != 2 or D.shape[0] != D.shape[1]:
+        raise ValueError("RDM must be square (n x n).")
+    iu = np.triu_indices(D.shape[0], k=1)
+    return D[iu]
+
+
+def pearsonr_np(x: np.ndarray, y: np.ndarray, eps: float = 1e-12) -> float:
+    """Pearson correlation without scipy."""
+    x = np.asarray(x, float).ravel()
+    y = np.asarray(y, float).ravel()
+    if x.size != y.size:
+        raise ValueError("x and y must have the same length.")
+    x = x - x.mean()
+    y = y - y.mean()
+    denom = (np.sqrt((x * x).sum()) * np.sqrt((y * y).sum())) + eps
+    return float((x * y).sum() / denom)
+
+
+def plot_rdms(rdm_raw: np.ndarray, rdm_pca: np.ndarray, out_png: Path | None = None, show: bool = False) -> None:
+    """
+    Plot RAW and post-PCA RDMs with matplotlib.
+    If out_png is provided, saves the figure. If show=True, shows interactively.
+    """
+    rdm_raw = np.asarray(rdm_raw)
+    rdm_pca = np.asarray(rdm_pca)
+
+    # Use common scale for easier visual comparison
+    vmax = float(max(np.nanmax(rdm_raw), np.nanmax(rdm_pca)))
+    vmin = float(min(np.nanmin(rdm_raw), np.nanmin(rdm_pca)))
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5), constrained_layout=True)
+    im0 = axes[0].imshow(rdm_raw, vmin=vmin, vmax=vmax, interpolation="nearest")
+    axes[0].set_title("RDM (RAW pre-PCA)\ncorrelation distance")
+    axes[0].set_xlabel("trial")
+    axes[0].set_ylabel("trial")
+    fig.colorbar(im0, ax=axes[0], fraction=0.046, pad=0.04)
+
+    im1 = axes[1].imshow(rdm_pca, vmin=vmin, vmax=vmax, interpolation="nearest")
+    axes[1].set_title("RDM (post-PCA)\ncorrelation distance")
+    axes[1].set_xlabel("trial")
+    axes[1].set_ylabel("trial")
+    fig.colorbar(im1, ax=axes[1], fraction=0.046, pad=0.04)
+
+    if out_png is not None:
+        out_png = Path(out_png)
+        out_png.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(out_png, dpi=200)
+
+    if show:
+        plt.show()
+
+    plt.close(fig)
+
+
+
 # ----------------------------
 # Convergence schedule + interpolation
 # ----------------------------
@@ -335,6 +425,9 @@ def main():
     ap.add_argument("--img_dir", required=True, help="Parent directory containing task images.")
     ap.add_argument("--conv_parent", required=True, help="Parent directory containing class subfolders of convergence images.")
     ap.add_argument("--out_npz", required=True)
+    ap.add_argument("--plot_rdms", action="store_true", help="Plot RAW and post-PCA RDMs (saves PNG; use --show_plots to display).")
+    ap.add_argument("--show_plots", action="store_true", help="If set, display matplotlib windows (in addition to saving).")
+    ap.add_argument("--rdm_png", type=str, default="", help="Optional output PNG path for RDM plots. Default: <out_npz>_rdms.png")
 
     ap.add_argument("--n_components", type=int, default=200)
     ap.add_argument("--max_lambda", type=float, default=0.5)
@@ -375,6 +468,9 @@ def main():
         task_vecs.append(it_vector_for_image(p, extractor, tfm, args.device))
     task_vecs = np.vstack(task_vecs)  # (n_trials, d)
 
+    # --- RDM from RAW (pre-PCA) trial IT vectors ---
+    rdm_raw = rdm_correlation_distance(task_vecs, zscore_rows=False)
+
     # 2) Convergence vectors per class: average over images in each class folder
     class_names = sorted({str(x) for x in df["ObjectSpace"].unique().tolist()})
     conv_vecs = []
@@ -402,6 +498,28 @@ def main():
 
     Z_task = Z_all[: task_vecs.shape[0], :]
     Z_conv = Z_all[task_vecs.shape[0] :, :]
+
+    # --- RDM from PCA (post-PCA) trial vectors ---
+    rdm_pca = rdm_correlation_distance(Z_task, zscore_rows=False)
+    v_raw = rdm_upper_triangle_vector(rdm_raw)
+    v_pca = rdm_upper_triangle_vector(rdm_pca)
+    rdm_raw_vs_pca_r = pearsonr_np(v_raw, v_pca)
+
+    np.set_printoptions(precision=4, suppress=True, threshold=200, edgeitems=3, linewidth=140)
+    print("\n--- RDM (RAW pre-PCA; correlation distance) ---")
+    print(f"rdm_raw shape = {rdm_raw.shape}")
+    print(rdm_raw)
+    print("\n--- RDM (PCA post-PCA; correlation distance) ---")
+    print(f"rdm_pca shape = {rdm_pca.shape}")
+    print(rdm_pca)
+    print(f"\nRDM similarity (Pearson r, upper triangle): {rdm_raw_vs_pca_r:.6f}\n")
+
+    if args.plot_rdms:
+        default_png = Path(str(args.out_npz)).with_suffix("")
+        default_png = default_png.parent / (default_png.name + "_rdms.png")
+        out_png = Path(args.rdm_png) if args.rdm_png else default_png
+        plot_rdms(rdm_raw, rdm_pca, out_png=out_png, show=args.show_plots)
+        print(f"Saved RDM plot: {out_png}")
 
     # 4) Build per-trial convergence target in 200D by class lookup
     class_to_idx = {c: i for i, c in enumerate(class_names)}
@@ -445,6 +563,9 @@ def main():
         pca_mean=pca_meta["mean"].astype(np.float32),
         pca_components=pca_meta["components"].astype(np.float32),
         pca_meta_str=str({k: v for k, v in pca_meta.items() if k not in ("mean", "components")}),
+        rdm_raw=rdm_raw.astype(np.float32),
+        rdm_pca=rdm_pca.astype(np.float32),
+        rdm_raw_vs_pca_r=np.array([rdm_raw_vs_pca_r], dtype=np.float32),
     )
     print(f"Wrote: {out_npz}")
     print(f"Trials: {len(df)} | Classes: {len(class_names)} | IT dim: {task_vecs.shape[1]} -> PCA {args.n_components}")
