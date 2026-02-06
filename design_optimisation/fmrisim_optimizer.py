@@ -36,6 +36,7 @@ References
 from __future__ import annotations
 
 import argparse
+import os
 import math
 import hashlib
 import json
@@ -69,6 +70,128 @@ REQUIRED_COLS = {"run_id","trial_id","img_onset","img_dur","dec_onset_est","isi2
 from scipy.stats import spearmanr
 from scipy.stats import gamma
 from scipy.ndimage import binary_closing, binary_opening, binary_fill_holes, label
+
+
+# -----------------------------------------------------------------------------
+# Multiprocessing-safe optimiser worker (Windows requires top-level functions)
+# -----------------------------------------------------------------------------
+_OPT_CTX = {}
+COLL_PENALTY = 1.0        # cosine similarity max (worst possible)
+COLL_PENALTY_P95 = 0.8   # strong but slightly less extreme
+
+
+# Ensure weights are always a simple (enc, dec, fb) float tuple in workers.
+# Windows multiprocessing is sensitive to pickling and to accidental dict iteration.
+def _coerce_weights_tuple(weights):
+    """Return (w_enc, w_dec, w_fb) as floats.
+
+    Accepts:
+      - tuple/list/np array of length 3
+      - dict with keys enc/dec/fb
+      - sequence of (key, value) pairs
+    """
+    if isinstance(weights, dict):
+        return (float(weights["enc"]), float(weights["dec"]), float(weights["fb"]))
+    # sequence of pairs?
+    try:
+        w_try = dict(weights)
+        if all(k in w_try for k in ("enc", "dec", "fb")):
+            return (float(w_try["enc"]), float(w_try["dec"]), float(w_try["fb"]))
+    except Exception:
+        pass
+    # plain length-3 sequence
+    try:
+        a,b,c = weights
+        return (float(a), float(b), float(c))
+    except Exception as e:
+        raise TypeError("weights must be (enc,dec,fb), or dict-like with enc/dec/fb") from e
+
+
+def _optim_pool_init(
+    template_csv: str,
+    TR: float,
+    hp_cutoff: float,
+    pad_s: float,
+    opt_tres: int,
+    weights,
+    trial_len_range,
+    mean_trial_len_range,
+    opt_isi_range,
+    opt_iti_range,
+    dists,
+    w_coll: float,
+    w_cov: float,
+):
+    """Initializer for ProcessPoolExecutor workers (picklable args only)."""
+    global _OPT_CTX
+    _OPT_CTX = {
+        "template": pd.read_csv(template_csv),
+        "TR": float(TR),
+        "hp_cutoff": (float(hp_cutoff) if hp_cutoff is not None else None),
+        "pad_s": float(pad_s),
+        "opt_tres": int(opt_tres),
+        "weights": _coerce_weights_tuple(weights),
+        "trial_len_range": trial_len_range,
+        "mean_trial_len_range": mean_trial_len_range,
+        "opt_isi_range": opt_isi_range,
+        "opt_iti_range": opt_iti_range,
+        "dists": list(dists),
+        "w_coll": float(w_coll),
+        "w_cov": float(w_cov),
+    }
+
+def _optim_eval_one_impl(x_list, idx_seed: int):
+    """Evaluate one candidate (runs inside worker processes)."""
+    ctx = _OPT_CTX
+    template = ctx["template"]
+    dists = ctx["dists"]
+
+    # x_list is [isi_lo, isi_hi, iti_lo, iti_hi, isi_di, iti_di, isi_sh, iti_sh]
+    isi_lo, isi_hi, iti_lo, iti_hi, isi_di, iti_di, isi_sh, iti_sh = list(x_list)
+    isi_dist = dists[int(isi_di)]
+    iti_dist = dists[int(iti_di)]
+
+    df_new = generate_design_from_template(
+        template=template,
+        isi_dist=isi_dist,
+        iti_dist=iti_dist,
+        isi_lo=float(isi_lo), isi_hi=float(isi_hi),
+        iti_lo=float(iti_lo), iti_hi=float(iti_hi),
+        isi_shape=float(isi_sh), iti_shape=float(iti_sh),
+        TR=float(ctx["TR"]),
+        trial_len_range=ctx["trial_len_range"],
+        mean_trial_len_range=ctx["mean_trial_len_range"],
+        opt_isi_range=ctx["opt_isi_range"],
+        opt_iti_range=ctx["opt_iti_range"],
+        seed=int(idx_seed),
+    )
+    if df_new is None:
+        return None
+
+    s1 = evaluate_design_stage1(
+        df_new,
+        TR=float(ctx["TR"]),
+        hp_cutoff=float(ctx["hp_cutoff"]),
+        pad_s=float(ctx["pad_s"]),
+        tres=int(ctx["opt_tres"]),
+        weights=ctx["weights"],
+    )
+
+    empty_pen = 0.0 if s1["cov_minbin_worst"] > 0 else 1000.0
+    obj = (float(ctx["w_coll"]) * (s1["coll_p95_worst"] + 0.5 * s1["coll_max_worst"])
+           + float(ctx["w_cov"]) * (s1["cov_chi2_worst"] + empty_pen))
+
+    return obj, s1, df_new, {
+        "isi_dist": isi_dist, "iti_dist": iti_dist,
+        "isi_lo": float(isi_lo), "isi_hi": float(isi_hi),
+        "iti_lo": float(iti_lo), "iti_hi": float(iti_hi),
+        "isi_shape": float(isi_sh), "iti_shape": float(iti_sh),
+    }
+
+def _optim_eval_one_worker(payload):
+    """Thin wrapper so executor only pickles top-level function."""
+    x_list, idx_seed = payload
+    return _optim_eval_one_impl(x_list, idx_seed)
 
 def get_double_gamma_hrf(temporal_resolution, duration=32.0):
     """
@@ -116,6 +239,89 @@ def spm_dctmtx(N: int, K: int) -> np.ndarray:
 def dct_basis(n_scans: int, TR: float, cutoff: float) -> np.ndarray:
     K = int(math.floor(2.0 * (n_scans * TR) / cutoff + 1.0))
     return spm_dctmtx(n_scans, K)
+
+
+# ------------------------
+# Trialwise correlation metrics (SPM-style HRF + DCT high-pass), adapted from design_trialwise_corr.py
+# ------------------------
+def _interp1_linear_extrap(x: np.ndarray, y: np.ndarray, xq: np.ndarray) -> np.ndarray:
+    """1D linear interpolation with linear extrapolation (MATLAB interp1(...,'linear','extrap')-like)."""
+    x = np.asarray(x, float)
+    y = np.asarray(y, float)
+    xq = np.asarray(xq, float)
+    yq = np.interp(xq, x, y)
+    if x.size >= 2:
+        left = xq < x[0]
+        if np.any(left):
+            slope = (y[1] - y[0]) / (x[1] - x[0])
+            yq[left] = y[0] + slope * (xq[left] - x[0])
+        right = xq > x[-1]
+        if np.any(right):
+            slope = (y[-1] - y[-2]) / (x[-1] - x[-2])
+            yq[right] = y[-1] + slope * (xq[right] - x[-1])
+    return yq
+
+def _build_trialwise_interp(t_micro: np.ndarray, t_scan: np.ndarray,
+                           onsets: np.ndarray, durs: np.ndarray, hrf: np.ndarray) -> np.ndarray:
+    """Build 1 regressor per event instance (trial), HRF convolved at microtime, sampled at TR with linear extrap."""
+    onsets = np.asarray(onsets, float)
+    durs = np.asarray(durs, float)
+    dt = float(t_micro[1] - t_micro[0])
+    n_trials = int(onsets.size)
+    X = np.zeros((t_scan.size, n_trials), dtype=float)
+    for j in range(n_trials):
+        u = np.zeros(t_micro.size, dtype=float)
+        onset_idx = int(round(onsets[j] / dt))
+        dur_idx = max(1, int(round(durs[j] / dt)))
+        last_idx = min(u.size - 1, onset_idx + dur_idx - 1)
+        if onset_idx < u.size and last_idx >= 0:
+            u[max(onset_idx, 0):last_idx + 1] = 1.0
+        x_micro = np.convolve(u, hrf, mode="full")[:u.size]
+        X[:, j] = _interp1_linear_extrap(t_micro, x_micro, t_scan)
+    return X
+
+def _build_condition_level_interp(t_micro: np.ndarray, t_scan: np.ndarray,
+                                 onsets: np.ndarray, durs: np.ndarray, hrf: np.ndarray) -> np.ndarray:
+    """One regressor that is the sum of all events of that type."""
+    onsets = np.asarray(onsets, float)
+    durs = np.asarray(durs, float)
+    dt = float(t_micro[1] - t_micro[0])
+    u = np.zeros(t_micro.size, dtype=float)
+    for j in range(onsets.size):
+        onset_idx = int(round(onsets[j] / dt))
+        dur_idx = max(1, int(round(durs[j] / dt)))
+        last_idx = min(u.size - 1, onset_idx + dur_idx - 1)
+        if onset_idx < u.size and last_idx >= 0:
+            u[max(onset_idx, 0):last_idx + 1] += 1.0
+    x_micro = np.convolve(u, hrf, mode="full")[:u.size]
+    return _interp1_linear_extrap(t_micro, x_micro, t_scan)
+
+def _dct_resid(X: np.ndarray, C: np.ndarray) -> np.ndarray:
+    return X - C @ (C.T @ X)
+
+def _partial_out(X: np.ndarray, N: np.ndarray) -> np.ndarray:
+    pinvN = np.linalg.pinv(N)
+    return X - N @ (pinvN @ X)
+
+def _zscore_cols(X: np.ndarray, eps: float = 1e-12) -> np.ndarray:
+    mu = np.mean(X, axis=0, keepdims=True)
+    sd = np.std(X, axis=0, ddof=0, keepdims=True)
+    sd = np.maximum(sd, eps)
+    return (X - mu) / sd
+
+def _corr_mat_cols(X: np.ndarray) -> np.ndarray:
+    return np.corrcoef(X, rowvar=False)
+
+def _summarize_corr_abs(R: np.ndarray) -> Dict[str, float]:
+    off = R[~np.eye(R.shape[0], dtype=bool)]
+    abs_off = np.abs(off)
+    if abs_off.size == 0:
+        return {"max_abs_r": float("nan"), "p95_abs_r": float("nan"), "mean_abs_r": float("nan")}
+    return {
+        "max_abs_r": float(np.max(abs_off)),
+        "p95_abs_r": float(np.percentile(abs_off, 95)),
+        "mean_abs_r": float(np.mean(abs_off)),
+    }
 
 def pinv_beta(X: np.ndarray, Y: np.ndarray) -> np.ndarray:
     return np.linalg.pinv(X) @ Y
@@ -732,7 +938,7 @@ def ensure_dir(p: Path) -> Path:
     return p
 
 
-def load_or_make_noise_dict(vol4d: np.ndarray, noise_nii_path: str, TR: float, cache_dir: Path, use_cache: bool) -> Tuple[dict, np.ndarray, np.ndarray]:
+def load_or_make_noise_dict(vol4d: np.ndarray, noise_nii_path: str, TR: float, cache_dir: Path, use_cache: bool, hp_cutoff: float | None = None) -> Tuple[dict, np.ndarray, np.ndarray]:
     """
     Follow the BrainIAK fmrisim multivariate example as closely as possible:
       mask, template = fmrisim.mask_brain(volume=volume, mask_self=True)
@@ -755,6 +961,7 @@ def load_or_make_noise_dict(vol4d: np.ndarray, noise_nii_path: str, TR: float, c
     key = _stable_hash({
         "nii": nii_fingerprint,
         "TR": float(TR),
+        "hp_cutoff": float(hp_cutoff),
         "mask_self": True,
         "shape": tuple(vol4d.shape),
         "fmrisim": getattr(fmrisim, "__file__", "unknown"),
@@ -808,6 +1015,7 @@ def load_or_make_run_noise_2d_doc(
         "rid_int": rid_int,
         "n_scans": int(n_scans),
         "TR": float(TR),
+        "hp_cutoff": float(hp_cutoff),
         "n_vox": int(n_vox),
         "noise_cache_seed": int(noise_cache_seed),
         "roi_vox": int(np.sum(roi_mask > 0)),
@@ -848,6 +1056,7 @@ def _noise_bank_key(
         {
             "nii": nii_fingerprint,
             "TR": float(TR),
+        "hp_cutoff": float(hp_cutoff),
             "n_vox": int(n_vox),
             "max_n_scans": int(max_n_scans),
             "n_noise_reps": int(n_noise_reps),
@@ -998,6 +1207,7 @@ def load_or_make_noise_bank_roi(
             "key": key,
             "noise_nii_path": str(noise_nii_path),
             "TR": float(TR),
+        "hp_cutoff": float(hp_cutoff),
             "n_vox": int(n_vox),
             "max_n_scans": int(max_n_scans),
             "n_noise_reps": int(n_noise_reps),
@@ -1095,6 +1305,7 @@ def load_or_make_run_noise_roi_set(
     cache_dir: Path,
     use_cache: bool,
     noise_cache_seed: int,
+    hp_cutoff: float,
     n_parallel: int = 1,
 ) -> tuple[Dict, dict]:
     """Create/load run-length ROI noise for each (run_id, rep_idx).
@@ -1230,6 +1441,7 @@ def load_or_make_run_noise_roi_set(
                             "dataset_id": dataset_id,
                             "noise_nii_path": str(noise_nii_path),
                             "TR": float(TR),
+        "hp_cutoff": float(hp_cutoff),
                             "n_vox": int(n_vox),
                             "n_scans": int(T_cached),
                             "run_id": str(rid),
@@ -1308,6 +1520,7 @@ def load_or_make_run_noise_roi_set(
                 "dataset_id": dataset_id,
                 "noise_nii_path": str(noise_nii_path),
                 "TR": float(TR),
+        "hp_cutoff": float(hp_cutoff),
                 "n_vox": int(n_vox),
                 "n_scans": int(n_scans),
                 "run_id": str(rid),
@@ -1326,6 +1539,7 @@ def load_or_make_run_noise_roi_set(
         "dataset_id": dataset_id,
         "noise_nii_path": str(noise_nii_path),
         "TR": float(TR),
+        "hp_cutoff": float(hp_cutoff),
         "n_vox": int(n_vox),
         "n_noise_reps": int(n_noise_reps),
         "pick_lin_hash": _stable_hash(pick_lin.tobytes())[:16],
@@ -1913,36 +2127,278 @@ def generate_design_from_template(template: pd.DataFrame,
     df["trial_duration_max"] = (img_dur + isi1 + dec_dur + isi2 + fb_dur).astype(float)
     return df
 
+
 def evaluate_design_stage1(df: pd.DataFrame,
                            TR: float,
+                           hp_cutoff: float,
                            pad_s: float,
                            tres: int,
                            weights: Tuple[float, float, float]) -> Dict[str, float]:
-    """Compute collinearity + TR coverage metrics across runs (worst-run aggregation)."""
-    coll_means = []
-    coll_p95s = []
-    coll_maxs = []
-    cov_chi2 = []
-    cov_minbin = []
-    for rid in sorted(df["run_id"].unique()):
-        df_run = df[df["run_id"] == rid].reset_index(drop=True)
-        X = _build_trialwise_X(df_run, TR=TR, pad_s=pad_s, tres=tres, weights=weights)
-        cs = collinearity_stats_from_X(X)
-        coll_means.append(cs["mean"])
-        coll_p95s.append(cs["p95"])
-        coll_maxs.append(cs["max"])
-        cov = tr_coverage_score(df_run["img_onset"].to_numpy(float), TR=TR, n_bins=20)
-        cov_chi2.append(cov["chi2"])
-        cov_minbin.append(cov["min_bin"])
+    """Compute trial-wise collinearity diagnostics (SPM-style HRF + DCT high-pass) + TR coverage.
 
-    # Aggregate: worst-run for p95/max/chi2; mean over runs for mean
-    return {
-        "coll_mean": float(np.nanmean(coll_means)),
-        "coll_p95_worst": float(np.nanmax(coll_p95s)),
-        "coll_max_worst": float(np.nanmax(coll_maxs)),
-        "cov_chi2_worst": float(np.nanmax(cov_chi2)),
-        "cov_minbin_worst": float(np.nanmin(cov_minbin)),
-    }
+    Collinearity metric (Option B):
+      - Residualise (DCT for "raw"; partial-out other events + DCT for "part")
+      - L2-normalise each trial regressor column
+      - Compute Gram matrix G = X^T X
+      - Summarise abs(off-diagonal): mean / p95 / max
+
+    Also reports how many encoding columns are "nuked" by partialling (near-zero residual norm).
+    """
+    df = df.copy()
+    run_ids = sorted(df["run_id"].unique().tolist())
+
+    cov_stats_by_run: List[Dict[str, float]] = []
+    per_run: List[Dict[str, Dict[str, float]]] = []
+
+    # Debug: how many encoding columns become ~0 after partialling
+    enc_part_nuked_n_by_run: List[int] = []
+    enc_part_nuked_frac_by_run: List[float] = []
+
+    w_enc, w_dec, w_fb = (float(weights[0]), float(weights[1]), float(weights[2]))
+
+
+    HRF_TAIL_S = 32.0  # ensure enough scans to capture HRF tail
+    def _gram_abs_stats_penalised(X: np.ndarray,
+                                  eps_norm: float = 1e-10,
+                                  nuked_frac_thresh: float = 0.10) -> Tuple[Dict[str, float], int, float]:
+        """Compute Gram-matrix collinearity stats with *finite* penalties.
+
+        We treat trialwise regressor columns as vectors and compute cosine similarity via
+        G = Xn.T @ Xn after L2-normalising columns.
+
+        If too many columns are effectively zero ("nuked"), or if anything becomes non-finite,
+        we return a conservative penalty rather than NaN (to avoid the optimiser exploiting NaNs).
+        """
+        if X.ndim != 2:
+            raise ValueError(f"Expected 2D matrix, got shape={X.shape}")
+
+        n_cols = int(X.shape[1])
+        if n_cols <= 1:
+            # Not meaningful => penalise (not "perfect")
+            return (
+                {"mean_abs_r": float(COLL_PENALTY), "p95_abs_r": float(COLL_PENALTY_P95), "max_abs_r": float(COLL_PENALTY)},
+                n_cols,
+                1.0,
+            )
+
+        norms = np.linalg.norm(X, axis=0)
+        nuked = norms < float(eps_norm)
+        nuked_n = int(np.sum(nuked))
+        nuked_frac = float(nuked_n) / float(max(n_cols, 1))
+
+        # If partialling nukes a substantial fraction, treat as degenerate => penalise.
+        if nuked_frac > float(nuked_frac_thresh):
+            return (
+                {"mean_abs_r": float(COLL_PENALTY), "p95_abs_r": float(COLL_PENALTY_P95), "max_abs_r": float(COLL_PENALTY)},
+                nuked_n,
+                nuked_frac,
+            )
+
+        safe_norms = norms.copy()
+        safe_norms[safe_norms < float(eps_norm)] = 1.0
+        Xn = X / safe_norms[None, :]
+
+        G = Xn.T @ Xn
+        np.fill_diagonal(G, 0.0)
+
+        off = G[np.triu_indices(n_cols, k=1)]
+        if off.size == 0 or (not np.all(np.isfinite(off))):
+            return (
+                {"mean_abs_r": float(COLL_PENALTY), "p95_abs_r": float(COLL_PENALTY_P95), "max_abs_r": float(COLL_PENALTY)},
+                nuked_n,
+                nuked_frac,
+            )
+
+        aoff = np.abs(off)
+        stats = {
+            "mean_abs_r": float(np.mean(aoff)),
+            "p95_abs_r": float(np.percentile(aoff, 95)),
+            "max_abs_r": float(np.max(aoff)),
+        }
+
+        if not all(np.isfinite(list(stats.values()))):
+            stats = {"mean_abs_r": float(COLL_PENALTY), "p95_abs_r": float(COLL_PENALTY_P95), "max_abs_r": float(COLL_PENALTY)}
+
+        return stats, nuked_n, nuked_frac
+
+    for rid in run_ids:
+        G = df[df["run_id"] == rid].copy()
+        if G.empty:
+            continue
+
+        # --- Onsets/durations (trial count comes from design file) ---
+        enc_on = G["img_onset"].to_numpy(float)
+        enc_dur = G["img_dur"].to_numpy(float)
+
+        dec_on = G["dec_onset_est"].to_numpy(float)
+        dec_dur = G["max_dec_dur"].to_numpy(float)
+
+        isi2 = G["isi2_dur"].to_numpy(float)
+        fb_on = dec_on + dec_dur + isi2
+        fb_dur = G["fb_dur"].to_numpy(float)
+
+        # Run length / sampling
+        run_end = float(np.max(fb_on + fb_dur)) + float(pad_s) + float(HRF_TAIL_S)
+        n_scans = int(math.ceil(run_end / float(TR)))
+        n_scans = max(n_scans, 2)  # hard safety: should not happen for valid designs, but prevents degenerate bases
+
+        dt = float(TR) / float(tres)
+        hrf = spm_hrf(dt=dt, length=32.0)
+
+        t_scan = np.arange(n_scans, dtype=float) * float(TR)
+        t_micro = np.arange(int(math.ceil(run_end / dt)), dtype=float) * dt
+
+        # Trialwise (1 col per trial) per event
+        X_enc = _build_trialwise_interp(t_micro, t_scan, enc_on, enc_dur, hrf) * w_enc
+        X_dec = _build_trialwise_interp(t_micro, t_scan, dec_on, dec_dur, hrf) * w_dec
+        X_fb  = _build_trialwise_interp(t_micro, t_scan, fb_on,  fb_dur,  hrf) * w_fb
+
+        # Condition-level nuisance regressors for partialling
+        x_enc = _build_condition_level_interp(t_micro, t_scan, enc_on, enc_dur, hrf) * w_enc
+        x_dec = _build_condition_level_interp(t_micro, t_scan, dec_on, dec_dur, hrf) * w_dec
+        x_fb  = _build_condition_level_interp(t_micro, t_scan, fb_on,  fb_dur,  hrf) * w_fb
+
+        C_dct = dct_basis(n_scans, float(TR), float(hp_cutoff))
+
+        # --- RAW stats (DCT residualise then Gram stats) ---
+        X_enc_raw = _dct_resid(X_enc, C_dct)
+        X_dec_raw = _dct_resid(X_dec, C_dct)
+        X_fb_raw  = _dct_resid(X_fb,  C_dct)
+
+        enc_raw, _ , _ = _gram_abs_stats_penalised(X_enc_raw)
+        dec_raw, _ , _ = _gram_abs_stats_penalised(X_dec_raw)
+        fb_raw,  _ , _ = _gram_abs_stats_penalised(X_fb_raw)
+
+        # --- PARTIALLED stats (partial out other events' condition-level + DCT; then Gram stats) ---
+        N_enc = np.column_stack([x_dec, x_fb, C_dct])
+        N_dec = np.column_stack([x_enc, x_fb, C_dct])
+        N_fb  = np.column_stack([x_enc, x_dec, C_dct])
+
+        X_enc_part = _partial_out(X_enc, N_enc)
+        X_dec_part = _partial_out(X_dec, N_dec)
+        X_fb_part  = _partial_out(X_fb,  N_fb)
+
+        enc_part, enc_nuked_n, enc_nuked_frac = _gram_abs_stats_penalised(X_enc_part)
+        dec_part, dec_nuked_n, dec_nuked_frac = _gram_abs_stats_penalised(X_dec_part)
+        fb_part, fb_nuked_n, fb_nuked_frac = _gram_abs_stats_penalised(X_fb_part)
+
+        # Debug counters: encoding columns nuked by partialling
+        n_trials = int(X_enc_part.shape[1])
+        enc_part_nuked_n_by_run.append(enc_nuked_n)
+        enc_part_nuked_frac_by_run.append(float(enc_nuked_frac))
+
+        # --- ALL EVENTS (enc+dec+fb), DCT residualise then Gram stats ---
+        X_all = np.column_stack([X_enc, X_dec, X_fb])
+        X_all_r = _dct_resid(X_all, C_dct)
+        all_stats, _ , _ = _gram_abs_stats_penalised(X_all_r)
+
+        # TR coverage for encoding onsets (unchanged)
+        phase = np.mod(enc_on, float(TR)) / float(TR)
+        n_bins = 12
+        counts, _ = np.histogram(phase, bins=np.linspace(0.0, 1.0, n_bins + 1))
+        expected = float(len(phase)) / float(n_bins) if len(phase) else 1.0
+        chi2 = float(np.sum((counts - expected) ** 2 / max(expected, 1e-12)))
+        cov_stats_by_run.append({
+            "cov_chi2": chi2,
+            "cov_minbin": float(np.min(counts)) if counts.size else 0.0,
+        })
+
+        per_run.append({
+            "enc_raw": enc_raw, "enc_part": enc_part,
+            "dec_raw": dec_raw, "dec_part": dec_part,
+            "fb_raw":  fb_raw,  "fb_part":  fb_part,
+            "all": all_stats,
+        })
+
+    if not per_run:
+        return {
+            "coll_max": float("nan"), "coll_p95": float("nan"),
+            "coll_max_worst": float("nan"), "coll_p95_worst": float("nan"),
+            "cov_chi2": float("nan"), "cov_minbin": float("nan"),
+            "cov_chi2_worst": float("nan"), "cov_minbin_worst": float("nan"),
+            "enc_part_nuked_n_worst": float("nan"),
+            "enc_part_nuked_frac_worst": float("nan"),
+            "enc_part_nuked_frac_mean": float("nan"),
+        }
+
+    # Aggregate across runs: worst-run for max/p95, mean for mean_abs_r
+    def _agg(prefix: str, key: str) -> Dict[str, float]:
+        vals_max = [r[key]["max_abs_r"] for r in per_run]
+        vals_p95 = [r[key]["p95_abs_r"] for r in per_run]
+        vals_mean = [r[key]["mean_abs_r"] for r in per_run]
+        return {
+            f"{prefix}_max_worst": float(np.nanmax(vals_max)),
+            f"{prefix}_p95_worst": float(np.nanmax(vals_p95)),
+            f"{prefix}_mean": float(np.nanmean(vals_mean)),
+        }
+
+    out: Dict[str, float] = {}
+    out.update(_agg("enc_raw", "enc_raw"))
+    out.update(_agg("enc_part", "enc_part"))
+    out.update(_agg("dec_raw", "dec_raw"))
+    out.update(_agg("dec_part", "dec_part"))
+    out.update(_agg("fb_raw",  "fb_raw"))
+    out.update(_agg("fb_part",  "fb_part"))
+    out.update(_agg("all", "all"))
+
+    cov_chi2s = [c["cov_chi2"] for c in cov_stats_by_run]
+    cov_mins = [c["cov_minbin"] for c in cov_stats_by_run]
+    out["cov_chi2"] = float(np.nanmax(cov_chi2s))    # worst-run
+    out["cov_minbin"] = float(np.nanmin(cov_mins))   # worst-run (lowest bin count)
+
+    # Back-compat aliases for older objective code
+    out["cov_chi2_worst"] = out["cov_chi2"]
+    out["cov_minbin_worst"] = out["cov_minbin"]
+
+    # Back-compat fields used by the optimiser/objective + progress bar
+    out["coll_max"] = out["all_max_worst"]
+    out["coll_p95"] = out["all_p95_worst"]
+    out["coll_max_worst"] = out["coll_max"]
+    out["coll_p95_worst"] = out["coll_p95"]
+
+    # Back-compat: per-event
+    out["coll_enc_max"] = out["enc_part_max_worst"]
+    out["coll_enc_p95"] = out["enc_part_p95_worst"]
+    out["coll_dec_max"] = out["dec_part_max_worst"]
+    out["coll_dec_p95"] = out["dec_part_p95_worst"]
+    out["coll_fb_max"]  = out["fb_part_max_worst"]
+    out["coll_fb_p95"]  = out["fb_part_p95_worst"]
+
+    # Debug outputs: encoding columns nuked by partialling
+    out["enc_part_nuked_n_worst"] = float(np.max(enc_part_nuked_n_by_run)) if enc_part_nuked_n_by_run else float("nan")
+    out["enc_part_nuked_frac_worst"] = float(np.max(enc_part_nuked_frac_by_run)) if enc_part_nuked_frac_by_run else float("nan")
+    out["enc_part_nuked_frac_mean"] = float(np.mean(enc_part_nuked_frac_by_run)) if enc_part_nuked_frac_by_run else float("nan")
+    # Extra back-compat aliases expected elsewhere (and shown in progress bar)
+    out["coll_enc_max_worst"] = out["enc_part_max_worst"]
+    out["coll_enc_p95_worst"] = out["enc_part_p95_worst"]
+    out["coll_dec_max_worst"] = out["dec_part_max_worst"]
+    out["coll_dec_p95_worst"] = out["dec_part_p95_worst"]
+    out["coll_fb_max_worst"]  = out["fb_part_max_worst"]
+    out["coll_fb_p95_worst"]  = out["fb_part_p95_worst"]
+
+    # Final safety: never allow NaN/inf collinearity to look "optimal"
+    for k in [
+        "all_max_worst","all_p95_worst",
+        "enc_part_max_worst","enc_part_p95_worst",
+        "dec_part_max_worst","dec_part_p95_worst",
+        "fb_part_max_worst","fb_part_p95_worst",
+        "coll_max","coll_p95","coll_max_worst","coll_p95_worst",
+        "coll_enc_max","coll_enc_p95","coll_dec_max","coll_dec_p95","coll_fb_max","coll_fb_p95",
+        "coll_enc_max_worst","coll_enc_p95_worst","coll_dec_max_worst","coll_dec_p95_worst","coll_fb_max_worst","coll_fb_p95_worst",
+    ]:
+        v = out.get(k, float("nan"))
+        if not np.isfinite(v):
+            out[k] = float(COLL_PENALTY)
+
+    for k in ["all_p95_worst","enc_part_p95_worst","dec_part_p95_worst","fb_part_p95_worst",
+              "coll_p95","coll_p95_worst","coll_enc_p95","coll_enc_p95_worst",
+              "coll_dec_p95","coll_dec_p95_worst","coll_fb_p95","coll_fb_p95_worst"]:
+        v = out.get(k, float("nan"))
+        if not np.isfinite(v):
+            out[k] = float(COLL_PENALTY_P95)
+
+
+    return out
 
 def optimise_designs(args) -> None:
     """
@@ -2032,39 +2488,6 @@ def optimise_designs(args) -> None:
         t = rng.uniform(0.25, 0.75)
         return _clip_ind(t * a + (1 - t) * b)
 
-    def _eval_one(x, idx_seed: int):
-        isi_lo, isi_hi, iti_lo, iti_hi, isi_di, iti_di, isi_sh, iti_sh = x.tolist()
-        isi_dist = dists[int(isi_di)]
-        iti_dist = dists[int(iti_di)]
-        df_new = generate_design_from_template(
-            template=template,
-            isi_dist=isi_dist,
-            iti_dist=iti_dist,
-            isi_lo=isi_lo, isi_hi=isi_hi,
-            iti_lo=iti_lo, iti_hi=iti_hi,
-            isi_shape=isi_sh, iti_shape=iti_sh,
-            TR=float(args.TR),
-            trial_len_range=trial_len_range,
-            mean_trial_len_range=mean_trial_len_range,
-            opt_isi_range=opt_isi_range,
-            opt_iti_range=opt_iti_range,
-            seed=int(idx_seed),
-        )
-        if df_new is None:
-            return None
-        s1 = evaluate_design_stage1(df_new, TR=float(args.TR), pad_s=float(args.pad_s), tres=int(args.opt_tres), weights=weights)
-        # scalar objective (lower is better)
-        # penalise empty bins strongly
-        empty_pen = 0.0 if s1["cov_minbin_worst"] > 0 else 1000.0
-        obj = (float(args.w_coll) * (s1["coll_p95_worst"] + 0.5 * s1["coll_max_worst"])
-               + float(args.w_cov) * (s1["cov_chi2_worst"] + empty_pen))
-        return obj, s1, df_new, {
-            "isi_dist": isi_dist, "iti_dist": iti_dist,
-            "isi_lo": isi_lo, "isi_hi": isi_hi,
-            "iti_lo": iti_lo, "iti_hi": iti_hi,
-            "isi_shape": isi_sh, "iti_shape": iti_sh,
-        }
-
     # Init population
     pop = [_rand_ind() for _ in range(pop_size)]
     evaluated = []
@@ -2077,14 +2500,38 @@ def optimise_designs(args) -> None:
     for gen in gen_pbar:
         # Evaluate population
         jobs = []
-        with ProcessPoolExecutor(max_workers=n_workers) as ex:
+        results = []
+
+        # Windows-safe ProcessPool: worker must be top-level + picklable. We use an initializer
+        # to avoid pickling large objects (template dataframe) per task.
+        if n_workers <= 1:
             for i, ind in enumerate(pop):
-                jobs.append(ex.submit(_eval_one, ind, eval_seed_base + gen * 10000 + i))
-            results = []
-            for fut in tqdm(as_completed(jobs), total=len(jobs), desc=f'Gen {gen+1}/{generations} candidates', leave=False):
-                r = fut.result()
+                r = _optim_eval_one_impl(ind.tolist(), eval_seed_base + gen * 10000 + i)
                 if r is not None:
                     results.append(r)
+        else:
+            initargs = (
+                str(template_csv),
+                float(args.TR),
+                float(args.hp_cutoff),
+                float(args.pad_s),
+                int(args.opt_tres),
+                weights,
+                trial_len_range,
+                mean_trial_len_range,
+                opt_isi_range,
+                opt_iti_range,
+                dists,
+                float(args.w_coll),
+                float(args.w_cov),
+            )
+            with ProcessPoolExecutor(max_workers=n_workers, initializer=_optim_pool_init, initargs=initargs) as ex:
+                for i, ind in enumerate(pop):
+                    jobs.append(ex.submit(_optim_eval_one_worker, (ind.tolist(), eval_seed_base + gen * 10000 + i)))
+                for fut in tqdm(as_completed(jobs), total=len(jobs), desc=f'Gen {gen+1}/{generations} candidates', leave=False):
+                    r = fut.result()
+                    if r is not None:
+                        results.append(r)
         total_evals += len(results)
         evaluated.extend(results)
 
@@ -2100,6 +2547,12 @@ def optimise_designs(args) -> None:
                 best_obj=f"{best_obj:.4g}",
                 coll_p95=f"{best_s1.get('coll_p95_worst', float('nan')):.3g}",
                 coll_max=f"{best_s1.get('coll_max_worst', float('nan')):.3g}",
+                coll_enc_p95=f"{best_s1.get('coll_enc_p95_worst', float('nan')):.3g}",
+                coll_enc_max=f"{best_s1.get('coll_enc_max_worst', float('nan')):.3g}",
+                coll_dec_p95=f"{best_s1.get('coll_dec_p95_worst', float('nan')):.3g}",
+                coll_dec_max=f"{best_s1.get('coll_dec_max_worst', float('nan')):.3g}",
+                coll_fb_p95=f"{best_s1.get('coll_fb_p95_worst', float('nan')):.3g}",
+                coll_fb_max=f"{best_s1.get('coll_fb_max_worst', float('nan')):.3g}",
                 cov_chi2=f"{best_s1.get('cov_chi2_worst', float('nan')):.3g}",
                 cov_minbin=int(best_s1.get('cov_minbin_worst', -1)),
             )
@@ -2164,15 +2617,13 @@ def optimise_designs(args) -> None:
         stage2_rows = []
         for rank in range(k):
             csv_path = rows[rank]["csv"]
-            # Reuse existing pipeline by calling simulate_one_run etc via main machinery
-            # We mimic the normal 'run' but with csv swapped and out_dir per candidate.
             cand_out = out_dir / "stage2_fmrisim" / f"rank{rank:04d}"
             ensure_dir(cand_out)
-            # Run a single rep by default for speed; user can increase with --n_reps
-            # We'll call run_full_simulation_like_main which exists below as part of current script flow.
-                        # Call this script (without optimiser) via subprocess to reuse the existing simulation pipeline.
+
+            # Call this script (without optimiser) via subprocess to reuse the existing simulation pipeline.
             # This avoids duplicating the full fmrisim pipeline code inside the optimiser.
             import subprocess, sys as _sys
+
             cmd = [
                 _sys.executable, _sys.argv[0],
                 "--csv", str(csv_path),
@@ -2189,6 +2640,7 @@ def optimise_designs(args) -> None:
                 "--out_dir", str(cand_out),
                 "--n_reps", "1",
             ]
+
             # Pass through noise caching options if provided
             if getattr(args, "cache_noise_dict", False):
                 cmd.append("--cache_noise_dict")
@@ -2204,21 +2656,594 @@ def optimise_designs(args) -> None:
                 summ = pd.read_csv(rec_path)
                 stage2_rows.append({
                     "rank_stage1": rank,
-                    "lsa_mean": float(summ["lsa_mean"].mean()),
-                    "lss_mean": float(summ["lss_mean"].mean()),
+                    "lsa_mean": float(summ["lsa_mean"].mean()) if "lsa_mean" in summ.columns else float("nan"),
+                    "lss_mean": float(summ["lss_mean"].mean()) if "lss_mean" in summ.columns else float("nan"),
                     "rsa_anchor_lsa_mean": float(summ["rsa_anchor_lsa_mean"].mean()) if "rsa_anchor_lsa_mean" in summ.columns else float("nan"),
-                    "rsa_anchor_lss_mean": float(summ["rsa_anchor_lss_mean"].mean()) if "rsa_anchor_lss_mean" in summ.columns else float("nan"),
                 })
             else:
-                stage2_rows.append({"rank_stage1": rank, "lsa_mean": float("nan"), "lss_mean": float("nan"),
-                                    "rsa_anchor_lsa_mean": float("nan"), "rsa_anchor_lss_mean": float("nan")})
+                stage2_rows.append({
+                    "rank_stage1": rank,
+                    "lsa_mean": float("nan"),
+                    "lss_mean": float("nan"),
+                    "rsa_anchor_lsa_mean": float("nan"),
+                })
         pd.DataFrame(stage2_rows).to_csv(out_dir / "stage2_recoverability.csv", index=False)
+
+
+# ------------------------
+# GUI: Candidate design bank generator (Stage-1 ranking) + optional Stage-2
+# ------------------------
+def launch_candidate_design_gui() -> None:
+    """Tk GUI to generate a large candidate bank (many variations x iterations) and rank via stage-1 metrics.
+
+    This is intended as an *operator tool* (like create_runs.py) that:
+      1) Creates a bank of candidate CSVs by sampling timing distributions/ranges around a template CSV.
+      2) Runs stage-1 diagnostics (collinearity + TR coverage) and ranks designs.
+      3) Writes a shortlist as cand_rankXXXX.csv to feed stage-2 fmrisim recoverability.
+
+    Notes:
+      - We preserve all non-timing columns from the template (ObjectSpace, condition, image_file, etc.).
+      - We only support the 3-event CSV schema used by this script (img/dec/fb).
+    """
+    try:
+        import tkinter as tk
+        from tkinter import ttk, filedialog, messagebox
+    except Exception as e:
+        raise RuntimeError("Tkinter is required for --gui_candidates. On Linux, install python3-tk.") from e
+
+    class _ScrollableFrame(ttk.Frame):
+        """Minimal scrollable container; add widgets to `self.inner`."""
+
+        def __init__(self, parent, **kwargs):
+            super().__init__(parent)
+
+            self.canvas = tk.Canvas(self, highlightthickness=0)
+            self.vbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+            self.canvas.configure(yscrollcommand=self.vbar.set)
+
+            self.vbar.pack(side="right", fill="y")
+            self.canvas.pack(side="left", fill="both", expand=True)
+
+            self.inner = ttk.Frame(self.canvas, **kwargs)
+            self._win_id = self.canvas.create_window((0, 0), window=self.inner, anchor="nw")
+
+            self.inner.bind(
+                "<Configure>",
+                lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")),
+            )
+            self.canvas.bind("<Configure>", self._on_canvas_configure)
+
+            # Mousewheel support (Win/mac)
+            self.canvas.bind_all("<MouseWheel>", self._on_mousewheel, add="+")
+            # Linux
+            self.canvas.bind_all("<Button-4>", self._on_mousewheel_linux, add="+")
+            self.canvas.bind_all("<Button-5>", self._on_mousewheel_linux, add="+")
+
+        def _on_canvas_configure(self, event):
+            self.canvas.itemconfigure(self._win_id, width=event.width)
+
+        def _on_mousewheel(self, event):
+            step = -1 if event.delta > 0 else 1
+            self.canvas.yview_scroll(step, "units")
+
+        def _on_mousewheel_linux(self, event):
+            step = -1 if event.num == 4 else 1
+            self.canvas.yview_scroll(step, "units")
+
+
+    class CandidateGUI(tk.Tk):
+        def __init__(self):
+            super().__init__()
+            self.title("Design Optimiser – Candidate Bank + Ranking (Session 1)")
+            self.geometry("1100x820")
+            self._candidates = []  # list of dicts: {var_idx, iter_idx, params, df, csv_path}
+            self._bank_counter = 0  # monotonically increasing design id
+            self._stage2_request = False
+            self._stage2_args = {}
+            self._build()
+
+        # --- parsing helpers ---
+        def _get_int(self, v: tk.StringVar, default: int) -> int:
+            try: return int(str(v.get()).strip())
+            except Exception: return int(default)
+
+        def _get_float(self, v: tk.StringVar, default: float) -> float:
+            try: return float(str(v.get()).strip().replace(',', '.'))
+            except Exception: return float(default)
+
+        def _parse_minmax(self, s: str, name: str) -> tuple[float,float]:
+            try:
+                parts = [float(x.strip().replace(',', '.')) for x in str(s).split(',')]
+                if len(parts) < 2:
+                    raise ValueError
+                lo, hi = float(parts[0]), float(parts[1])
+                if hi <= lo:
+                    raise ValueError
+                return lo, hi
+            except Exception:
+                raise ValueError(f"{name} must be 'min,max' with max>min (e.g., 0.5,1.5)")
+
+        # --- UI ---
+        def _build(self):
+            # Two tabs: Candidate bank + Stage 2
+            root = ttk.Frame(self)
+            root.pack(fill="both", expand=True)
+            nb = ttk.Notebook(root)
+            nb.pack(fill="both", expand=True)
+
+            tab1 = ttk.Frame(nb)
+            tab2 = ttk.Frame(nb)
+            nb.add(tab1, text="Candidate bank")
+            nb.add(tab2, text="Stage 2 (fmrisim)")
+
+            # Scrollable content for tab1 (lots of options)
+            sf = _ScrollableFrame(tab1, padding=10)
+            sf.pack(fill="both", expand=True)
+            main = sf.inner
+
+            # Files
+            fr = ttk.LabelFrame(main, text="Template + Output")
+            fr.pack(fill="x", pady=6)
+
+            self.v_template = tk.StringVar()
+            ttk.Label(fr, text="Template CSV:").pack(side="left")
+            ttk.Entry(fr, textvariable=self.v_template, width=60).pack(side="left", padx=6)
+            ttk.Button(fr, text="Browse", command=self._browse_template).pack(side="left")
+
+            self.v_out = tk.StringVar(value="design_optimisation/optim_out_gui")
+            ttk.Label(fr, text="Output dir:").pack(side="left", padx=(16,0))
+            ttk.Entry(fr, textvariable=self.v_out, width=35).pack(side="left", padx=6)
+
+            # Candidate budget
+            fr2 = ttk.LabelFrame(main, text="Candidate bank size")
+            fr2.pack(fill="x", pady=6)
+
+            self.v_nvar = tk.StringVar(value="200")
+            self.v_niter = tk.StringVar(value="5")
+            self.v_seed = tk.StringVar(value="0")
+            ttk.Label(fr2, text="# Variations:").pack(side="left")
+            ttk.Entry(fr2, textvariable=self.v_nvar, width=7).pack(side="left", padx=4)
+            ttk.Label(fr2, text="# Iterations/variation:").pack(side="left", padx=(12,0))
+            ttk.Entry(fr2, textvariable=self.v_niter, width=7).pack(side="left", padx=4)
+            ttk.Label(fr2, text="Base seed:").pack(side="left", padx=(12,0))
+            ttk.Entry(fr2, textvariable=self.v_seed, width=7).pack(side="left", padx=4)
+
+            # Distributions + bounds
+            fr3 = ttk.LabelFrame(main, text="Timing search space (applies to isi1 + isi2, and iti)")
+            fr3.pack(fill="x", pady=6)
+
+            dist_opts = ["uniform","truncnorm","exponential"]
+            self.v_isi_dist = tk.StringVar(value="uniform")
+            self.v_iti_dist = tk.StringVar(value="uniform")
+            self.v_isi_bounds = tk.StringVar(value="0.5,1.5")
+            self.v_iti_bounds = tk.StringVar(value="1.0,3.0")
+            self.v_isi_span_min = tk.StringVar(value="0.4")  # min (hi-lo) per variation
+            self.v_iti_span_min = tk.StringVar(value="0.8")
+            self.v_isi_shape = tk.StringVar(value="0.25")
+            self.v_iti_shape = tk.StringVar(value="0.25")
+
+            row = ttk.Frame(fr3); row.pack(fill="x", pady=2)
+            ttk.Label(row, text="ISI dist:").pack(side="left")
+            ttk.OptionMenu(row, self.v_isi_dist, self.v_isi_dist.get(), *dist_opts).pack(side="left", padx=6)
+            ttk.Label(row, text="ISI bounds (min,max):").pack(side="left", padx=(12,0))
+            ttk.Entry(row, textvariable=self.v_isi_bounds, width=10).pack(side="left", padx=6)
+            ttk.Label(row, text="min span:").pack(side="left", padx=(12,0))
+            ttk.Entry(row, textvariable=self.v_isi_span_min, width=6).pack(side="left", padx=6)
+            ttk.Label(row, text="shape:").pack(side="left", padx=(12,0))
+            ttk.Entry(row, textvariable=self.v_isi_shape, width=6).pack(side="left", padx=6)
+
+            row = ttk.Frame(fr3); row.pack(fill="x", pady=2)
+            ttk.Label(row, text="ITI dist:").pack(side="left")
+            ttk.OptionMenu(row, self.v_iti_dist, self.v_iti_dist.get(), *dist_opts).pack(side="left", padx=6)
+            ttk.Label(row, text="ITI bounds (min,max):").pack(side="left", padx=(12,0))
+            ttk.Entry(row, textvariable=self.v_iti_bounds, width=10).pack(side="left", padx=6)
+            ttk.Label(row, text="min span:").pack(side="left", padx=(12,0))
+            ttk.Entry(row, textvariable=self.v_iti_span_min, width=6).pack(side="left", padx=6)
+            ttk.Label(row, text="shape:").pack(side="left", padx=(12,0))
+            ttk.Entry(row, textvariable=self.v_iti_shape, width=6).pack(side="left", padx=6)
+
+            # Stage-1 evaluation settings (kept minimal; advanced flags remain CLI)
+            fr4 = ttk.LabelFrame(main, text="Stage-1 scoring settings")
+            fr4.pack(fill="x", pady=6)
+
+            self.v_TR = tk.StringVar(value="1.792")
+            self.v_hp = tk.StringVar(value="128.0")
+            self.v_pad = tk.StringVar(value="32.0")
+            self.v_tres = tk.StringVar(value="16")
+            self.v_wenc = tk.StringVar(value="0.50")
+            self.v_wdec = tk.StringVar(value="0.25")
+            self.v_wfb  = tk.StringVar(value="0.25")
+            self.v_wcoll = tk.StringVar(value="1.0")
+            self.v_wcov  = tk.StringVar(value="1.0")
+
+            row = ttk.Frame(fr4); row.pack(fill="x", pady=2)
+            for lab, var, w in [
+                ("TR", self.v_TR, 6), ("HP cutoff", self.v_hp, 7), ("Pad (s)", self.v_pad, 6), ("tres", self.v_tres, 6),
+                ("w_enc", self.v_wenc, 6), ("w_dec", self.v_wdec, 6), ("w_fb", self.v_wfb, 6),
+                ("w_coll", self.v_wcoll, 6), ("w_cov", self.v_wcov, 6),
+            ]:
+                ttk.Label(row, text=f"{lab}:").pack(side="left")
+                ttk.Entry(row, textvariable=var, width=w).pack(side="left", padx=6)
+
+            fr5 = ttk.LabelFrame(main, text="Actions")
+            fr5.pack(fill="x", pady=6)
+
+            ttk.Button(fr5, text="Create candidate bank", command=self._create_bank).pack(side="left", padx=6)
+            ttk.Button(fr5, text="Run stage-1 ranking", command=self._run_stage1).pack(side="left", padx=6)
+
+            ttk.Label(fr5, text="Top-K shortlist:").pack(side="left", padx=(24,0))
+            self.v_keep = tk.StringVar(value="100")
+            ttk.Entry(fr5, textvariable=self.v_keep, width=6).pack(side="left", padx=6)
+            
+            # Log
+            frlog = ttk.LabelFrame(main, text="Log")
+            frlog.pack(fill="both", expand=True, pady=6)
+            self.txt = tk.Text(frlog, height=18)
+            self.txt.pack(fill="both", expand=True)
+            
+            self._log("Tip: Create -> Run. This writes <out_dir>/designs/ and stage1_results*.csv\n")
+            
+            # --- Stage 2 tab ---
+            fr2 = ttk.LabelFrame(tab2, text="Stage 2: recoverability (fmrisim) on ranked shortlist")
+            fr2.pack(fill="both", expand=True, padx=10, pady=10)
+            
+            # Note: uses the same Output dir as tab 1 (must contain stage1_results.csv + designs/cand_rank*.csv)
+            
+            # Paths
+            self.v_patterns = tk.StringVar()
+            self.v_noise = tk.StringVar()
+            
+            row = ttk.Frame(fr2); row.pack(fill="x", pady=4)
+            ttk.Label(row, text="patterns_npz:").pack(side="left")
+            ttk.Entry(row, textvariable=self.v_patterns, width=70).pack(side="left", padx=6)
+            ttk.Button(row, text="Browse", command=lambda: self._browse_file(self.v_patterns, [("NPZ files", "*.npz"), ("All files", "*.*")])).pack(side="left")
+            
+            row = ttk.Frame(fr2); row.pack(fill="x", pady=4)
+            ttk.Label(row, text="noise_nii:").pack(side="left")
+            ttk.Entry(row, textvariable=self.v_noise, width=70).pack(side="left", padx=6)
+            ttk.Button(row, text="Browse", command=lambda: self._browse_file(self.v_noise, [("NIfTI files", "*.nii *.nii.gz"), ("All files", "*.*")])).pack(side="left")
+            
+            # Core parameters
+            self.v_stage2_topk = tk.StringVar(value="5")
+            self.v_TR = tk.StringVar(value="1.792")
+            self.v_hp_cutoff = tk.StringVar(value="128.0")
+            self.v_pad_s = tk.StringVar(value="32.0")
+            self.v_dec_dur_s = tk.StringVar(value="2.0")
+            self.v_temporal_resolution = tk.StringVar(value="100.0")
+            self.v_loc_space = tk.StringVar(value="frac")
+            self.v_roi_target_vox = tk.StringVar(value="200")
+            self.v_n_vox = tk.StringVar(value="189")
+            self.v_n_reps = tk.StringVar(value="1")
+            self.v_noise_cache_seed = tk.StringVar(value="0")
+            
+            grid = ttk.Frame(fr2); grid.pack(fill="x", pady=8)
+            def _row(r, label, var, width=10):
+                rr = ttk.Frame(grid); rr.pack(fill="x", pady=2)
+                ttk.Label(rr, text=label, width=18).pack(side="left")
+                ttk.Entry(rr, textvariable=var, width=width).pack(side="left")
+                return rr
+            
+            _row(0, "Top-K:", self.v_stage2_topk, width=6)
+            _row(1, "TR:", self.v_TR, width=8)
+            _row(2, "hp_cutoff:", self.v_hp_cutoff, width=8)
+            _row(3, "pad_s:", self.v_pad_s, width=8)
+            _row(4, "dec_dur_s:", self.v_dec_dur_s, width=8)
+            _row(5, "temporal_res:", self.v_temporal_resolution, width=8)
+            
+            rr = ttk.Frame(grid); rr.pack(fill="x", pady=2)
+            ttk.Label(rr, text="loc_space:", width=18).pack(side="left")
+            ttk.OptionMenu(rr, self.v_loc_space, self.v_loc_space.get(), "frac", "coords").pack(side="left")
+            
+            _row(7, "roi_target_vox:", self.v_roi_target_vox, width=8)
+            _row(8, "n_vox:", self.v_n_vox, width=8)
+            _row(9, "n_reps:", self.v_n_reps, width=6)
+            _row(10, "noise_cache_seed:", self.v_noise_cache_seed, width=6)
+            
+            fr2b = ttk.Frame(fr2); fr2b.pack(fill="x", pady=(12, 0))
+            ttk.Button(fr2b, text="Run Stage 2 in terminal (close GUI)", command=self._run_stage2_and_quit).pack(side="left")
+
+
+
+
+        def _log(self, s: str):
+            self.txt.insert("end", s + "\n")
+            self.txt.see("end")
+            self.update_idletasks()
+
+        def _browse_file(self, var: tk.StringVar, filetypes):
+            p = filedialog.askopenfilename(title="Select file", filetypes=filetypes)
+            if p:
+                var.set(p)
+
+        def _browse_template(self):
+            f = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
+            if f:
+                self.v_template.set(f)
+
+        def _create_bank(self):
+            try:
+                template_path = Path(self.v_template.get())
+                if not template_path.exists():
+                    messagebox.showerror("Error", "Template CSV not found")
+                    return
+
+                out_dir = Path(self.v_out.get())
+                ensure_dir(out_dir)
+                bank_root = ensure_dir(out_dir / "candidate_bank")
+                designs_dir = ensure_dir(bank_root / "designs")
+                meta_path = bank_root / "metadata.csv"
+                # NOTE: we *append* to the existing candidate bank across button presses
+
+                template = pd.read_csv(template_path)
+                base_var = (max([c['var_idx'] for c in self._candidates]) + 1) if self._candidates else 0
+                nvar = self._get_int(self.v_nvar, 200)
+                niter = self._get_int(self.v_niter, 5)
+                base_seed = self._get_int(self.v_seed, 0)
+
+                isi_b_lo, isi_b_hi = self._parse_minmax(self.v_isi_bounds.get(), "ISI bounds")
+                iti_b_lo, iti_b_hi = self._parse_minmax(self.v_iti_bounds.get(), "ITI bounds")
+                isi_span_min = max(1e-6, self._get_float(self.v_isi_span_min, 0.4))
+                iti_span_min = max(1e-6, self._get_float(self.v_iti_span_min, 0.8))
+
+                isi_dist = str(self.v_isi_dist.get()).strip()
+                iti_dist = str(self.v_iti_dist.get()).strip()
+                isi_shape = float(self._get_float(self.v_isi_shape, 0.25))
+                iti_shape = float(self._get_float(self.v_iti_shape, 0.25))
+
+                TR = float(self._get_float(self.v_TR, 1.792))
+                # preserve existing constraints from template-free defaults
+                trial_len_range = (0.0, 1e9)
+                mean_trial_len_range = (0.0, 1e9)
+
+                rng = np.random.default_rng(int(base_seed))
+
+                self._log(f"Creating bank: {nvar} variations x {niter} iterations = {nvar*niter} designs\n")
+                wrote = 0
+                manifest_rows = []
+                for v in range(int(nvar)):
+                    # Sample a parameter set (variation)
+                    # Choose lo within [bound_lo, bound_hi - span_min], then hi within [lo+span_min, bound_hi]
+                    if isi_b_hi - isi_b_lo <= isi_span_min or iti_b_hi - iti_b_lo <= iti_span_min:
+                        raise ValueError("Bounds too tight for requested min span.")
+                    isi_lo = float(rng.uniform(isi_b_lo, isi_b_hi - isi_span_min))
+                    isi_hi = float(rng.uniform(isi_lo + isi_span_min, isi_b_hi))
+                    iti_lo = float(rng.uniform(iti_b_lo, iti_b_hi - iti_span_min))
+                    iti_hi = float(rng.uniform(iti_lo + iti_span_min, iti_b_hi))
+
+                    params = dict(
+                        isi_dist=isi_dist, iti_dist=iti_dist,
+                        isi_lo=isi_lo, isi_hi=isi_hi,
+                        iti_lo=iti_lo, iti_hi=iti_hi,
+                        isi_shape=isi_shape, iti_shape=iti_shape,
+                    )
+
+                    for it in range(int(niter)):
+                        seed = int(base_seed) + int(v)*100000 + int(it)
+                        df_new = generate_design_from_template(
+                            template=template,
+                            isi_dist=isi_dist,
+                            iti_dist=iti_dist,
+                            isi_lo=isi_lo, isi_hi=isi_hi,
+                            iti_lo=iti_lo, iti_hi=iti_hi,
+                            isi_shape=isi_shape, iti_shape=iti_shape,
+                            TR=float(TR),
+                            trial_len_range=trial_len_range,
+                            mean_trial_len_range=mean_trial_len_range,
+                            opt_isi_range=None,
+                            opt_iti_range=None,
+                            seed=seed,
+                        )
+                        if df_new is None:
+                            continue
+
+                        var_idx = base_var + v
+                        design_id = self._bank_counter
+                        self._bank_counter += 1
+                        fname = f"var{var_idx:04d}_iter{it:04d}_d{design_id:06d}.csv"
+                        fpath = designs_dir / fname
+                        df_new.to_csv(fpath, index=False)
+                        wrote += 1
+                        self._candidates.append({
+                            "var_idx": v,
+                            "iter_idx": it,
+                            "seed": seed,
+                            "params": params,
+                            "csv": str(fpath),
+                        })
+                        manifest_rows.append({"var_idx": var_idx, "iter_idx": it, "seed": seed, "csv": str(fpath), **params})
+                dfm = pd.DataFrame(manifest_rows)
+                if meta_path.exists():
+                    dfm.to_csv(meta_path, mode="a", header=False, index=False)
+                else:
+                    dfm.to_csv(meta_path, index=False)
+                self._log(f"Wrote {wrote} candidate CSVs to: {designs_dir}\nManifest: {out_dir/'candidates_manifest.csv'}\n")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+
+        def _run_stage1(self):
+            try:
+                if not self._candidates:
+                    messagebox.showerror("Error", "No candidates in memory. Click 'Create candidate bank' first.")
+                    return
+
+                out_dir = Path(self.v_out.get())
+                ensure_dir(out_dir)
+                keep_top = max(1, self._get_int(self.v_keep, 100))
+
+                TR = float(self._get_float(self.v_TR, 1.792))
+                hp = float(self._get_float(self.v_hp, 128.0))
+                pad_s = float(self._get_float(self.v_pad, 32.0))
+                tres = int(self._get_int(self.v_tres, 16))
+                weights = (float(self._get_float(self.v_wenc, 0.5)),
+                           float(self._get_float(self.v_wdec, 0.25)),
+                           float(self._get_float(self.v_wfb, 0.25)))
+                w_coll = float(self._get_float(self.v_wcoll, 1.0))
+                w_cov = float(self._get_float(self.v_wcov, 1.0))
+
+                self._log(f"Stage-1 evaluating {len(self._candidates)} designs...\n")
+
+                # Evaluate each CSV
+                per_iter = []
+                for i, c in enumerate(self._candidates):
+                    df = pd.read_csv(c["csv"])
+                    s1 = evaluate_design_stage1(df, TR=TR, hp_cutoff=hp, pad_s=pad_s, tres=tres, weights=weights)
+                    empty_pen = 0.0 if s1.get("cov_minbin_worst", 0.0) > 0 else 1000.0
+                    obj = (w_coll * (s1["coll_p95_worst"] + 0.5 * s1["coll_max_worst"]) + w_cov * (s1["cov_chi2_worst"] + empty_pen))
+                    per_iter.append({
+                        **{k: c[k] for k in ["var_idx","iter_idx","seed","csv"]},
+                        **c["params"],
+                        **s1,
+                        "stage1_obj": float(obj),
+                    })
+                    if (i+1) % 50 == 0:
+                        self._log(f"  ...{i+1}/{len(self._candidates)} done")
+
+                df_iter = pd.DataFrame(per_iter)
+                df_iter.to_csv(out_dir / "stage1_results_all.csv", index=False)
+
+                # Aggregate per variation: mean objective, plus worst-case sanity
+                agg = df_iter.groupby("var_idx").agg(
+                    n_iter=("stage1_obj","count"),
+                    stage1_obj_mean=("stage1_obj","mean"),
+                    stage1_obj_p95=("stage1_obj", lambda x: float(np.percentile(x, 95)) if len(x)>0 else float('nan')),
+                    stage1_obj_max=("stage1_obj","max"),
+                ).reset_index()
+
+                # Choose representative CSV per variation: best iteration (min objective)
+                best_rows = df_iter.sort_values(["var_idx","stage1_obj"]).groupby("var_idx").head(1)
+                agg = agg.merge(best_rows[["var_idx","csv","iter_idx"]].rename(columns={"csv":"best_csv","iter_idx":"best_iter"}), on="var_idx", how="left")
+
+                agg = agg.sort_values(["stage1_obj_mean","stage1_obj_p95","stage1_obj_max"]).reset_index(drop=True)
+                agg.to_csv(out_dir / "stage1_results_variations.csv", index=False)
+
+                # Write a cand_rankXXXX.csv shortlist to integrate with existing stage-2 flow
+                designs_dir = ensure_dir(out_dir / "designs")
+                shortlist = agg.head(int(keep_top))
+                rows = []
+                for rank, r in enumerate(shortlist.itertuples(index=False)):
+                    src = Path(r.best_csv)
+                    dst = designs_dir / f"cand_rank{rank:04d}.csv"
+                    try:
+                        # copy file contents (avoid shutil to keep minimal deps)
+                        dst.write_text(Path(src).read_text(encoding='utf-8'), encoding='utf-8')
+                    except Exception:
+                        import shutil
+                        shutil.copyfile(src, dst)
+
+                    # keep a compact row for stage-2 selection
+                    rows.append({
+                        "rank_stage1": int(rank),
+                        "var_idx": int(r.var_idx),
+                        "best_iter": int(r.best_iter),
+                        "stage1_obj_mean": float(r.stage1_obj_mean),
+                        "stage1_obj_p95": float(r.stage1_obj_p95),
+                        "stage1_obj_max": float(r.stage1_obj_max),
+                        "csv": str(dst),
+                    })
+
+                pd.DataFrame(rows).to_csv(out_dir / "stage1_results.csv", index=False)
+
+                self._log(f"\nWrote:\n  {out_dir/'stage1_results_all.csv'}\n  {out_dir/'stage1_results_variations.csv'}\n  {out_dir/'stage1_results.csv'} (shortlist)\n")
+                self._log(f"Shortlist CSVs: {designs_dir}\n")
+                self._log("Next: run stage-2 with CLI, e.g.\n  python fmrisim_optimizer.py --optimize_design --stage2_topk 10 --opt_out_dir <out_dir> ...\n")
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+
+        def _run_stage2_and_quit(self):
+            """Close GUI and request stage-2 run in the terminal."""
+            try:
+                out_dir = str(self.v_out.get()).strip()
+                if not out_dir:
+                    messagebox.showerror("Error", "Output dir is empty")
+                    return
+                if not str(self.v_patterns.get()).strip():
+                    messagebox.showerror("Error", "patterns_npz is required")
+                    return
+                if not str(self.v_noise.get()).strip():
+                    messagebox.showerror("Error", "noise_nii is required")
+                    return
+
+                self._stage2_request = True
+                self._stage2_args = {
+                    "out_dir": out_dir,
+                    "patterns_npz": str(self.v_patterns.get()).strip(),
+                    "noise_nii": str(self.v_noise.get()).strip(),
+                    "topk": int(float(self.v_stage2_topk.get())),
+                    "TR": float(self.v_TR.get()),
+                    "hp_cutoff": float(self.v_hp_cutoff.get()),
+                    "pad_s": float(self.v_pad_s.get()),
+                    "dec_dur_s": float(self.v_dec_dur_s.get()),
+                    "temporal_resolution": float(self.v_temporal_resolution.get()),
+                    "loc_space": str(self.v_loc_space.get()).strip(),
+                    "roi_target_vox": int(float(self.v_roi_target_vox.get())),
+                    "n_vox": int(float(self.v_n_vox.get())),
+                    "n_reps": int(float(self.v_n_reps.get())),
+                    "noise_cache_seed": int(float(self.v_noise_cache_seed.get())),
+                }
+
+                # Close GUI; caller will run stage-2 in terminal using subprocess.
+                self.destroy()
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+
+
+
+
+    gui = CandidateGUI()
+    gui.mainloop()
+
+    if getattr(gui, "_stage2_request", False):
+        # Run in terminal using the same subprocess pipeline as optimiser stage-2
+        cfg = getattr(gui, "_stage2_args", {})
+        out_dir = Path(cfg["out_dir"])
+        stage1_csv = out_dir / "stage1_results.csv"
+        if not stage1_csv.exists():
+            print(f"[gui-stage2] ERROR: stage1_results.csv not found at: {stage1_csv}")
+            return
+
+        df_top = pd.read_csv(stage1_csv)
+        if len(df_top) == 0:
+            print("[gui-stage2] ERROR: stage1_results.csv is empty; run stage-1 ranking first.")
+            return
+
+        k = min(int(cfg.get("topk", 5)), len(df_top))
+        print(f"[gui-stage2] Running recoverability (fmrisim) for top {k} designs...")
+
+        import subprocess, sys as _sys
+        for rank in range(k):
+            csv_path = str(df_top.iloc[rank]["csv"])
+            cand_out = out_dir / "stage2_fmrisim" / f"rank{rank:04d}"
+            ensure_dir(cand_out)
+
+            cmd = [
+                _sys.executable, _sys.argv[0],
+                "--csv", csv_path,
+                "--patterns_npz", str(cfg["patterns_npz"]),
+                "--noise_nii", str(cfg["noise_nii"]),
+                "--TR", str(cfg["TR"]),
+                "--hp_cutoff", str(cfg["hp_cutoff"]),
+                "--pad_s", str(cfg["pad_s"]),
+                "--dec_dur_s", str(cfg["dec_dur_s"]),
+                "--temporal_resolution", str(cfg["temporal_resolution"]),
+                "--loc_space", str(cfg["loc_space"]),
+                "--roi_target_vox", str(cfg["roi_target_vox"]),
+                "--n_vox", str(cfg["n_vox"]),
+                "--out_dir", str(cand_out),
+                "--n_reps", str(cfg["n_reps"]),
+                "--noise_cache_seed", str(cfg["noise_cache_seed"]),
+            ]
+            # Let the subprocess print its own progress to the terminal
+            subprocess.run(cmd, check=True)
+
+        print(f"[gui-stage2] Done. Outputs under: {out_dir / 'stage2_fmrisim'}")
+
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--csv", required=True)
-    ap.add_argument("--patterns_npz", required=True)
-    ap.add_argument("--noise_nii", required=True, help="Real 4D NIfTI used to estimate noise + provide affine/shape.")
+    ap.add_argument("--gui_candidates", action="store_true", help="Launch a Tk GUI to create a large candidate design bank and rank designs via stage-1 metrics.")
+    ap.add_argument("--csv", required=False)
+    ap.add_argument("--patterns_npz", required=False)
+    ap.add_argument("--noise_nii", required=False, help="Real 4D NIfTI used to estimate noise + provide affine/shape.")
     ap.add_argument("--plot_true", action="store_true",
                     help="Interactive plot of true voxel responses (encoding/decision/feedback) for rep 0.")
     ap.add_argument("--plot_run_id", default=None,
@@ -2333,9 +3358,18 @@ def main():
                     help="DEPRECATED/IGNORED. Noise is generated from whole-brain per BrainIAK docs.")
     args = ap.parse_args()
 
+    if getattr(args, "gui_candidates", False):
+        launch_candidate_design_gui()
+        return
+
     if getattr(args, "optimize_design", False):
         optimise_designs(args)
         return
+
+
+    # In non-GUI, non-optimiser mode we need the core inputs.
+    if not args.csv or not args.patterns_npz or not args.noise_nii:
+        ap.error("--csv, --patterns_npz, and --noise_nii are required unless --gui_candidates or --optimize_design is used.")
 
     if args.noise_mask is not None or args.noise_roi_scale is not None:
         print("[fmrisim_run] NOTE: --noise_mask/--noise_roi_scale are ignored. "
@@ -2380,6 +3414,7 @@ def main():
         TR=args.TR,
         cache_dir=cache_dir,
         use_cache=bool(args.cache_noise_dict),
+        hp_cutoff=float(args.hp_cutoff),
     )
 
     # Build LOC ROI mask in this space
@@ -2493,6 +3528,7 @@ def main():
         use_cache=bool(args.cache_run_noise),
         noise_cache_seed=int(args.noise_cache_seed),
         n_parallel=int(args.n_parallel),
+        hp_cutoff=float(args.hp_cutoff)
     )
     rng_master = np.random.default_rng(args.seed)
     rows = []
@@ -2519,6 +3555,7 @@ def main():
                     use_cache=bool(args.cache_run_noise),
                     noise_cache_seed=int(args.noise_cache_seed),
                     n_parallel=int(args.n_parallel),
+                    hp_cutoff=float(args.hp_cutoff)
                 )
 
             res = simulate_one_run(
