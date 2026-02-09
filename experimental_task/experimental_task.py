@@ -958,7 +958,9 @@ def run_experiment():
         'Label CSV': '',         # Leave blank to browse
         'Image Dir': 'images/task_images/',   # Default directory
         'Feedback Delay': False, # Selection from previous requirements
-        'Demo Mode': False
+        'Demo Mode': False,
+        # Tickbox: when True use scanner button mapping (1-4). When False use PC mapping (1,2,9,0)
+        'Scanner Buttons': True
     }
 
     # Define a helper for browsing (uses PsychoPy's GUI helpers)
@@ -973,7 +975,7 @@ def run_experiment():
     dlg = gui.DlgFromDict(
         info,
         title='Study 3 Launcher',
-        order=['Sub', 'Design CSV', 'Label CSV', 'Image Dir', 'Feedback Delay', 'Demo Mode'],
+        order=['Sub', 'Design CSV', 'Label CSV', 'Image Dir', 'Feedback Delay', 'Demo Mode', 'Scanner Buttons'],
         tip={
             'Design CSV': 'Leave blank to open file browser',
             'Label CSV': 'Leave blank to open file browser',
@@ -1011,6 +1013,14 @@ def run_experiment():
 
     demo_mode = _to_bool(info.get('Demo Mode'))
     feedback_delay = _to_bool(info.get('Feedback Delay'))
+    # Determine button mapping based on scanner toggle (default: scanner mapping)
+    use_scanner_buttons = _to_bool(info.get('Scanner Buttons'))
+    # Update global keys mapping so other functions use the selected mapping
+    global KEYS_RESP
+    if use_scanner_buttons:
+        KEYS_RESP = ['1', '2', '3', '4']
+    else:
+        KEYS_RESP = ['1', '2', '9', '0']
 
     try:
         # Load design and label files and build participant-specific pools
@@ -1046,11 +1056,13 @@ def run_experiment():
     # Create first fullscreen window and start as-is (run 1 unchanged)
     win, components = create_window_and_components(demo_mode)
     # Show initial experimental instructions
+    # Nicely format the currently active response keys for the instruction text
+    keys_str = ", ".join(f"'{k}'" for k in KEYS_RESP)
     show_instruction_screen(win, (
         "EXPERIMENTAL SESSION\n\n"
         "You are about to start the main task.\n"
         "Remember to categorize the objects as accurately as possible.\n\n"
-        "Keep your fingers placed on the '1', '2', '9', and '0' keys."
+        f"Keep your fingers placed on the {keys_str} keys."
     ), image_path="instruction_image_1.png")
     show_instruction_screen(win, (
         "The objects you are going to learn are from an alien planet. Some of them can look similar to one's you've seen before\
