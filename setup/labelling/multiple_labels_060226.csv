@@ -1,0 +1,11 @@
+ObjectSpace,Congruent_1,Congruent_2,Congruent_3,Medium_1,Medium_2,Medium_3,Incongruent_1,Incongruent_2,Incongruent_3,Mean F0,Mean F1,SD F0,SD F1,Sample
+1,spatula (0.0212),(analog) clock (0.0105),soap dispenser (0.0266),rubber eraser (0.0051),coffeepot (0.0049),pill bottle (0.0063),swimming trunks (0.0001),mountain bike (0.0001),mosquito net (0.0001),0.7,0.3,0.2,0.2,Picture
+2,table lamp (0.0246),loudspeaker (0.0283),spotlight (0.1329),vase (0.0019),radio telescope (0.0014),"pill bottle (0.0013)
+",crib (0.0001),refrigerator (0.0001),sweatshirt (0.0001),0.7,0.3,0.2,0.2,Picture
+3,loudspeaker (0.0469),table lamp (0.0169),spotlight (0.0382),strainer (0.0027),digital clock (0.0033),bow tie (0.0044),pajama (0.0001),sleeping bag (0.0001),backpack (0.0001),0.3,0.3,0.2,0.2,Picture
+8,soap dispenser (0.1651),vase (0.0775),perfume (0.0255),birdhouse (0.0033),spatula (0.0032),measuring cup (0.0024),running shoe (0.0001),crib (0.0001),swab (0.0001),0.7,0.7,0.2,0.2,Picture
+9,joystick (0.0345),table lamp (0.0264),umbrella (0.0151),radio (0.0037),ladle (0.0029),coffeepot (0.0049),backpack (0.0001),cassette player (0.0001),mailbag (0.0001),0.3,0.3,0.2,0.2,Picture
+11,teapot (0.1194),soap dispenser (0.0596),hook (0.0248),shovel (0.0049),candle (0.0034),measuring cup (0.0041),sweatshirt (0.0001),typewriter keyboard (0.0001),loafer (0.0001),0.3,0.7,0.2,0.2,Picture
+18,toilet seat (0.0646),washbasin (0.0489),can opener (0.0106),letter opener (0.0028),espresso maker (0.0027),lampshade (0.0049),wallet (0.0001),slot (machine) (0.0001),mosquito net (0.0001),0.3,0.3,0.2,0.2,Picture
+20,iron (0.0430),padlock (0.0094),tray (0.0097),lighter (0.0049),hammer (0.0031),spatula (0.0062),disk brake (0.0001),moped (0.0001),moving van (0.0001),0.7,0.7,0.2,0.2,Picture
+22,cup (0.3424),goblet (0.0942),coffee mug (0.0583),electric fan (0.0019),loudspeaker (0.0020),torch (0.0012),pay-phone (0.0001),disk brake (0.0001),bobsled (0.0001),0.7,0.7,0.2,0.2,Picture
