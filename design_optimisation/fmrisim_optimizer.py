@@ -1560,7 +1560,15 @@ def load_or_make_run_noise_roi_set(
 
 def compute_n_scans_for_run(df_run: pd.DataFrame, TR: float, pad_s: float, dec_dur_s: float) -> int:
     dec_on = df_run["dec_onset_est"].to_numpy(float)
-    fb_on = dec_on + float(dec_dur_s) + df_run["isi2_dur"].to_numpy(float)
+
+    # Prefer per-trial decision durations from the design file (supports per-run/per-trial max_dec_dur).
+    # Fall back to the CLI fixed duration only if the column is missing.
+    if "max_dec_dur" in df_run.columns:
+        dec_dur = df_run["max_dec_dur"].to_numpy(float)
+    else:
+        dec_dur = np.full_like(dec_on, float(dec_dur_s))
+
+    fb_on = dec_on + dec_dur + df_run["isi2_dur"].to_numpy(float)
     fb_dur = df_run["fb_dur"].to_numpy(float)
     total_time_s = float(np.max(fb_on + fb_dur)) + float(pad_s)
     return int(math.ceil(total_time_s / float(TR)))
@@ -1578,9 +1586,14 @@ def build_event_mats(df_run: pd.DataFrame,
     enc_dur = df_run["img_dur"].to_numpy(float)
 
     dec_on = df_run["dec_onset_est"].to_numpy(float)
-    dec_dur = np.full_like(dec_on, float(dec_dur_s))
+    # Prefer per-trial decision durations from the design file (supports per-run/per-trial max_dec_dur).
+    # Fall back to the CLI fixed duration only if the column is missing.
+    if "max_dec_dur" in df_run.columns:
+        dec_dur = df_run["max_dec_dur"].to_numpy(float)
+    else:
+        dec_dur = np.full_like(dec_on, float(dec_dur_s))
 
-    fb_on = dec_on + float(dec_dur_s) + df_run["isi2_dur"].to_numpy(float)
+    fb_on = dec_on + dec_dur + df_run["isi2_dur"].to_numpy(float)
     fb_dur = df_run["fb_dur"].to_numpy(float)
 
     total_time_s = float(np.max(fb_on + fb_dur)) + float(pad_s)
