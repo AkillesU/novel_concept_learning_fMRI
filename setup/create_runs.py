@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 create_runs.py
 
@@ -145,6 +145,7 @@ class DesignConfig:
     # Timing (3-Event)
     img_dur: float = 0.0
     max_dec_dur: float = 0.0
+    max_dec_dur_per_run: Optional[List[float]] = None
     fb_dur: float = 0.0
     jit_isi1_range: Tuple[float, float] = (0.0, 0.0)
     jit_isi2_range: Tuple[float, float] = (0.0, 0.0)
@@ -311,11 +312,19 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
                 # Compute ISI1/ISI2 and absolute onsets for self-paced design (max durations used for schedule)
                 isi1, isi2 = get_jit(cfg.jit_isi1_range), get_jit(cfg.jit_isi2_range)
                 t_img, t_dec = current_time, current_time + cfg.img_dur + isi1
-                t_fb, t_end  = t_dec + cfg.max_dec_dur + isi2, t_dec + cfg.max_dec_dur + isi2 + cfg.fb_dur
+                max_dec = cfg.max_dec_dur
+                if getattr(cfg, "max_dec_dur_per_run", None) is not None:
+                    try:
+                        if len(cfg.max_dec_dur_per_run) >= int(run_id):
+                            max_dec = float(cfg.max_dec_dur_per_run[int(run_id) - 1])
+                    except Exception:
+                        # Fall back to the global max_dec_dur if parsing fails
+                        max_dec = cfg.max_dec_dur
+                t_fb, t_end  = t_dec + max_dec + isi2, t_dec + max_dec + isi2 + cfg.fb_dur
                 rows.append({
                     **common, "trial_duration_max": t_end - t_img, "img_onset": t_img,
                     "img_dur": cfg.img_dur, "isi1_dur": isi1, "isi1_type": "hidden",
-                    "dec_onset_est": t_dec, "max_dec_dur": cfg.max_dec_dur,
+                    "dec_onset_est": t_dec, "max_dec_dur": max_dec,
                     "isi2_dur": isi2, "isi2_type": "fixation", "fb_dur": cfg.fb_dur
                 })
                 current_time = t_end + iti
@@ -614,7 +623,7 @@ class DesignGUI(tk.Tk):
         fr_glob.pack(fill="x", pady=5)
 
         # We add trace to these variables to update timing automatically
-        self.v_runs = tk.StringVar(value="2"); self.v_runs.trace_add("write", lambda *a: self.update_estimates())
+        self.v_runs = tk.StringVar(value="2"); self.v_runs.trace_add("write", lambda *a: (self.update_estimates(), self._refresh_per_run_dec_dur_ui() if getattr(self, "v_3_max_per_run", None) is not None and bool(self.v_3_max_per_run.get()) else None))
         self.v_trials = tk.StringVar(value="30"); self.v_trials.trace_add("write", lambda *a: self.update_estimates())
 
         ttk.Label(fr_glob, text="Seed:").pack(side="left")
@@ -765,6 +774,11 @@ class DesignGUI(tk.Tk):
         ttk.Label(r1, text="Max Dec Dur:").pack(side="left", padx=5)
         self.v_3_max = tk.StringVar(value="3.0")
         ttk.Entry(r1, textvariable=self.v_3_max, width=5).pack(side="left")
+        # Optional per-run max decision duration (lets operators vary max_dec_dur across runs)
+        self.v_3_max_per_run = tk.BooleanVar(value=False)
+        ttk.Checkbutton(r1, text="Per-run", variable=self.v_3_max_per_run,
+                        command=self._refresh_per_run_dec_dur_ui).pack(side="left", padx=6)
+
         ttk.Label(r1, text="Fb Dur:").pack(side="left", padx=5)
         self.v_3_fb = tk.StringVar(value="1.0")
         ttk.Entry(r1, textvariable=self.v_3_fb, width=5).pack(side="left")
@@ -779,6 +793,17 @@ class DesignGUI(tk.Tk):
         ttk.Label(r2, text="ITI Min/Max:").pack(side="left", padx=5)
         self.v_3_iti = tk.StringVar(value="1.0,3.0")
         ttk.Entry(r2, textvariable=self.v_3_iti, width=8).pack(side="left")
+# Per-run decision durations panel (hidden unless enabled)
+        self._per_run_dec_container = ttk.LabelFrame(f, text="Per-run Max Decision Duration (s)")
+        self._per_run_dec_container.pack(fill="x", pady=(6, 0))
+        self._per_run_dec_container.pack_forget()  # hidden by default
+
+        self._per_run_dec_rows = {}  # {"s1": [StringVar...], "s2": [StringVar...]}
+        self._per_run_dec_widgets = {}  # {"s1": Frame, "s2": Frame}
+
+        # Ensure per-run panel (if enabled) matches current run counts
+        self._refresh_per_run_dec_dur_ui()
+
 
     def browse_csv(self):
         """Open a file dialog to select the label CSV and set the entry field."""
@@ -788,6 +813,78 @@ class DesignGUI(tk.Tk):
     def log(self, txt):
         """Append a line to the GUI log box and scroll to the bottom."""
         self.log_box.insert("end", txt+"\n"); self.log_box.see("end")
+
+def _refresh_per_run_dec_dur_ui(self):
+    """Rebuild per-run max decision duration entry widgets for session 1 and 2.
+
+    This is a GUI-only helper; it does not change generation logic unless the
+    'Per-run' checkbox is enabled.
+    """
+    try:
+        enabled = bool(self.v_3_max_per_run.get())
+    except Exception:
+        enabled = False
+
+    # Show/hide container
+    if not hasattr(self, "_per_run_dec_container"):
+        return
+    if not enabled:
+        self._per_run_dec_container.pack_forget()
+        return
+    else:
+        # Ensure visible (idempotent)
+        self._per_run_dec_container.pack(fill="x", pady=(6, 0))
+
+    # Clear any existing widgets
+    for child in list(self._per_run_dec_container.winfo_children()):
+        child.destroy()
+
+    def _make_rows(label, n_runs, existing_vars_key):
+        fr = ttk.Frame(self._per_run_dec_container)
+        fr.pack(fill="x", pady=(2, 2))
+        ttk.Label(fr, text=label, width=14).pack(side="left")
+
+        vars_list = []
+        # Default to the global max decision duration
+        default = str(self.v_3_max.get()).strip()
+        for i in range(int(n_runs)):
+            v = tk.StringVar(value=default)
+            vars_list.append(v)
+            ttk.Label(fr, text=f"R{i+1}:").pack(side="left", padx=(6, 1))
+            ttk.Entry(fr, textvariable=v, width=6).pack(side="left")
+        return vars_list
+
+    n_runs_s1 = self.get_int(self.v_runs, 0)
+    n_runs_s2 = self.get_int(self.v_runs_s2, 0)
+
+    self._per_run_dec_rows = {
+        "s1": _make_rows("Session 1:", n_runs_s1, "s1"),
+        "s2": _make_rows("Session 2:", n_runs_s2, "s2"),
+    }
+
+    # Refresh estimates to reflect per-run values (mean) when enabled
+    try:
+        self.update_estimates()
+    except Exception:
+        pass
+
+def _get_dec_dur_estimate(self, default: float) -> float:
+    """Return a representative decision duration for estimates (mean across per-run values if enabled)."""
+    try:
+        if hasattr(self, "v_3_max_per_run") and bool(self.v_3_max_per_run.get()):
+            vals = []
+            if hasattr(self, "_per_run_dec_rows") and isinstance(self._per_run_dec_rows, dict):
+                # use session 1 list for estimate (session lengths shown per session anyway)
+                for v in self._per_run_dec_rows.get("s1", []):
+                    try:
+                        vals.append(float(str(v.get()).strip().replace(',', '.')))
+                    except Exception:
+                        pass
+            if vals:
+                return float(sum(vals) / len(vals))
+    except Exception:
+        pass
+    return float(default)
 
     def _save_session_data(self, rows, sub_id, sess_id, prefix, mode):
             """Helper to save one consolidated CSV for a participant/session.
@@ -848,7 +945,7 @@ class DesignGUI(tk.Tk):
                 
             else: # 3-Event
                 img = self.get_float(self.v_3_img)
-                dec = self.get_float(self.v_3_max)
+                dec = self._get_dec_dur_estimate(self.get_float(self.v_3_max))
                 fb = self.get_float(self.v_3_fb)
                 is1_min, is1_max = parse_range(self.v_3_isi1.get(), "ISI1")
                 is2_min, is2_max = parse_range(self.v_3_isi2.get(), "ISI2")
@@ -932,6 +1029,13 @@ class DesignGUI(tk.Tk):
                 cfg_s1.jit_dec_fb_range, cfg_s1.jit_iti_range = parse_range(self.v_2_jit.get(), "Jitter"), parse_range(self.v_2_iti.get(), "ITI")
             else:
                 cfg_s1.img_dur, cfg_s1.max_dec_dur, cfg_s1.fb_dur = self.get_float(self.v_3_img, 1.0), self.get_float(self.v_3_max, 3.0), self.get_float(self.v_3_fb, 1.0)
+                if hasattr(self, 'v_3_max_per_run') and bool(self.v_3_max_per_run.get()):
+                    # Per-run max decision duration lists (Session 1 and 2)
+                    try:
+                        cfg_s1.max_dec_dur_per_run = [self.get_float(v, cfg_s1.max_dec_dur) for v in self._per_run_dec_rows.get('s1', [])]
+                    except Exception:
+                        cfg_s1.max_dec_dur_per_run = None
+
                 cfg_s1.jit_isi1_range, cfg_s1.jit_isi2_range, cfg_s1.jit_iti_range = parse_range(self.v_3_isi1.get(), "ISI1"), parse_range(self.v_3_isi2.get(), "ISI2"), parse_range(self.v_3_iti.get(), "ITI")
 
             # Create Session 2 config via dataclasses.replace (S2 differs only by run counts)
@@ -940,6 +1044,13 @@ class DesignGUI(tk.Tk):
                 n_runs=self.get_int(self.v_runs_s2, 2), 
                 trials_per_run=self.get_int(self.v_trials_s2, 20)
             )
+
+            if mode == "3event" and hasattr(self, 'v_3_max_per_run') and bool(self.v_3_max_per_run.get()):
+                try:
+                    cfg_s2.max_dec_dur_per_run = [self.get_float(v, cfg_s2.max_dec_dur) for v in self._per_run_dec_rows.get('s2', [])]
+                except Exception:
+                    cfg_s2.max_dec_dur_per_run = None
+
 
             base_rng = np.random.default_rng(self.get_int(self.v_seed, 999))
             prefix = self.v_prefix.get()
