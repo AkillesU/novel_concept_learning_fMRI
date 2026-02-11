@@ -992,10 +992,9 @@ def trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=1, run_la
         win,
         text=(
             f"{run_line}\n"
-            f"Mode: {mode}\n"
-            f"Demo: {demo_mode}\n"
-            f"Press {KEYS_RESP} to test.\n"
-            f"Scanner Trigger: '{TRIGGER_KEY}'\n"
+            f"Press the buttons to test.\n\n\n"
+            f"Be ready!\n\n"
+            f"Waiting for scanner to start\n"
             + (f"Demo skip: RIGHT ARROW\n" if demo_mode else "")
         ),
         pos=(0, 0.3),
@@ -1026,7 +1025,6 @@ def trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=1, run_la
             else:
                 btn['box'].fillColor = COL_NEUTRAL
             btn['box'].draw()
-            btn['text'].draw()
 
         win.flip()
 
@@ -1179,12 +1177,12 @@ def run_experiment():
 
     show_instruction_screen(win, (
         "EXPERIMENTAL SESSION\n\n"
-        "You are about to start the main task.\n"
-        "Remember to categorize the objects as accurately as possible.\n\n"
+        "You are about to start the main object learning task.\n"
+        "Remember to categorize the objects as accurately and fast as possible.\n\n"
         f"{hand_text}"
     ), image_path="instruction_image_1.png", use_scanner_buttons=use_scanner_buttons)
     show_instruction_screen(win, (
-        "The objects you are going to learn are from an alien planet. Some of them can look similar to one's you've seen before\
+        "The objects you are going to learn are from an alien planet. Some of them can look similar to one's you've seen before \
 while others will not. \n\nThe names of the objects won't change during the experiment."
     ), use_scanner_buttons=use_scanner_buttons)
     trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=n_runs, run_label=runs[0][0])
