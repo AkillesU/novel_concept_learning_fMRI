@@ -1,0 +1,11 @@
+var_idx,n_iter,stage1_obj_mean,stage1_obj_p95,stage1_obj_max,best_csv,best_iter
+3,4,2030.9097687317708,2037.7983590766896,2038.0853179419776,design_optimisation\optim_longer_isi_v3\candidate_bank\designs\var0013_iter0000_d000023.csv,0
+5,4,2033.6893109317523,2039.3297459123153,2039.8481364271847,design_optimisation\optim_longer_isi_v3\candidate_bank\designs\var0005_iter0000_d000005.csv,0
+9,4,2036.2749191119915,2045.5972748035433,2046.9242782807082,design_optimisation\optim_longer_isi_v3\candidate_bank\designs\var0019_iter0000_d000039.csv,0
+7,4,2037.1493488242897,2041.3351168997735,2041.6047561841156,design_optimisation\optim_longer_isi_v3\candidate_bank\designs\var0017_iter0000_d000017.csv,0
+6,4,2039.3643825853628,2045.1593220766124,2045.1614546966678,design_optimisation\optim_longer_isi_v3\candidate_bank\designs\var0016_iter0000_d000026.csv,0
+4,4,2039.4309715444697,2044.993703762679,2045.2709859149352,design_optimisation\optim_longer_isi_v3\candidate_bank\designs\var0004_iter0000_d000004.csv,0
+2,4,2040.7092116880365,2047.3911867189615,2048.733042423563,design_optimisation\optim_longer_isi_v3\candidate_bank\designs\var0002_iter0000_d000002.csv,0
+8,4,2042.5569980332698,2051.2610216053754,2052.3349331440972,design_optimisation\optim_longer_isi_v3\candidate_bank\designs\var0018_iter0000_d000018.csv,0
+0,4,2045.7113937274123,2070.452091708026,2075.5182437941526,design_optimisation\optim_longer_isi_v3\candidate_bank\designs\var0000_iter0000_d000000.csv,0
+1,4,2051.8142739341483,2057.604755189152,2057.6120788721055,design_optimisation\optim_longer_isi_v3\candidate_bank\designs\var0011_iter0000_d000031.csv,0
