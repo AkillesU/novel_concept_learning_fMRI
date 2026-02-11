@@ -80,6 +80,7 @@ FG_COLOR = "black"
 
 SCANNER_KEYS = ["1", "2", "3", "4"]
 PC_KEYS = ["1", "2", "9", "0"]
+TRIGGER_KEY = "5"  # scanner trigger
 QUIT_KEYS = ["escape"]
 
 # PsychoPy ImageStim texture resolution (power-of-two). Larger helps retina displays.
@@ -316,6 +317,51 @@ def show_text_screen(win: visual.Window, text: str, kb: keyboard.Keyboard, advan
         core.wait(0.01)
 
 
+
+def wait_for_trigger(
+    win: visual.Window,
+    kb: keyboard.Keyboard,
+    trigger_key: str = TRIGGER_KEY,
+    allow_skip_keys: Optional[List[str]] = None,
+    text: str = "Waiting for scanner trigger…\n\n(Trigger key: 5)",
+) -> str:
+    """
+    Block until we receive the scanner trigger key (default '5').
+
+    - In scanner mode, you typically want the run clock to start from this trigger.
+    - Optionally allow 'allow_skip_keys' (e.g., response keys) for manual testing.
+    Returns the key name that started the run (trigger or skip key).
+    """
+    allow_skip_keys = allow_skip_keys or []
+
+    stim = visual.TextStim(
+        win,
+        text=text,
+        height=0.04,
+        wrapWidth=0.90,
+        color=FG_COLOR,
+        pos=(0, 0.05),
+    )
+
+
+    kb.clearEvents()
+    while True:
+        if event.getKeys(QUIT_KEYS):
+            core.quit()
+        stim.draw()
+        win.flip()
+
+        keys = kb.getKeys(
+            keyList=[trigger_key] + QUIT_KEYS,
+            waitRelease=False,
+            clear=True,
+        )
+        if keys:
+            k = keys[0].name
+            if k in QUIT_KEYS:
+                core.quit()
+            return k
+
 def create_window(params: Params) -> visual.Window:
     """Create a PsychoPy window that matches experimental_task.py styling."""
     if params.fullscreen:
@@ -346,6 +392,8 @@ def create_window(params: Params) -> visual.Window:
 
 def run_localiser(params: Params):
     resp_keys = SCANNER_KEYS if params.button_mode.lower() == "scanner" else PC_KEYS
+    use_scanner_trigger = (params.button_mode.lower() == "scanner")
+    start_keys = resp_keys + ([TRIGGER_KEY] if use_scanner_trigger else [])
 
     if not params.parent_dir or not os.path.isdir(params.parent_dir):
         raise FileNotFoundError(f"Parent dir not found: {params.parent_dir}")
@@ -397,18 +445,17 @@ def run_localiser(params: Params):
     )
     instr2 = (
         "Sometimes the SAME picture will appear twice in a row.\n\n"
-        "When you see a repeat (one-back), press ANY response button.\n\n"
-        f"There will be {params.n_targets_per_run} repeats in each run."
+        "When you see a repeat image (back-to-back), press ANY response button.\n\n"
     )
     instr3 = (
-        "Try to respond quickly and accurately.\n\n"
+        "Try to respond quickly and accurately but don't worry if your response seems slow.\n\n"
         "Keep your eyes on the fixation cross between blocks.\n\n"
         "Press a button to start."
     )
 
     show_text_screen(win, instr1, kb, advance_keys=resp_keys)
     show_text_screen(win, instr2, kb, advance_keys=resp_keys)
-    show_text_screen(win, instr3, kb, advance_keys=resp_keys)
+    show_text_screen(win, instr3, kb, advance_keys=start_keys)
 
     try:
         for run_idx in range(1, params.n_runs + 1):
@@ -445,14 +492,27 @@ def run_localiser(params: Params):
                 writer = csv.DictWriter(f, fieldnames=fieldnames)
                 writer.writeheader()
 
-                show_text_screen(
-                    win,
-                    f"Run {run_idx} of {params.n_runs}\n\n"
-                    f"Press any response button to begin.",
-                    kb,
-                    advance_keys=resp_keys,
-                )
+                if use_scanner_trigger:
+                    wait_for_trigger(
+                        win,
+                        kb,
+                        trigger_key=TRIGGER_KEY,
+                        allow_skip_keys=resp_keys,  # handy for keyboard testing
+                        text=(
+                            f"Run {run_idx} of {params.n_runs}\n\n"
+                            "Waiting for scanner to start…\n\n"
+                        ),
+                    )
+                else:
+                    show_text_screen(
+                        win,
+                        f"Run {run_idx} of {params.n_runs}\n\n"
+                        f"Press any response button to begin.",
+                        kb,
+                        advance_keys=resp_keys,
+                    )
 
+                kb.clearEvents()  # ensure the trigger key doesn't count as a response
                 run_start = core.getTime()
                 kb.clock.reset()
 
@@ -625,7 +685,7 @@ def get_params_from_gui() -> Params:
         "n_runs": 6,
         "parent_dir": "images/localiser_images/",
         "button_mode": "scanner",  # default
-        "n_targets_per_run": 20,  # total one-back repeats across the whole run
+        "n_targets_per_run": 5,  # total one-back repeats across the whole run
         "img_tex_size": DEFAULT_IMG_TEX_SIZE,
         "fullscreen": True,
         "screen_index": 0,
