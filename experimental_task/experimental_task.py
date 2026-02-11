@@ -48,7 +48,7 @@ DEMO_TEXT_COL = 'blue'
 
 # Button line widths: normal and highlighted for feedback
 LINE_W_NORMAL = 2
-LINE_W_HIGHLIGHT = 6
+LINE_W_HIGHLIGHT = 9
 
 # Selection fill color used to indicate currently chosen option during decision
 COL_SELECT_FILL = 'white'
@@ -770,7 +770,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
 
 def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mode, feedback_delay,
                      fixed_decision_time,
-                     task_clock=None, trial_idx=1, n_trials=1):
+                     task_clock=None, trial_idx=1, n_trials=1, target_button_idx=None):
     """3-event (self-paced) trial.
 
     Phases:
