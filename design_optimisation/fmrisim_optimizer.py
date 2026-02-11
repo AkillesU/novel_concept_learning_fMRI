@@ -3212,15 +3212,36 @@ def launch_candidate_design_gui() -> None:
                 ).reset_index()
 
                 # Choose representative CSV per variation: best iteration (min objective)
-                best_rows = df_iter.sort_values(["var_idx","stage1_obj"]).groupby("var_idx").head(1)
-                agg = agg.merge(best_rows[["var_idx","csv","iter_idx"]].rename(columns={"csv":"best_csv","iter_idx":"best_iter"}), on="var_idx", how="left")
+                # We keep one "representative" CSV per variation (the best iter by stage1_obj),
+                # but note: the variation itself is ranked by aggregated stats (mean/p95/max).
+                # Downstream, we want the written cand_rankXXXX.csv files to be ordered by the
+                # representative file's own stage1_obj for intuitive inspection and top-K selection.
+                best_rows = (
+                    df_iter.sort_values(["var_idx", "stage1_obj"], kind="mergesort")
+                          .groupby("var_idx", sort=False)
+                          .head(1)
+                )
+                agg = agg.merge(
+                    best_rows[["var_idx", "csv", "iter_idx", "stage1_obj"]].rename(
+                        columns={"csv": "best_csv", "iter_idx": "best_iter", "stage1_obj": "best_stage1_obj"}
+                    ),
+                    on="var_idx",
+                    how="left",
+                )
 
                 agg = agg.sort_values(["stage1_obj_mean","stage1_obj_p95","stage1_obj_max"]).reset_index(drop=True)
                 agg.to_csv(out_dir / "stage1_results_variations.csv", index=False)
 
-                # Write a cand_rankXXXX.csv shortlist to integrate with existing stage-2 flow
+                # Write a cand_rankXXXX.csv shortlist to integrate with existing stage-2 flow.
+                # Selection is still by (mean/p95/max) across iters per variation, but we order the
+                # *files* by representative (best_iter) stage1 objective for consistency.
                 designs_dir = ensure_dir(out_dir / "designs")
-                shortlist = agg.head(int(keep_top))
+                shortlist = agg.head(int(keep_top)).copy()
+                if "best_stage1_obj" in shortlist.columns:
+                    shortlist = shortlist.sort_values(
+                        ["best_stage1_obj", "stage1_obj_mean", "stage1_obj_p95", "stage1_obj_max", "var_idx"],
+                        kind="mergesort",
+                    ).reset_index(drop=True)
                 rows = []
                 for rank, r in enumerate(shortlist.itertuples(index=False)):
                     src = Path(r.best_csv)
@@ -3237,6 +3258,8 @@ def launch_candidate_design_gui() -> None:
                         "rank_stage1": int(rank),
                         "var_idx": int(r.var_idx),
                         "best_iter": int(r.best_iter),
+                        # Match CLI optimiser outputs: expose a per-file stage1 objective.
+                        "stage1_obj": float(getattr(r, "best_stage1_obj", float("nan"))),
                         "stage1_obj_mean": float(r.stage1_obj_mean),
                         "stage1_obj_p95": float(r.stage1_obj_p95),
                         "stage1_obj_max": float(r.stage1_obj_max),
