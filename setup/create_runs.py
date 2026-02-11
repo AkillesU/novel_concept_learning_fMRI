@@ -166,6 +166,170 @@ def load_and_parse_groups(csv_path):
     return df
 
 
+
+# ---------- LABEL CONSTRAINT HELPERS ---------- #
+def _is_empty_cell(x) -> bool:
+    """Treat NaN/None/empty/whitespace-only strings as empty."""
+    if x is None:
+        return True
+    if isinstance(x, float) and np.isnan(x):
+        return True
+    s = str(x).strip()
+    return s == "" or s.lower() in {"nan", "none"}
+
+
+def allowed_conditions_from_label_row(row: pd.Series, condition_cols: List[str]) -> List[str]:
+    """
+    Determine which conditions are allowed for a given ObjectSpace row based on label cell presence.
+
+    A condition is 'allowed' if the corresponding cell in that condition column is non-empty.
+    This supports the new behaviour:
+      - If exactly one condition has a non-empty label, that ObjectSpace is locked to that condition.
+      - If multiple conditions have labels, the ObjectSpace can be randomised among those conditions.
+      - Empty cells are never used/assigned.
+    """
+    allowed = []
+    for c in condition_cols:
+        if c in row.index and not _is_empty_cell(row[c]):
+            allowed.append(c)
+    return allowed
+
+
+def constrained_space_condition_map(
+    rng,
+    selected_spaces: List[str],
+    conditions: List[str],
+    allowed_by_space: dict,
+    global_sc_counts: dict,
+    global_pair_counts: dict,
+) -> dict:
+    """
+    Assign conditions to selected_spaces while respecting per-space allowed conditions.
+
+    This function is ONLY used when constraints exist (empty label cells and/or fixed spaces).
+    When there are no constraints (all spaces allow all conditions), the original optimiser
+    is used unchanged to preserve existing behaviour.
+
+    Strategy:
+      1) Lock any space that allows only one condition.
+      2) Compute a balanced target distribution across all selected spaces.
+      3) Greedily assign remaining spaces, preferring conditions with remaining quota.
+      4) If quotas become impossible due to constraints, fall back to choosing among allowed
+         conditions to minimise imbalance (soft constraint), ensuring a valid assignment.
+      5) Update global trackers in the same manner as optimise_space_condition_map.
+    """
+    if not selected_spaces:
+        return {}
+
+    # Ensure global trackers contain required keys (mirrors optimise_space_condition_map)
+    for s in selected_spaces:
+        if s not in global_sc_counts:
+            global_sc_counts[s] = {c: 0 for c in conditions}
+        else:
+            for c in conditions:
+                global_sc_counts[s].setdefault(c, 0)
+
+    # Fixed assignments: spaces with only one allowed condition
+    fixed = {}
+    flexible = []
+    for s in selected_spaces:
+        allowed = allowed_by_space.get(s, conditions)
+        if not allowed:
+            raise ValueError(f"ObjectSpace '{s}' has no allowed conditions (all label cells empty).")
+        if len(allowed) == 1:
+            fixed[s] = allowed[0]
+        else:
+            flexible.append(s)
+
+    # Balanced target counts across ALL selected spaces
+    k = len(conditions)
+    n = len(selected_spaces)
+    base = n // k
+    r = n % k
+    target = {c: base for c in conditions}
+    # Distribute remainder deterministically over conditions order (same as make_balanced_condition_list counting)
+    for c in conditions[:r]:
+        target[c] += 1
+
+    # Adjust targets to respect fixed counts (ensure target[c] >= fixed_count[c])
+    fixed_counts = {c: 0 for c in conditions}
+    for s, c in fixed.items():
+        fixed_counts[c] += 1
+
+    # If fixed exceeds initial target, raise target and then reduce others if needed to keep sum == n
+    for c in conditions:
+        if fixed_counts[c] > target[c]:
+            target[c] = fixed_counts[c]
+    # Reduce other targets if we overshoot total n
+    while sum(target.values()) > n:
+        # pick a condition we can reduce (above fixed) with the highest current target
+        reducible = [c for c in conditions if target[c] > fixed_counts[c]]
+        if not reducible:
+            break
+        # reduce the most over-allocated condition
+        c_max = max(reducible, key=lambda cc: target[cc])
+        target[c_max] -= 1
+
+    # Remaining quotas after fixed assignments
+    remaining = {c: max(0, target[c] - fixed_counts[c]) for c in conditions}
+
+    # Assign flexible spaces, hardest first (fewest allowed)
+    flexible_sorted = sorted(flexible, key=lambda s: (len(allowed_by_space.get(s, conditions)), str(s)))
+
+    assign = dict(fixed)
+    cur_counts = dict(fixed_counts)
+
+    for s in flexible_sorted:
+        allowed = allowed_by_space.get(s, conditions)
+        # Prefer conditions with remaining quota
+        cand = [c for c in allowed if remaining.get(c, 0) > 0]
+        if cand:
+            # Choose among candidates with highest remaining quota (tie random)
+            max_rem = max(remaining[c] for c in cand)
+            best = [c for c in cand if remaining[c] == max_rem]
+            c_pick = rng.choice(best) if len(best) > 1 else best[0]
+            assign[s] = c_pick
+            remaining[c_pick] -= 1
+            cur_counts[c_pick] += 1
+            continue
+
+        # Soft fallback: pick among allowed to minimise imbalance vs target
+        def imbalance_if_pick(c):
+            # L1 distance to target after hypothetical pick
+            tmp = dict(cur_counts)
+            tmp[c] += 1
+            return sum(abs(tmp[cc] - target[cc]) for cc in conditions)
+
+        scores = [(imbalance_if_pick(c), c) for c in allowed]
+        min_score = min(sc for sc, _ in scores)
+        best = [c for sc, c in scores if sc == min_score]
+        c_pick = rng.choice(best) if len(best) > 1 else best[0]
+        assign[s] = c_pick
+        cur_counts[c_pick] += 1
+
+    # Update global trackers (mirrors optimise_space_condition_map)
+    for s, c in assign.items():
+        global_sc_counts[s][c] = global_sc_counts[s].get(c, 0) + 1
+
+    if len(selected_spaces) > 1:
+        # replicate the same canonical pair key used in optimise_space_condition_map
+        def pair_key_and_condpair(sa, sb, ca, cb):
+            if sa <= sb:
+                return (sa, sb), (ca, cb)
+            else:
+                return (sb, sa), (cb, ca)
+
+        for i in range(len(selected_spaces)):
+            for j in range(i + 1, len(selected_spaces)):
+                sa, sb = selected_spaces[i], selected_spaces[j]
+                ca, cb = assign[sa], assign[sb]
+                pk, cp = pair_key_and_condpair(sa, sb, ca, cb)
+                if pk not in global_pair_counts:
+                    global_pair_counts[pk] = {}
+                global_pair_counts[pk][cp] = global_pair_counts[pk].get(cp, 0) + 1
+
+    return assign
+
 def find_closest_image(stim_dir, space_id, target_coords):
     """
     Find the stimulus file in stim_dir/<space_id> whose embedded F0/F1 coordinates
@@ -869,24 +1033,33 @@ class DesignGUI(tk.Tk):
         self.log_box.insert("end", txt+"\n"); self.log_box.see("end")
 
     def _save_session_data(self, rows, sub_id, sess_id, prefix, mode):
-            """Helper to save one consolidated CSV for a participant/session.
+        """Helper to save one consolidated CSV for a participant/session.
 
-            Creates prefix/session-<sess_id>/ and writes a single master CSV containing
-            all runs for that session. Fieldnames are inferred from the first row.
-            """
-            sess_dir = os.path.join(prefix, f"session-{sess_id}")
-            os.makedirs(sess_dir, exist_ok=True)
-        
-            # Save all runs together in one file
-            fname = f"{prefix}_sub-{sub_id:03d}_sess-{sess_id}_{mode}.csv"
-            fpath = os.path.join(sess_dir, fname)
-        
-            with open(fpath, 'w', newline='') as f:
-                w = csv.DictWriter(f, fieldnames=rows[0].keys())
-                w.writeheader()
-                w.writerows(rows)
-        
-            self.log(f"Generated Session {sess_id} master file: {fname}")
+        Creates <prefix>/session-<sess_id>/ and writes a single master CSV containing
+        all runs for that session. Fieldnames are inferred from the first row.
+
+        Notes:
+          - `prefix` is treated as an output directory (may contain path separators).
+          - The filename uses the basename of `prefix` to avoid duplicating directories.
+        """
+        if not rows:
+            self.log(f"[ERROR] No rows to save for Session {sess_id}. Skipping file write.")
+            return
+
+        sess_dir = os.path.join(prefix, f"session-{sess_id}")
+        os.makedirs(sess_dir, exist_ok=True)
+
+        # Save all runs together in one file
+        prefix_name = os.path.basename(os.path.normpath(prefix))
+        fname = f"{prefix_name}_sub-{sub_id:03d}_sess-{sess_id}_{mode}.csv"
+        fpath = os.path.join(sess_dir, fname)
+
+        with open(fpath, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=rows[0].keys())
+            w.writeheader()
+            w.writerows(rows)
+
+        self.log(f"Generated Session {sess_id} master file: {fname}")
 
     def update_estimates(self):
         """Live calculation for trial, total task lengths, and test run durations.
@@ -1038,6 +1211,7 @@ class DesignGUI(tk.Tk):
             
             # Load master label CSV and initialise global tracking structures for balancing
             df_master = load_and_parse_groups(self.v_csv.get())
+            df_by_space = df_master.set_index('ObjectSpace', drop=False)
             all_spaces_master = [str(s) for s in df_master['ObjectSpace'].tolist()]
             cond_master = ['Congruent', 'Medium', 'Incongruent']
             global_sc = {s: {c: 0 for c in cond_master} for s in all_spaces_master}
@@ -1050,7 +1224,33 @@ class DesignGUI(tk.Tk):
                 
                 # IMPORTANT: Mapping and selection happen once per participant for retention consistency
                 selected = select_spaces_rotated(all_spaces_master, sub_id, cfg_s1.n_categories_to_select)
-                sc_map = optimise_space_condition_map(sub_rng, selected, cond_master, global_sc, global_pair)
+
+                # New behaviour: if any label cells are empty in the condition columns,
+                # those empty options are excluded from assignment. If a space has exactly
+                # one non-empty label across conditions, it is locked to that condition.
+                allowed_by_space = {}
+                for s in selected:
+                    if s not in df_by_space.index:
+                        raise ValueError(f"ObjectSpace '{s}' not found in label CSV.")
+                    row = df_by_space.loc[s]
+                    allowed = allowed_conditions_from_label_row(row, cond_master)
+                    # If no empties (all three allowed), this will be equal to cond_master
+                    allowed_by_space[s] = allowed if allowed else cond_master
+
+                constraints_exist = any(len(allowed_by_space[s]) != len(cond_master) for s in selected)
+
+                if constraints_exist:
+                    sc_map = constrained_space_condition_map(
+                        sub_rng,
+                        selected,
+                        cond_master,
+                        allowed_by_space,
+                        global_sc,
+                        global_pair
+                    )
+                else:
+                    # Original behaviour preserved: unconstrained optimiser
+                    sc_map = optimise_space_condition_map(sub_rng, selected, cond_master, global_sc, global_pair)
                 
                 # Generate Session 1 rows and save
                 rows_s1 = generate_design_rows(sub_rng, cfg_s1, sub_id, sc_map)
