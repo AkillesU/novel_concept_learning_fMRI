@@ -945,7 +945,7 @@ def create_window_and_components(demo_mode):
     different screen resolutions. Components (TextStim/ImageStim/Rect) are
     created here and returned in a dict for convenience.
     """
-    win = visual.Window([1280, 720], fullscr=True, color='white', units='height', allowGUI=False, useRetina=True)
+    win = visual.Window([1280, 720], fullscr=True, color='lightgrey', units='height', allowGUI=False, useRetina=True)
 
     components = {
         'fixation': visual.TextStim(win, text='+', height=0.1, color='black'),
@@ -1067,7 +1067,7 @@ def run_experiment():
         'Design CSV': '',        # Leave blank to browse
         'Label CSV': '',         # Leave blank to browse
         'Image Dir': 'images/task_images/',   # Default directory
-        'Feedback Delay': False, # Selection from previous requirements
+        'Feedback Delay': True, # Selection from previous requirements
         'Fixed Decision Time': True,  # When True, always wait max_dec_dur before ISI2/Feedback
         'Demo Mode': False,
         # Tickbox: when True use scanner button mapping (1-4). When False use PC mapping (1,2,9,0)
