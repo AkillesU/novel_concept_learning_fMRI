@@ -38,7 +38,7 @@ EXIT_KEY = 'escape'
 SKIP_KEY = 'right'  # Demo Mode only
 
 # Colors used for buttons / feedback. Keep names descriptive to make intent clear.
-COL_NEUTRAL   = 'grey'
+COL_NEUTRAL   = 'silver'
 COL_HOVER     = 'lightgrey'
 COL_SELECT    = 'green'      # Color during selection (not used for fill)
 COL_CORRECT   = 'green'      # Feedback Correct (border)
