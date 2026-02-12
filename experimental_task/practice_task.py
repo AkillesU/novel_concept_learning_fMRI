@@ -120,6 +120,7 @@ def run_custom_practice_trial(win, clock, trial, components, label_data, img_dir
         'img': 2.0 if is_slow else 1.0,
         'isi1': 1.0 if is_slow else 0.5,
         'dec': 10.0 if is_slow else 3.0,
+        'isi2': 1.0,
         'fb': 5.0 if is_slow else 1.5,
         'iti': 1.5 if is_slow else 2.0
     }
@@ -131,8 +132,11 @@ def run_custom_practice_trial(win, clock, trial, components, label_data, img_dir
         draw_extras(components, has_img, False)
         win.flip()
 
+    # Reset input state right at decision onset so encoding presses are ignored
+    components['mouse'].clickReset()
+    event.clearEvents()
+
     # 2. Decision: draw choices and handle keyboard/mouse responses.
-    # For slow trials we overlay a textual prompt and per-button labels to guide participants.
     t_dec = clock.getTime()
     response, rt = None, None
     while clock.getTime() < (t_dec + durations['dec']):
@@ -147,12 +151,23 @@ def run_custom_practice_trial(win, clock, trial, components, label_data, img_dir
             # check_response returns (key, rt) or (None, None)
             response, rt = check_response(components, clock, t_dec)
             if response:
-                # On first response we break out (decision completed)
+                # On first response break out of decision window (we'll show ISI2 before feedback)
                 break
         
         # Draw the option buttons (visual feedback of selection occurs inside draw_buttons)
         draw_buttons(components['buttons'], response)
         win.flip()
+
+    # 2b. ISI2: if configured and a response was made, keep image + selected button visible
+    if response is not None and durations.get('isi2', 0) > 0:
+        t_isi2 = clock.getTime()
+        while clock.getTime() < (t_isi2 + durations['isi2']):
+            if event.getKeys(keyList=['escape']):
+                core.quit()
+            draw_extras(components, has_img, False)
+            # Draw selected button filled (white) during ISI2
+            draw_buttons(components['buttons'], response)
+            win.flip()
 
     # 3. Feedback Phase: set appropriate explanatory text and draw colored borders
     t_fb = clock.getTime()
@@ -160,8 +175,6 @@ def run_custom_practice_trial(win, clock, trial, components, label_data, img_dir
     components['fb_main'].text = ""
     components['fb_hint'].text = ""
     
-    # Provide more descriptive feedback for slow trials; for fast repeat trials only
-    # show a brief hint and allow repetition if the trial is configured that way.
     if is_slow:
         if is_correct:
             components['fb_main'].text = "The green highlight indicates that your choice was correct."
@@ -171,7 +184,6 @@ def run_custom_practice_trial(win, clock, trial, components, label_data, img_dir
             components['fb_main'].color = 'red'
             components['fb_hint'].text = "The correct option is highlighted in green."
     elif not is_correct and not is_slow and is_repeat:
-        # For fast repeat trials, show concise corrective prompt
         components['fb_main'].text = "Check the feedback and try again"
         components['fb_main'].color = 'red'
         components['fb_hint'].text = "The correct option is highlighted in green."
