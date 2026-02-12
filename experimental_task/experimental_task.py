@@ -807,7 +807,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
     fb_dur = float(trial.get('fb_dur', trial.get('dec_fb_dur', 0)))
     iti = float(trial.get('iti', 0))
 
-    # Ensure clean input state
+    # Ensure clean input state for upcoming trial (clear any residual clicks/keys)
     components['mouse'].clickReset()
     event.clearEvents()
 
@@ -833,6 +833,12 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
         _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                           clock, trial_t0, 'Encoding', (t0 + img_dur + isi1_dur), breakdown)
         win.flip()
+
+    # --- IMPORTANT: reset input state right at decision onset so earlier presses
+    # do not carry over from the encoding phase. This ensures responses only have
+    # an effect while the buttons are visible.
+    components['mouse'].clickReset()
+    event.clearEvents()
 
     # 2) Decision (self-paced)
     t_dec = clock.getTime()
