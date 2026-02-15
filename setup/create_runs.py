@@ -154,6 +154,11 @@ class DesignConfig:
     jit_iti_range: Tuple[float, float] = (0.0, 0.0)
     jitter_config: JitterConfig = None
 
+    # Optional run start/end fixation events (encoded as extra rows in the design CSV)
+    add_run_fixations: bool = True
+    run_fix_start_dur: float = 10.0
+    run_fix_end_dur: float = 5.0
+
 # ==================== STUDY 3 LOGIC ==================== #
 def load_and_parse_groups(csv_path):
     """Load the label CSV robustly (auto-detect separator) and normalise column names.
@@ -450,6 +455,56 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
                              cfg.jitter_config.norm_mu, cfg.jitter_config.norm_sd,
                              cfg.jitter_config.exp_scale, cfg.jitter_config.exp_reverse)
 
+    def _append_fixation_row(run_id: int, onset: float, dur: float, kind: str):
+        """Append a fixation-only event row to `rows`.
+
+        These rows are handled specially by the experimental task and simply
+        display a fixation cross for `dur` seconds.
+        """
+        nonlocal trial_id_global
+
+        base = {
+            "trial_id": trial_id_global,
+            "run_id": run_id,
+            "ObjectSpace": "",
+            "condition": "Fixation",
+            "image_file": "",
+            "iti": 0.0,
+            "sampled_f0": "",
+            "sampled_f1": "",
+            "event_type": "fixation",
+            "fix_dur": float(dur),
+            "fix_kind": str(kind),
+        }
+
+        if cfg.design_type == "3event":
+            rows.append({
+                **base,
+                "trial_duration_max": float(dur),
+                "img_onset": float(onset),
+                "img_dur": 0.0,
+                "isi1_dur": 0.0,
+                "isi1_type": "hidden",
+                "dec_onset_est": float(onset),
+                "max_dec_dur": 0.0,
+                "isi2_dur": 0.0,
+                "isi2_type": "fixation",
+                "fb_dur": 0.0,
+            })
+        else:
+            rows.append({
+                **base,
+                "trial_onset": float(onset),
+                "dec_onset": float(onset),
+                "dec_dur": 0.0,
+                "dec_fb_onset": float(onset),
+                "dec_fb_dur": 0.0,
+                "trial_duration": float(dur),
+                "dec_fb_jit": 0.0,
+            })
+
+        trial_id_global += 1
+
     for run_id in range(1, cfg.n_runs + 1):
         current_time = float(cfg.start_time)
         # If provided, use per-run max decision durations; otherwise fall back to cfg.max_dec_dur
@@ -460,6 +515,11 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
         run_start = (run_id - 1) * cfg.trials_per_run
         run_end = run_id * cfg.trials_per_run
         space_seq = session_seq[run_start:run_end]
+
+        # Optional run-start fixation (default: 10s)
+        if bool(getattr(cfg, 'add_run_fixations', True)) and float(getattr(cfg, 'run_fix_start_dur', 0.0)) > 0:
+            _append_fixation_row(run_id, current_time, float(cfg.run_fix_start_dur), kind='run_start')
+            current_time += float(cfg.run_fix_start_dur)
         
         for space_id in space_seq:
             cond = space_cond_map[space_id]
@@ -501,6 +561,11 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
                 })
                 current_time = t_end + iti
             trial_id_global += 1
+
+        # Optional run-end fixation (default: 5s)
+        if bool(getattr(cfg, 'add_run_fixations', True)) and float(getattr(cfg, 'run_fix_end_dur', 0.0)) > 0:
+            _append_fixation_row(run_id, current_time, float(cfg.run_fix_end_dur), kind='run_end')
+            current_time += float(cfg.run_fix_end_dur)
     return rows
 
 
@@ -821,6 +886,10 @@ class DesignGUI(tk.Tk):
         self.v_n_cats = tk.StringVar(value="6")
         ttk.Entry(fr_glob, textvariable=self.v_n_cats, width=5).pack(side="left", padx=5)
 
+        # Optional run start/end fixations (10s at start, 5s at end) encoded into the design file
+        self.v_add_run_fix = tk.BooleanVar(value=True)
+        ttk.Checkbutton(fr_glob, text="Add run fixations (10s start / 5s end)", variable=self.v_add_run_fix).pack(side="left", padx=8)
+
         # Test run settings
         ttk.Label(fr_glob, text=" | Test Run:").pack(side="left", padx=8)
         self.v_include_test = tk.BooleanVar(value=False)
@@ -1131,6 +1200,16 @@ class DesignGUI(tk.Tk):
             s1_no_isi2 = (n_runs1 * n_trials1 * tn_mean) / 60
             s2_full = (n_runs2 * n_trials2 * t_mean) / 60
             s2_no_isi2 = (n_runs2 * n_trials2 * tn_mean) / 60
+
+            # Optional run-start/end fixations (10s start, 5s end per run)
+            add_fix = bool(getattr(self, 'v_add_run_fix', tk.BooleanVar(value=True)).get())
+            if add_fix:
+                extra_s1 = (n_runs1 * (10.0 + 5.0)) / 60.0
+                extra_s2 = (n_runs2 * (10.0 + 5.0)) / 60.0
+                s1_full += extra_s1
+                s1_no_isi2 += extra_s1
+                s2_full += extra_s2
+                s2_no_isi2 += extra_s2
             
             # Test run duration (total across all specified test runs)
             test_dur = (total_test_trials * test_t_mean) / 60 if include_test else 0.0
@@ -1177,6 +1256,14 @@ class DesignGUI(tk.Tk):
                 label_csv_path=self.v_csv.get(), 
                 jitter_config=jconf
             )
+
+            # Optional run start/end fixations encoded into the design CSV
+            if hasattr(self, 'v_add_run_fix'):
+                cfg_s1.add_run_fixations = bool(self.v_add_run_fix.get())
+            else:
+                cfg_s1.add_run_fixations = True
+            cfg_s1.run_fix_start_dur = 10.0
+            cfg_s1.run_fix_end_dur = 5.0
             
             # Attach timing parameters depending on the selected mode
             if mode == "2event":
