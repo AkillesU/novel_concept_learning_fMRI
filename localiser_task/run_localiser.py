@@ -298,9 +298,9 @@ def show_text_screen(win: visual.Window, text: str, kb: keyboard.Keyboard, advan
         pos=(0, 0.10),
     )
     if LANGUAGE == "japanese":
-        cont_text = "[japanese] Press a button to continue"
+        cont_text = "続行するにはいずれかのボタンを押してください"
     else:
-        cont_text = "Press a button to continue"
+        cont_text = "Press any button to continue"
 
     cont = visual.TextStim(
         win,
@@ -344,9 +344,9 @@ def wait_for_trigger(
 
     if text is None:
         if LANGUAGE == "japanese":
-            text = "[japanese] Waiting for scanner trigger…\n\n[japanese] (Trigger key: 5)"
+            text = "MRI装置の起動を待っています"
         else:
-            text = "Waiting for scanner trigger…\n\n(Trigger key: 5)"
+            text = "Waiting for scanner to start"
 
     stim = visual.TextStim(
         win,
@@ -456,51 +456,31 @@ def run_localiser(params: Params):
     # Instructions (bilingual placeholders)
     if LANGUAGE == "japanese":
         instr1 = (
-            "[japanese] LOCALISER
-
-"
-            "[japanese] You will see pictures from different categories."
+            "画像閲覧"
+            "さまざまな画像のシーケンスが表示されます"
         )
         instr2 = (
-            "[japanese] Sometimes the SAME picture will appear twice in a row.
-
-"
-            "[japanese] When you see a repeat image (back-to-back), press ANY response button.
-
-"
+            "同じ画像が2回続けて表示されることもあります。"
+            "繰り返し画像（連続）が表示されたら、任意の応答ボタンを押します。"
         )
         instr3 = (
-            "[japanese] Try to respond quickly and accurately but don't worry if your response seems slow.
-
-"
-            "[japanese] Keep your eyes on the fixation cross between blocks.
-
-"
-            "[japanese] Press a button to start."
+            "迅速かつ正確に応答するようにしてください。応答が遅いと思われても心配しないでください。"
+            "シーケンス間の固定クロスに注目してください"
+            "開始するには任意のボタンを押してください。"
         )
     else:
         instr1 = (
-            "LOCALISER
-
-"
-            "You will see pictures from different categories."
+            "Image viewing"
+            "You will see different sequences of images"
         )
         instr2 = (
-            "Sometimes the SAME picture will appear twice in a row.
-
-"
-            "When you see a repeat image (back-to-back), press ANY response button.
-
-"
+            "Sometimes the SAME picture will appear twice in a row."
+            "When you see a repeat image (back-to-back), press ANY response button."
         )
         instr3 = (
-            "Try to respond quickly and accurately but don't worry if your response seems slow.
-
-"
-            "Keep your eyes on the fixation cross between blocks.
-
-"
-            "Press a button to start."
+            "Try to respond quickly and accurately but don't worry if your response seems slow."
+            "Keep your eyes on the fixation cross between sequences."
+            "Press any button to start."
         )
 
 
@@ -543,55 +523,24 @@ def run_localiser(params: Params):
                 writer = csv.DictWriter(f, fieldnames=fieldnames)
                 writer.writeheader()
 
-                if use_scanner_trigger:
-                                        if LANGUAGE == "japanese":
-                        trigger_text = (
-                            f"[japanese] Run {run_idx} of {params.n_runs}
-
-"
-                            "[japanese] Waiting for scanner to start…
-
-"
-                        )
-                    else:
-                        trigger_text = (
-                            f"Run {run_idx} of {params.n_runs}
-
-"
-                            "Waiting for scanner to start…
-
-"
-                        )
-
-                    wait_for_trigger(
-                        win,
-                        kb,
-                        trigger_key=TRIGGER_KEY,
-                        allow_skip_keys=resp_keys,  # handy for keyboard testing
-                        text=trigger_text,
+                if LANGUAGE == "japanese":
+                    trigger_text = (
+                        f"施行: {run_idx}/{params.n_runs}"
+                        "MRI装置の起動を待っています"
                     )
                 else:
-                                        if LANGUAGE == "japanese":
-                        start_text = (
-                            f"[japanese] Run {run_idx} of {params.n_runs}
-
-"
-                            "[japanese] Press any response button to begin."
-                        )
-                    else:
-                        start_text = (
-                            f"Run {run_idx} of {params.n_runs}
-
-"
-                            "Press any response button to begin."
-                        )
-                    show_text_screen(
-                        win,
-                        start_text,
-
-                        kb,
-                        advance_keys=resp_keys,
+                    trigger_text = (
+                        f"Run: {run_idx}/{params.n_runs}"
+                        "Waiting for scanner to start…"
                     )
+
+                wait_for_trigger(
+                    win,
+                    kb,
+                    trigger_key=TRIGGER_KEY,
+                    allow_skip_keys=resp_keys,  # handy for keyboard testing
+                    text=trigger_text,
+                )
 
                 kb.clearEvents()  # ensure the trigger key doesn't count as a response
                 run_start = core.getTime()
@@ -716,24 +665,16 @@ def run_localiser(params: Params):
                 }
                 all_run_summaries.append(summary)
 
-                                if LANGUAGE == "japanese":
+                if LANGUAGE == "japanese":
                     end_text = (
-                        f"[japanese] End of run {run_idx}.
-
-"
-                        f"[japanese] Hits: {hits} / {total_targets}   False alarms: {fas}
-
-"
-                        "[japanese] Press a button to continue."
+                        f"施行 {run_idx}の終わり"
+                        f"正確な: {hits}/{total_targets}  誤報: {fas}"
+                        "続行するにはいずれかのボタンを押してください"
                     )
                 else:
                     end_text = (
-                        f"End of run {run_idx}.
-
-"
-                        f"Hits: {hits} / {total_targets}   False alarms: {fas}
-
-"
+                        f"End of run {run_idx}."
+                        f"Hits: {hits} / {total_targets}   False alarms: {fas}"
                         "Press a button to continue."
                     )
 
@@ -766,9 +707,9 @@ def run_localiser(params: Params):
                 f.write(f"  csv={s['csv']}\n\n")
 
         if LANGUAGE == "japanese":
-            final_text = "[japanese] All runs complete.\n\n[japanese] Thank you!"
+            final_text = "終了した"
         else:
-            final_text = "All runs complete.\n\nThank you!"
+            final_text = "All runs complete."
         show_text_screen(win, final_text, kb, advance_keys=resp_keys)
 
     finally:
@@ -785,6 +726,7 @@ def run_localiser(params: Params):
 
 def get_params_from_gui() -> Params:
     info = {
+        "language": "english",  # "english" or "japanese"
         "participant": "001",
         "session": "01",
         "n_runs": 6,
@@ -800,6 +742,7 @@ def get_params_from_gui() -> Params:
         dictionary=info,
         title="fMRI Localiser Setup",
         order=[
+            "language",
             "participant", "session",
             "n_runs",
             "parent_dir",
@@ -810,6 +753,7 @@ def get_params_from_gui() -> Params:
             "screen_index",
         ],
         tip={
+            "language": "On-screen language: english or japanese (japanese currently prefixes strings with [japanese]).",
             "parent_dir": "Folder that contains 10 subfolders (one per category) with images inside.",
             "button_mode": "scanner: keys 1,2,3,4 | pc: keys 1,2,9,0",
             "n_targets_per_run": "Total number of one-back repeats across the entire run.",
@@ -819,6 +763,10 @@ def get_params_from_gui() -> Params:
     )
     if not dlg.OK:
         sys.exit(0)
+    # Set global language
+    global LANGUAGE
+    lang = str(info.get("language", "english")).strip().lower()
+    LANGUAGE = "japanese" if lang.startswith("jap") else "english"
 
     parent_dir = info["parent_dir"]
     if not parent_dir or not os.path.isdir(parent_dir):
