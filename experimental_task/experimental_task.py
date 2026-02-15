@@ -551,11 +551,13 @@ def setup_trial_visuals(trial, components, label_data, img_dir, demo_mode, targe
     is_fixation = (cond.strip().lower() == "fixation") or (str(trial.get("event_type", "")).strip().lower() == "fixation")
 
     if is_fixation:
-        # Clear button labels so you never log bogus "MISSING"/"nan" choices
+        # Clear button labels so no bogus responses/logging occur
         for btn in components['buttons']:
             btn['text'].text = ""
 
-        return False, "", "", ["", "", "", ""]
+        # Return explicit fixation flag
+        return False, "", "", ["", "", "", ""], True
+
 
     # 1) Image
     img_path = resolve_image_path(img_dir, space_id, trial.get('image_file', ''))
@@ -621,7 +623,7 @@ def setup_trial_visuals(trial, components, label_data, img_dir, demo_mode, targe
     if demo_mode:
         components['demo_text'].text = f"Condition:\n{cond}"
 
-    return has_img, img_path, target_lbl, choices
+    return has_img, img_path, target_lbl, choices, False
 
 
 def check_response(components, clock, start_time):
@@ -727,7 +729,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
     relative to a run clock. This function loops through phases using the
     provided PsychoPy clock to maintain precise timing.
     """
-    has_img, img_path, target, choices = setup_trial_visuals(trial, components, label_data, img_dir, demo_mode, target_button_idx=target_button_idx)
+    has_img, img_path, target, choices, is_fixation = setup_trial_visuals(trial, components, label_data, img_dir, demo_mode, target_button_idx=target_button_idx)
 
     # Identify correct key
     try:
@@ -744,6 +746,23 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
     t_end     = float(trial['trial_onset']) + float(trial['trial_duration'])
 
     trial_t0 = float(trial.get('trial_onset', clock.getTime()))
+    # --- FIXATION TRIAL ---
+    if is_fixation:
+        while clock.getTime() < t_end:
+            if event.getKeys(keyList=[EXIT_KEY]):
+                core.quit()
+            components['fixation'].draw()
+            win.flip()
+
+        return {
+            'response': None,
+            'rt': None,
+            'target': None,
+            'correct_key': None,
+            'accuracy': 0,
+            'img': img_path,
+            'skipped': 0
+        }
 
     # Pre-Dec Fixation: render fixation until decision onset
     while clock.getTime() < t_dec_on:
@@ -889,7 +908,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
     supports a self-paced decision phase where the trial advances immediately
     after a response (useful for reaction-time based tasks).
     """
-    has_img, img_path, target, choices = setup_trial_visuals(trial, components, label_data, img_dir, demo_mode, target_button_idx=target_button_idx)
+    has_img, img_path, target, choices, is_fixation = setup_trial_visuals(trial, components, label_data, img_dir, demo_mode, target_button_idx=target_button_idx)
 
     # Identify correct key based on shuffled choices
     try:
@@ -905,6 +924,25 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
     isi2_dur = float(trial.get('isi2_dur', 0))
     fb_dur = float(trial.get('fb_dur', trial.get('dec_fb_dur', 0)))
     iti = float(trial.get('iti', 0))
+    # --- FIXATION TRIAL ---
+    if is_fixation:
+        t_fix = clock.getTime()
+        while clock.getTime() < (t_fix + iti):
+            if event.getKeys(keyList=[EXIT_KEY]):
+                core.quit()
+            components['fixation'].draw()
+            win.flip()
+
+        return {
+            'response': None,
+            'rt': None,
+            'target': None,
+            'correct_key': None,
+            'accuracy': 0,
+            'img': img_path,
+            'skipped': 0
+        }
+
 
     # Ensure clean input state for upcoming trial (clear any residual clicks/keys)
     components['mouse'].clickReset()
