@@ -75,104 +75,133 @@ RUN_COL_CANDIDATES = [
 # =========================== LOADERS =========================== #
 
 def load_label_map(csv_path, key_col='ObjectSpace'):
-    """Load label mapping from the stimulus info CSV.
-
-    The label CSV is expected to contain at least:
-      - a key column identifying an object space (default: 'ObjectSpace')
-      - 'Congruent', 'Medium', 'Incongruent' columns providing label strings
+    """Load label mapping from the stimulus info CSV (robust to NaNs + key normalization).
 
     Returns:
-      tuple: (label_map, all_labels)
-        - label_map: dict mapping space_id -> {'Congruent':..., 'Medium':..., 'Incongruent':...}
-        - all_labels: sorted list of unique label strings across all spaces (used as distractor pool)
-
-    Notes:
-      - Uses pandas with engine='python' to allow flexible CSV separators when needed.
-      - Raises ValueError if expected columns are missing so the caller can fail fast.
+      (label_map, all_labels)
+        label_map: dict space_id -> {'Congruent': str|None, 'Medium': str|None, 'Incongruent': str|None}
+        all_labels: sorted list of valid label strings (no None/"nan"/"MISSING")
     """
-    df = pd.read_csv(csv_path, sep=",", dtype={key_col: str}, engine="python")
+    df = pd.read_csv(csv_path, sep=",", engine="python")
+
     required = {key_col, 'Congruent', 'Medium', 'Incongruent'}
     missing = required - set(df.columns)
     if missing:
         raise ValueError(f"Label CSV missing required columns: {sorted(missing)}")
 
-    label_map = {}
-    all_labels = set()
-    for _, row in df.iterrows():
-        key = str(row[key_col])
-        label_map[key] = {
-            'Congruent': str(row['Congruent']),
-            'Medium': str(row['Medium']),
-            'Incongruent': str(row['Incongruent'])
-        }
-        all_labels.update(label_map[key].values())
+    def _norm_space_id(v):
+        # Normalize keys like 20, 20.0, "20.0" -> "20"
+        if pd.isna(v):
+            return None
+        s = str(v).strip()
+        # handle "20.0" form
+        if re.fullmatch(r"\d+\.0+", s):
+            return s.split(".")[0]
+        return s
 
-    # Keep deterministic order for reproducibility (sampling is still random)
-    all_labels = sorted(all_labels)
+    def _clean_label(v):
+        # Turn NaN/empty/"nan"/"MISSING" into None; otherwise return stripped string.
+        if pd.isna(v):
+            return None
+        s = str(v).strip()
+        if not s:
+            return None
+        if s.lower() == "nan":
+            return None
+        if s.upper() == "MISSING":
+            return None
+        return s
+
+    label_map = {}
+    all_labels_set = set()
+
+    for _, row in df.iterrows():
+        key = _norm_space_id(row[key_col])
+        if key is None:
+            continue
+
+        entry = {
+            'Congruent': _clean_label(row['Congruent']),
+            'Medium': _clean_label(row['Medium']),
+            'Incongruent': _clean_label(row['Incongruent']),
+        }
+        label_map[key] = entry
+
+        for lbl in entry.values():
+            if lbl is not None:
+                all_labels_set.add(lbl)
+
+    all_labels = sorted(all_labels_set)
     return label_map, all_labels
 
 
-def build_participant_label_pool(design_df, label_map, space_col_candidates=('ObjectSpace','group')):
-    """Build a restricted distractor pool for this participant.
+def build_participant_label_pool(design_df, label_map, space_col_candidates=('ObjectSpace', 'group')):
+    """Build a restricted distractor pool for this participant, robustly.
 
-    The pool is limited to labels that can actually occur for this participant, based on
-    the participant's design CSV.
-
-    Primary behaviour (new, more precise):
-      - If the design file contains both a recognizable space column AND a 'condition'
-        column, the pool is built from the *actual (space, condition)* pairs that appear
-        in the design. This ensures distractors are sampled from labels the participant
-        truly encounters in the task.
-
-    Fallback behaviour (preserves prior robustness):
-      - If no space column exists, or no condition column exists, or no labels can be
-        resolved from the design, the function falls back to using all labels from the
-        label_map (safe default).
+    Guarantees returned list contains only non-empty strings (no None/"nan"/"MISSING"),
+    so sorting cannot crash.
     """
-    space_col = None
-    for c in space_col_candidates:
-        if c in design_df.columns:
-            space_col = c
-            break
+    def _norm_space_id(v):
+        if pd.isna(v):
+            return None
+        s = str(v).strip()
+        if re.fullmatch(r"\d+\.0+", s):
+            return s.split(".")[0]
+        return s
 
+    def _is_valid_label(lbl):
+        if lbl is None:
+            return False
+        if isinstance(lbl, float) and np.isnan(lbl):
+            return False
+        s = str(lbl).strip()
+        if not s:
+            return False
+        if s.lower() == "nan":
+            return False
+        if s.upper() == "MISSING":
+            return False
+        return True
+
+    space_col = next((c for c in space_col_candidates if c in design_df.columns), None)
     cond_col = 'condition' if 'condition' in design_df.columns else None
 
-    # If we have both space + condition, restrict to labels used by actual pairs
+    # Preferred: restrict to labels actually used by (space, condition) pairs
     if space_col is not None and cond_col is not None:
         pool = set()
-        # Use unique (space, condition) pairs to avoid repeated work
-        pairs = design_df[[space_col, cond_col]].dropna()
-        for _, row in pairs.drop_duplicates().iterrows():
-            s = str(row[space_col])
-            cond = str(row[cond_col])
+        pairs = design_df[[space_col, cond_col]].dropna().drop_duplicates()
+        for _, row in pairs.iterrows():
+            s = _norm_space_id(row[space_col])
+            if s is None:
+                continue
+            cond = str(row[cond_col]).strip()
             lbl = label_map.get(s, {}).get(cond, None)
-            if lbl is None:
-                continue
-            # guard against NaN-like values and the explicit sentinel
-            if isinstance(lbl, float) and np.isnan(lbl):
-                continue
-            lbl = str(lbl).strip()
-            if not lbl or lbl.upper() == 'MISSING':
-                continue
-            pool.add(lbl)
+            if _is_valid_label(lbl):
+                pool.add(str(lbl).strip())
         if pool:
             return sorted(pool)
 
-    # Fallback: previous behaviour (space-only) if possible
+    # Fallback: restrict by spaces only
     if space_col is not None:
-        spaces = set(str(x) for x in design_df[space_col].dropna().astype(str).tolist())
         pool = set()
-        for s in spaces:
-            if s in label_map:
-                pool.update(label_map[s].values())
+        for raw in design_df[space_col].dropna().tolist():
+            s = _norm_space_id(raw)
+            if s is None or s not in label_map:
+                continue
+            for lbl in label_map[s].values():
+                if _is_valid_label(lbl):
+                    pool.add(str(lbl).strip())
         if pool:
             return sorted(pool)
 
-    # Final fallback: use all labels
+    # Final fallback: all labels from label_map
     pool = set()
     for d in label_map.values():
-        pool.update(d.values())
+        for lbl in d.values():
+            if _is_valid_label(lbl):
+                pool.add(str(lbl).strip())
     return sorted(pool)
+
 
 def calculate_lengths(df):
     """Return a human-readable total duration string for the design.
@@ -209,17 +238,41 @@ def scan_images(img_dir):
 
 
 def get_trial_space_id(trial):
-    """Return the stimulus 'space' identifier for the current trial.
+    """Return normalized stimulus space identifier for the current trial.
 
-    Supports both legacy 'group' and newer 'ObjectSpace' design files. Raises
-    KeyError if neither column is present so callers can signal malformatted designs.
+    Handles pandas float coercion (e.g., 20.0) and string forms ("20.0").
+    Returns None for missing/NaN IDs (e.g., fixation rows).
     """
+    def _norm(v):
+        if v is None:
+            return None
+
+        # pandas/np NaN
+        try:
+            import numpy as _np
+            if isinstance(v, float) and _np.isnan(v):
+                return None
+        except Exception:
+            pass
+
+        # float like 20.0 -> "20"
+        if isinstance(v, float):
+            if abs(v - round(v)) < 1e-9:
+                return str(int(round(v)))
+            return str(v)
+
+        s = str(v).strip()
+        # string like "20.0" -> "20"
+        if re.fullmatch(r"\d+\.0+", s):
+            return s.split(".")[0]
+        return s
+
     if 'ObjectSpace' in trial:
-        return str(trial['ObjectSpace'])
+        return _norm(trial['ObjectSpace'])
     if 'group' in trial:
-        return str(trial['group'])
+        return _norm(trial['group'])
     if 'Group' in trial:
-        return str(trial['Group'])
+        return _norm(trial['Group'])
     raise KeyError("Design CSV must contain either 'ObjectSpace' or 'group' column.")
 
 
@@ -485,7 +538,21 @@ def setup_trial_visuals(trial, components, label_data, img_dir, demo_mode, targe
       (has_img, img_path, target_label, choices_list)
     """
     space_id = get_trial_space_id(trial)
+    if space_id is None:
+        # This is likely a fixation-only row or malformed trial.
+        # You can return a safe placeholder or raise an error depending on your preference.
+        space_id = "NA"
+
     cond = str(trial['condition'])
+    # Treat explicit fixation rows as non-response events
+    is_fixation = (cond.strip().lower() == "fixation") or (str(trial.get("event_type", "")).strip().lower() == "fixation")
+
+    if is_fixation:
+        # Clear button labels so you never log bogus "MISSING"/"nan" choices
+        for btn in components['buttons']:
+            btn['text'].text = ""
+
+        return False, "", "", ["", "", "", ""]
 
     # 1) Image
     img_path = resolve_image_path(img_dir, space_id, trial.get('image_file', ''))
@@ -501,9 +568,17 @@ def setup_trial_visuals(trial, components, label_data, img_dir, demo_mode, targe
     label_map, all_labels = label_data
     # target label is looked up by space and condition; missing mapping is explicit 'MISSING'
     target_lbl = label_map.get(space_id, {}).get(cond, "MISSING")
+    if (not is_fixation) and (target_lbl is None or str(target_lbl).strip() == "" or str(target_lbl).strip().lower() in ("missing", "nan")):
+        raise ValueError(
+            f"Missing target label for space_id={space_id!r}, condition={cond!r}. "
+            f"Check ObjectSpace normalization and label CSV completeness."
+        )
+
 
     # Build distractor pool restricted to the participant's label set (precomputed)
     pool = [l for l in all_labels if l != target_lbl]
+
+
     if len(pool) >= 3:
         distractors = random.sample(pool, 3)
     else:
