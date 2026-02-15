@@ -31,6 +31,8 @@ import re
 import sys
 from datetime import datetime
 
+LANGUAGE = "Japanese"  # "english" or "japanese"
+
 # =========================== CONFIGURATION =========================== #
 # Keys used by the task. Numeric keys map to response options; TRIGGER_KEY used
 # to start a run (scanner trigger simulation). EXIT_KEY exits the experiment.
@@ -40,6 +42,7 @@ EXIT_KEY = 'escape'
 SKIP_KEY = 'right'  # Demo Mode only
 
 # Scanner trigger -> first-trial delay (seconds).
+TRIGGER_DELAY_SECONDS = 10.0
 
 
 # Colors used for buttons / feedback. Keep names descriptive to make intent clear.
@@ -342,15 +345,28 @@ def between_run_dialog(next_run_idx, run_label=None):
     also reminds the operator which run is about to begin and which trigger key
     will start it.
     """
-    title = f"Start run {next_run_idx}"
+    if LANGUAGE == "japanese":
+        title = f"施行開始 {next_run_idx}"
+    else:
+        title = f"Start run {next_run_idx}"
     dlg = gui.Dlg(title=title)
     if run_label is not None:
-        dlg.addText(f"Next run value: {run_label}")
-    dlg.addText("Click OK to open fullscreen.")
-    dlg.addText(f"Then press '{TRIGGER_KEY}' on the trigger screen to begin run {next_run_idx}.")
+        if LANGUAGE == "japanese":
+            dlg.addText(f"次回の施行値: {run_label}")
+        else:
+            dlg.addText(f"Next run value: {run_label}")
+    if LANGUAGE == "japanese":
+        dlg.addText("「OK」をクリックすると全画面で開きます。")
+    else:
+        dlg.addText("Click OK to open fullscreen.")
+    if LANGUAGE == "japanese":
+        dlg.addText(f"次にトリガー画面で '{TRIGGER_KEY}'を押して、施行 {next_run_idx} を開始します。")
+    else:
+        dlg.addText(f"Then press '{TRIGGER_KEY}' on the trigger screen to begin run {next_run_idx}.")
     dlg.show()
     if not dlg.OK:
         core.quit()
+
 
 # =========================== VISUAL HELPERS =========================== #
 
@@ -371,9 +387,15 @@ def show_instruction_screen(win, text_content, image_path=None, use_scanner_butt
     text_y = Y_INSTR_TEXT_HIGH if image_path else Y_INSTR_TEXT_MID
     msg = visual.TextStim(win, text=text_content, color='black', height=0.035, 
                           wrapWidth=0.8, pos=(0, text_y))
-    cont_text = "Press SPACE bar to continue"
+    if LANGUAGE == "japanese":
+        cont_text = "続行するにはスペースバーを押してください"
+    else:
+        cont_text = "Press SPACE bar to continue"
     if use_scanner_buttons:
-        cont_text = "Press the rightmost button to continue"
+        if LANGUAGE == "japanese":
+            cont_text = "続行するには右端のボタンを押してください"
+        else:
+            cont_text = "Press the rightmost button to continue"
     cont_msg = visual.TextStim(win, text=cont_text,
                                pos=(0, Y_SPACE_PROMPT), color='grey', height=0.025)
     
@@ -962,8 +984,21 @@ def create_window_and_components(demo_mode):
         'fixation': visual.TextStim(win, text='+', height=0.1, color='black'),
         # Image centered at (0,0) as requested
         'main_image': visual.ImageStim(win, pos=(0, 0), size=(0.5, 0.5), interpolate=True, texRes=2048),
-        'missing_text': visual.TextStim(win, text='Img Missing', pos=(0, 0), height=0.05, color='red'),
-        'respond_text': visual.TextStim(win, text='Respond!', pos=(0, 0.4), height=0.05, color='red'),
+        # Messages (language-specific)
+        'missing_text': visual.TextStim(
+            win,
+            text=('Img Missing' if LANGUAGE == 'japanese' else 'Img Missing'),
+            pos=(0, 0),
+            height=0.05,
+            color='red'
+        ),
+        'respond_text': visual.TextStim(
+            win,
+            text=('入力して' if LANGUAGE == 'japanese' else 'Respond'),
+            pos=(0, 0.4),
+            height=0.05,
+            color='red'
+        ),
         # Demo text on center-right
         'demo_text': visual.TextStim(win, text='', pos=(0.4, 0), height=0.04, color=DEMO_TEXT_COL),
         # Demo HUD (only drawn when Demo Mode is enabled)
@@ -995,23 +1030,42 @@ def trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=1, run_la
     response key to visually check button mapping before the run begins. The
     function blocks until TRIGGER_KEY is pressed or EXIT_KEY is used to abort.
     """
-    run_line = f"Run: {run_idx}/{n_runs}"
-    if run_label is not None:
-        run_line += f" (value: {run_label})"
+    if LANGUAGE == "japanese":
+        run_line = f"施行: {run_idx}/{n_runs}"
+    else:
+        run_line = f"Run: {run_idx}/{n_runs}"
 
-    msg = visual.TextStim(
-        win,
-        text=(
+    if run_label is not None:
+        if LANGUAGE == "japanese":
+            run_line += f" (値: {run_label})"
+        else:
+            run_line += f" (value: {run_label})"
+
+    if LANGUAGE == "japanese":
+        msg_text = (
+            f"{run_line}\n"
+            f"ボタンを押してテストします。\n\n\n"
+            f"準備してください！\n\n"
+            f"MRI装置の起動を待っています\n"
+            + (f"Demo skip: RIGHT ARROW\n" if demo_mode else "")
+        )
+    else:
+        msg_text = (
             f"{run_line}\n"
             f"Press the buttons to test.\n\n\n"
             f"Be ready!\n\n"
             f"Waiting for scanner to start\n"
             + (f"Demo skip: RIGHT ARROW\n" if demo_mode else "")
-        ),
+        )
+
+    msg = visual.TextStim(
+        win,
+        text=msg_text,
         pos=(0, 0.3),
         height=0.04,
         color='black'
     )
+
 
     triggered = False
     event.clearEvents()
@@ -1126,102 +1180,42 @@ def _freeze_clock_for_io(clock, fn, *args, **kwargs):
 
     return out
 
-def run_fixation_event(win, clock, trial, components, demo_mode, task_clock=None,
-                       trial_idx=1, n_trials=1, mode='standard'):
-    """Render a fixation-only event encoded as a row in the design CSV.
+def _wait_post_trigger_delay(win, components, total_seconds, demo_mode=False):
+    """Wait a fixed delay after the scanner trigger (blank screen).
 
-    The design generator can insert run-start and run-end fixation periods.
-    These events use the existing fixation cross stimulus and do not accept
-    responses.
+    Rationale:
+      - Gives the scanner time to reach steady state before Trial 1
+      - Uses a blank screen to avoid unintended visual stimulation during the delay
 
-    Expected fields (generator writes these):
-      - event_type: 'fixation'
-      - fix_dur: duration in seconds
-
-    For robustness, this also falls back to common duration columns.
+    Notes:
+      - We keep the function signature stable to avoid touching call sites.
+      - Demo mode argument is accepted for compatibility, but not displayed here
+        (blank means blank).
     """
+    if total_seconds is None or total_seconds <= 0:
+        return
 
-    # Determine onset and duration.
-    # Standard mode typically provides 'trial_onset' and 'trial_duration'.
-    # 3-event mode provides 'img_onset' and 'trial_duration_max'.
-    try:
-        if mode == 'standard':
-            t0 = float(trial.get('trial_onset', clock.getTime()))
-            dur = float(trial.get('fix_dur', trial.get('trial_duration', 0.0)))
-        else:
-            t0 = float(trial.get('img_onset', clock.getTime()))
-            dur = float(trial.get('fix_dur', trial.get('trial_duration_max', 0.0)))
-    except Exception:
-        t0 = clock.getTime()
-        try:
-            dur = float(trial.get('fix_dur', 0.0))
-        except Exception:
-            dur = 0.0
+    total_seconds = float(total_seconds)
 
-    if dur is None or dur <= 0:
-        return {
-            'response': None, 'rt': None,
-            'target': None, 'correct_key': None,
-            'accuracy': None, 'img': None,
-            'skipped': 0
-        }
-
-    t_end = t0 + float(dur)
+    clk = core.Clock()
+    clk.reset()
     event.clearEvents()
 
-    # Wait until onset (if in the future), drawing fixation.
-    while clock.getTime() < t0:
+    while True:
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
-        if _demo_skip_pressed(demo_mode):
-            # Fast-forward to end of this event
-            dt = max(0.0, t_end - clock.getTime())
-            if dt > 0:
-                clock.addTime(dt)
-            return {
-                'response': None, 'rt': None,
-                'target': None, 'correct_key': None,
-                'accuracy': None, 'img': None,
-                'skipped': 1
-            }
-        components['fixation'].draw()
-        breakdown = [f"Fix: {max(0.0, t0 - clock.getTime()):4.1f}s (to onset)"]
-        _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
-                          clock, t0, 'Fixation', t0, breakdown)
+
+        if clk.getTime() >= total_seconds:
+            break
+
+        # Blank screen: do not draw any stimuli.
         win.flip()
-
-    # Hold fixation for duration.
-    while clock.getTime() < t_end:
-        if event.getKeys(keyList=[EXIT_KEY]):
-            core.quit()
-        if _demo_skip_pressed(demo_mode):
-            dt = max(0.0, t_end - clock.getTime())
-            if dt > 0:
-                clock.addTime(dt)
-            return {
-                'response': None, 'rt': None,
-                'target': None, 'correct_key': None,
-                'accuracy': None, 'img': None,
-                'skipped': 1
-            }
-
-        components['fixation'].draw()
-        breakdown = [f"Fix: {max(0.0, t_end - clock.getTime()):4.1f}s"]
-        _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
-                          clock, t0, 'Fixation', t_end, breakdown)
-        win.flip()
-
-    return {
-        'response': None, 'rt': None,
-        'target': None, 'correct_key': None,
-        'accuracy': None, 'img': None,
-        'skipped': 0
-    }
 
 def run_experiment():
     # 1. Start Dialog: basic participant/run configuration
     info = {
         'Sub': '001',
+        'Language': 'English',  # English or Japanese
         'Design CSV': '',        # Leave blank to browse
         'Label CSV': '',         # Leave blank to browse
         'Image Dir': 'images/task_images/',   # Default directory
@@ -1229,7 +1223,9 @@ def run_experiment():
         'Fixed Decision Time': True,  # When True, always wait max_dec_dur before ISI2/Feedback
         'Demo Mode': False,
         # Tickbox: when True use scanner button mapping (1-4). When False use PC mapping (1,2,9,0)
-        'Scanner Buttons': True
+        'Scanner Buttons': True,
+        # When True, wait 10+15s after trigger (countdown then fixation)
+        'Enable Trigger Delay': True
     }
 
     # Define a helper for browsing (uses PsychoPy's GUI helpers)
@@ -1244,7 +1240,7 @@ def run_experiment():
     dlg = gui.DlgFromDict(
         info,
         title='Study 3 Launcher',
-        order=['Sub', 'Design CSV', 'Label CSV', 'Image Dir', 'Feedback Delay', 'Fixed Decision Time', 'Demo Mode', 'Scanner Buttons'],
+        order=['Sub', 'Language', 'Design CSV', 'Label CSV', 'Image Dir', 'Feedback Delay', 'Fixed Decision Time', 'Demo Mode', 'Scanner Buttons', 'Enable Trigger Delay'],
         tip={
             'Design CSV': 'Leave blank to open file browser',
             'Label CSV': 'Leave blank to open file browser',
@@ -1254,6 +1250,11 @@ def run_experiment():
 
     if not dlg.OK:
         core.quit()
+    # Language selection (affects on-screen texts)
+    global LANGUAGE
+    LANGUAGE = 'japanese' if str(info.get('Language', 'English')).strip().lower().startswith('jap') else 'english'
+
+
 
     # 2. Trigger Browser for Empty Fields: ensure all required paths are set
     if not info['Design CSV']:
@@ -1285,6 +1286,7 @@ def run_experiment():
     fixed_decision_time = _to_bool(info.get('Fixed Decision Time'))
     # Determine button mapping based on scanner toggle (default: scanner mapping)
     use_scanner_buttons = _to_bool(info.get('Scanner Buttons'))
+    enable_trigger_delay = _to_bool(info.get('Enable Trigger Delay', True))
     # Update global keys mapping so other functions use the selected mapping
     global KEYS_RESP
     if use_scanner_buttons:
@@ -1351,23 +1353,63 @@ def run_experiment():
     win, components = create_window_and_components(demo_mode)
     # Show initial experimental instructions
     # In scanner mode, do NOT mention specific key numbers on instruction screens.
-    if use_scanner_buttons:
-        hand_text = "Keep your fingers placed on the response buttons."
+    if LANGUAGE == "japanese":
+        if use_scanner_buttons:
+            hand_text = "指を応答ボタンの上に置いたままにします。"
+        else:
+            keys_str = ", ".join(f"'{k}'" for k in KEYS_RESP)
+            hand_text = f"指を {keys_str} キーの上に置いたままにします。"
     else:
-        keys_str = ", ".join(f"'{k}'" for k in KEYS_RESP)
-        hand_text = f"Keep your fingers placed on the {keys_str} keys."
+        if use_scanner_buttons:
+            hand_text = "Keep your fingers placed on the response buttons."
+        else:
+            keys_str = ", ".join(f"'{k}'" for k in KEYS_RESP)
+            hand_text = f"Keep your fingers placed on the {keys_str} keys."
 
-    show_instruction_screen(win, (
-        "EXPERIMENTAL SESSION\n\n"
-        "You are about to start the main object learning task.\n"
-        "Remember to categorize the objects as accurately and fast as possible.\n\n"
-        f"{hand_text}"
-    ), image_path="experimental_task/resources/instruction_image_scanner.png", use_scanner_buttons=use_scanner_buttons)
-    show_instruction_screen(win, (
-        "The objects you are going to learn are from an alien planet. Some of them can look similar to one's you've seen before \
-while others will not. \n\nThe names of the objects won't change during the experiment."
-    ), image_path="experimental_task/resources/alien_image.png",use_scanner_buttons=use_scanner_buttons)
+    if LANGUAGE == "japanese":
+        instr1 = (
+            "実験セッション\n\n"
+            "メインオブジェクトの学習タスクを開始しようとしています。\n"
+            "できるだけ正確かつ迅速にオブジェクトを分類することを忘れないでください。\n\n"
+            f"{hand_text}"
+        )
+    else:
+        instr1 = (
+            "EXPERIMENTAL SESSION\n\n"
+            "You are about to start the main object learning task.\n"
+            "Remember to categorize the objects as accurately and fast as possible.\n\n"
+            f"{hand_text}"
+        )
+
+    show_instruction_screen(
+        win,
+        instr1,
+        image_path="experimental_task/resources/instruction_image_scanner.png",
+        use_scanner_buttons=use_scanner_buttons
+    )
+
+    if LANGUAGE == "japanese":
+        instr2 = (
+            "これから学ぶ物体は、異星から来たものです。\nこれまでに見たことのあるものと似ているものもあれば、\n似ていないものもあります。\n\n "
+            "実験中、オブジェクトの名前は変更されません。"
+        )
+    else:
+        instr2 = (
+            "The objects you are going to learn are from an alien planet. Some of them can look similar to one's you've seen before "
+            "while others will not.\n\n"
+            "The names of the objects won't change during the experiment."
+        )
+
+    show_instruction_screen(
+        win,
+        instr2,
+        image_path="experimental_task/resources/alien_image.png",
+        use_scanner_buttons=use_scanner_buttons
+    )
     trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=n_runs, run_label=runs[0][0])
+    # Wait 10s after trigger before the first trial starts (run 1)
+    if enable_trigger_delay:
+        _wait_post_trigger_delay(win, components, TRIGGER_DELAY_SECONDS, demo_mode=demo_mode)
 
     for run_idx, (run_label, run_df) in enumerate(runs, start=1):
         # Between-run flow (run 2+): close fullscreen -> GUI -> reopen fullscreen -> trigger screen
@@ -1380,6 +1422,9 @@ while others will not. \n\nThe names of the objects won't change during the expe
 
             win, components = create_window_and_components(demo_mode)
             trigger_screen(win, components, mode, demo_mode, run_idx=run_idx, n_runs=n_runs, run_label=run_label)
+            # Wait 10s after trigger before the first trial starts (this run)
+            if enable_trigger_delay:
+                _wait_post_trigger_delay(win, components, TRIGGER_DELAY_SECONDS, demo_mode=demo_mode)
 
         # Reset clocks per run (important for standard-mode absolute onsets)
         run_clock = core.Clock()
@@ -1389,61 +1434,24 @@ while others will not. \n\nThe names of the objects won't change during the expe
 
         trials = run_df.to_dict('records')
         n_trials = len(trials)
-
-        # Fixation-only rows (e.g., run-start / run-end fixations) are inserted by
-        # the design generator and should not count toward response counterbalancing.
-        def _is_fixation_event(row: dict) -> bool:
-            try:
-                ev = str(row.get('event_type', '')).strip().lower()
-            except Exception:
-                ev = ''
-            if ev in {'fixation', 'fix', 'rest'}:
-                return True
-            try:
-                cond = str(row.get('condition', '')).strip().lower()
-            except Exception:
-                cond = ''
-            if cond in {'fixation', 'rest'}:
-                return True
-            return False
-
-        stim_trials = [t for t in trials if not _is_fixation_event(t)]
-        target_btn_seq = generate_balanced_button_sequence(len(stim_trials), n_buttons=len(KEYS_RESP), max_repeat=2, rng=random)
-        stim_btn_i = 0
+        # Counterbalance correct-option button position within this run
+        target_btn_seq = generate_balanced_button_sequence(n_trials, n_buttons=len(KEYS_RESP), max_repeat=2, rng=random)
         run_rows = []  # per-run buffer for crash-safe saving
 
         for trial_idx, trial in enumerate(trials, start=1):
-            if _is_fixation_event(trial):
-                res = run_fixation_event(
-                    win, run_clock, trial, components, demo_mode,
-                    task_clock=task_clock, trial_idx=trial_idx, n_trials=n_trials,
-                    mode=mode
-                )
-                row = dict(trial)
-                row.update(res)
-                if 'skipped' not in row:
-                    row['skipped'] = 0
-                if run_col is not None and run_col not in row:
-                    row[run_col] = run_label
-                run_rows.append(row)
-                out_rows.append(row)
-                continue
-
             if mode == 'standard':
                 res = run_trial_standard(
                     win, run_clock, trial, components, label_data, info['Image Dir'],
                     demo_mode, task_clock=task_clock, trial_idx=trial_idx, n_trials=n_trials,
-                    target_button_idx=target_btn_seq[stim_btn_i]
+                    target_button_idx=target_btn_seq[trial_idx-1]
                 )
             else:
                 res = run_trial_3event(
                     win, run_clock, trial, components, label_data, info['Image Dir'],
                     demo_mode, feedback_delay, fixed_decision_time,
                     task_clock=task_clock, trial_idx=trial_idx, n_trials=n_trials,
-                    target_button_idx=target_btn_seq[stim_btn_i]
+                    target_button_idx=target_btn_seq[trial_idx-1]
                 )
-
-            stim_btn_i += 1
 
             row = dict(trial)
             row.update(res)
