@@ -40,7 +40,10 @@ KEYS_RESP = ['1', '2', '9', '0']
 TRIGGER_KEY = '5'
 EXIT_KEY = 'escape'
 SKIP_KEY = 'right'  # Demo Mode only
-
+LANG_BTN_FONT_SCALE = { # Enlargen font size slightly for japanese buttons
+    "english": 1.0,
+    "japanese": 1.25
+    }
 # Scanner trigger -> first-trial delay (seconds).
 TRIGGER_DELAY_SECONDS = 10.0
 
@@ -1086,13 +1089,14 @@ def create_window_and_components(demo_mode):
     }
 
     # Setup Buttons: create four rectangular buttons and centered labels
+    font_scale = LANG_BTN_FONT_SCALE.get(LANGUAGE, 1.0)
     spacing = 0.22
     start_x = -((3 * spacing) / 2)
     for i, key in enumerate(KEYS_RESP):
         x = start_x + (i * spacing)
         box = visual.Rect(win, width=0.2, height=0.1, pos=(x, -0.3),
                           fillColor=COL_NEUTRAL, lineColor='black', lineWidth=LINE_W_NORMAL)
-        txt = visual.TextStim(win, text=f"{key}", pos=(x, -0.3), height=0.03, color='black')
+        txt = visual.TextStim(win, text=f"{key}", pos=(x, -0.3), height=0.03*font_scale, color='black')
         components['buttons'].append({'box': box, 'text': txt, 'key': key})
 
     return win, components
