@@ -55,6 +55,9 @@ from psychopy.hardware import keyboard
 from PIL import Image, ImageOps
 import numpy as np
 
+
+# Language for on-screen text (manual toggle)
+LANGUAGE = "english"  # "english" or "japanese"
 # -----------------------------
 # Config / helpers
 # -----------------------------
@@ -294,9 +297,14 @@ def show_text_screen(win: visual.Window, text: str, kb: keyboard.Keyboard, advan
         color=FG_COLOR,
         pos=(0, 0.10),
     )
+    if LANGUAGE == "japanese":
+        cont_text = "[japanese] Press a button to continue"
+    else:
+        cont_text = "Press a button to continue"
+
     cont = visual.TextStim(
         win,
-        text="Press a button to continue",
+        text=cont_text,
         height=0.03,
         color="grey",
         pos=(0, -0.40),
@@ -323,7 +331,7 @@ def wait_for_trigger(
     kb: keyboard.Keyboard,
     trigger_key: str = TRIGGER_KEY,
     allow_skip_keys: Optional[List[str]] = None,
-    text: str = "Waiting for scanner trigger…\n\n(Trigger key: 5)",
+    text: str = None,
 ) -> str:
     """
     Block until we receive the scanner trigger key (default '5').
@@ -333,6 +341,12 @@ def wait_for_trigger(
     Returns the key name that started the run (trigger or skip key).
     """
     allow_skip_keys = allow_skip_keys or []
+
+    if text is None:
+        if LANGUAGE == "japanese":
+            text = "[japanese] Waiting for scanner trigger…\n\n[japanese] (Trigger key: 5)"
+        else:
+            text = "Waiting for scanner trigger…\n\n(Trigger key: 5)"
 
     stim = visual.TextStim(
         win,
@@ -439,19 +453,56 @@ def run_localiser(params: Params):
     participant_num = parse_participant_number(params.participant)
     all_run_summaries = []
 
-    instr1 = (
-        "LOCALISER\n\n"
-        "You will see pictures from different categories."
-    )
-    instr2 = (
-        "Sometimes the SAME picture will appear twice in a row.\n\n"
-        "When you see a repeat image (back-to-back), press ANY response button.\n\n"
-    )
-    instr3 = (
-        "Try to respond quickly and accurately but don't worry if your response seems slow.\n\n"
-        "Keep your eyes on the fixation cross between blocks.\n\n"
-        "Press a button to start."
-    )
+    # Instructions (bilingual placeholders)
+    if LANGUAGE == "japanese":
+        instr1 = (
+            "[japanese] LOCALISER
+
+"
+            "[japanese] You will see pictures from different categories."
+        )
+        instr2 = (
+            "[japanese] Sometimes the SAME picture will appear twice in a row.
+
+"
+            "[japanese] When you see a repeat image (back-to-back), press ANY response button.
+
+"
+        )
+        instr3 = (
+            "[japanese] Try to respond quickly and accurately but don't worry if your response seems slow.
+
+"
+            "[japanese] Keep your eyes on the fixation cross between blocks.
+
+"
+            "[japanese] Press a button to start."
+        )
+    else:
+        instr1 = (
+            "LOCALISER
+
+"
+            "You will see pictures from different categories."
+        )
+        instr2 = (
+            "Sometimes the SAME picture will appear twice in a row.
+
+"
+            "When you see a repeat image (back-to-back), press ANY response button.
+
+"
+        )
+        instr3 = (
+            "Try to respond quickly and accurately but don't worry if your response seems slow.
+
+"
+            "Keep your eyes on the fixation cross between blocks.
+
+"
+            "Press a button to start."
+        )
+
 
     show_text_screen(win, instr1, kb, advance_keys=resp_keys)
     show_text_screen(win, instr2, kb, advance_keys=resp_keys)
@@ -493,21 +544,51 @@ def run_localiser(params: Params):
                 writer.writeheader()
 
                 if use_scanner_trigger:
+                                        if LANGUAGE == "japanese":
+                        trigger_text = (
+                            f"[japanese] Run {run_idx} of {params.n_runs}
+
+"
+                            "[japanese] Waiting for scanner to start…
+
+"
+                        )
+                    else:
+                        trigger_text = (
+                            f"Run {run_idx} of {params.n_runs}
+
+"
+                            "Waiting for scanner to start…
+
+"
+                        )
+
                     wait_for_trigger(
                         win,
                         kb,
                         trigger_key=TRIGGER_KEY,
                         allow_skip_keys=resp_keys,  # handy for keyboard testing
-                        text=(
-                            f"Run {run_idx} of {params.n_runs}\n\n"
-                            "Waiting for scanner to start…\n\n"
-                        ),
+                        text=trigger_text,
                     )
                 else:
+                                        if LANGUAGE == "japanese":
+                        start_text = (
+                            f"[japanese] Run {run_idx} of {params.n_runs}
+
+"
+                            "[japanese] Press any response button to begin."
+                        )
+                    else:
+                        start_text = (
+                            f"Run {run_idx} of {params.n_runs}
+
+"
+                            "Press any response button to begin."
+                        )
                     show_text_screen(
                         win,
-                        f"Run {run_idx} of {params.n_runs}\n\n"
-                        f"Press any response button to begin.",
+                        start_text,
+
                         kb,
                         advance_keys=resp_keys,
                     )
@@ -635,11 +716,31 @@ def run_localiser(params: Params):
                 }
                 all_run_summaries.append(summary)
 
+                                if LANGUAGE == "japanese":
+                    end_text = (
+                        f"[japanese] End of run {run_idx}.
+
+"
+                        f"[japanese] Hits: {hits} / {total_targets}   False alarms: {fas}
+
+"
+                        "[japanese] Press a button to continue."
+                    )
+                else:
+                    end_text = (
+                        f"End of run {run_idx}.
+
+"
+                        f"Hits: {hits} / {total_targets}   False alarms: {fas}
+
+"
+                        "Press a button to continue."
+                    )
+
                 show_text_screen(
                     win,
-                    f"End of run {run_idx}.\n\n"
-                    f"Hits: {hits} / {total_targets}   False alarms: {fas}\n\n"
-                    f"Press a button to continue.",
+                    end_text,
+
                     kb,
                     advance_keys=resp_keys,
                 )
@@ -664,7 +765,11 @@ def run_localiser(params: Params):
                 f.write(f"  order={s['order']}\n")
                 f.write(f"  csv={s['csv']}\n\n")
 
-        show_text_screen(win, "All runs complete.\n\nThank you!", kb, advance_keys=resp_keys)
+        if LANGUAGE == "japanese":
+            final_text = "[japanese] All runs complete.\n\n[japanese] Thank you!"
+        else:
+            final_text = "All runs complete.\n\nThank you!"
+        show_text_screen(win, final_text, kb, advance_keys=resp_keys)
 
     finally:
         try:
