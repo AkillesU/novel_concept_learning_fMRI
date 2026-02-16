@@ -44,8 +44,6 @@ LANG_BTN_FONT_SCALE = { # Enlargen font size slightly for japanese buttons
     "english": 1.0,
     "japanese": 1.25
     }
-# Scanner trigger -> first-trial delay (seconds).
-TRIGGER_DELAY_SECONDS = 0
 
 
 # Colors used for buttons / feedback. Keep names descriptive to make intent clear.
@@ -1347,36 +1345,7 @@ def _freeze_clock_for_io(clock, fn, *args, **kwargs):
 
     return out
 
-def _wait_post_trigger_delay(win, components, total_seconds, demo_mode=False):
-    """Wait a fixed delay after the scanner trigger (blank screen).
 
-    Rationale:
-      - Gives the scanner time to reach steady state before Trial 1
-      - Uses a blank screen to avoid unintended visual stimulation during the delay
-
-    Notes:
-      - We keep the function signature stable to avoid touching call sites.
-      - Demo mode argument is accepted for compatibility, but not displayed here
-        (blank means blank).
-    """
-    if total_seconds is None or total_seconds <= 0:
-        return
-
-    total_seconds = float(total_seconds)
-
-    clk = core.Clock()
-    clk.reset()
-    event.clearEvents()
-
-    while True:
-        if event.getKeys(keyList=[EXIT_KEY]):
-            core.quit()
-
-        if clk.getTime() >= total_seconds:
-            break
-
-        # Blank screen: do not draw any stimuli.
-        win.flip()
 
 def run_experiment():
     # 1. Start Dialog: basic participant/run configuration
@@ -1391,8 +1360,6 @@ def run_experiment():
         'Demo Mode': False,
         # Tickbox: when True use scanner button mapping (1-4). When False use PC mapping (1,2,9,0)
         'Scanner Buttons': True,
-        # When True, wait 10+15s after trigger (countdown then fixation)
-        'Enable Trigger Delay': True
     }
 
     # Define a helper for browsing (uses PsychoPy's GUI helpers)
@@ -1407,7 +1374,7 @@ def run_experiment():
     dlg = gui.DlgFromDict(
         info,
         title='Study 3 Launcher',
-        order=['Sub', 'Language', 'Design CSV', 'Label CSV', 'Image Dir', 'Feedback Delay', 'Fixed Decision Time', 'Demo Mode', 'Scanner Buttons', 'Enable Trigger Delay'],
+        order=['Sub', 'Language', 'Design CSV', 'Label CSV', 'Image Dir', 'Feedback Delay', 'Fixed Decision Time', 'Demo Mode', 'Scanner Buttons'],
         tip={
             'Design CSV': 'Leave blank to open file browser',
             'Label CSV': 'Leave blank to open file browser',
@@ -1453,7 +1420,6 @@ def run_experiment():
     fixed_decision_time = _to_bool(info.get('Fixed Decision Time'))
     # Determine button mapping based on scanner toggle (default: scanner mapping)
     use_scanner_buttons = _to_bool(info.get('Scanner Buttons'))
-    enable_trigger_delay = _to_bool(info.get('Enable Trigger Delay', True))
     # Update global keys mapping so other functions use the selected mapping
     global KEYS_RESP
     if use_scanner_buttons:
@@ -1574,9 +1540,6 @@ def run_experiment():
         use_scanner_buttons=use_scanner_buttons
     )
     trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=n_runs, run_label=runs[0][0])
-    # Wait 10s after trigger before the first trial starts (run 1)
-    if enable_trigger_delay:
-        _wait_post_trigger_delay(win, components, TRIGGER_DELAY_SECONDS, demo_mode=demo_mode)
 
     for run_idx, (run_label, run_df) in enumerate(runs, start=1):
         # Between-run flow (run 2+): close fullscreen -> GUI -> reopen fullscreen -> trigger screen
@@ -1589,9 +1552,6 @@ def run_experiment():
 
             win, components = create_window_and_components(demo_mode)
             trigger_screen(win, components, mode, demo_mode, run_idx=run_idx, n_runs=n_runs, run_label=run_label)
-            # Wait 10s after trigger before the first trial starts (this run)
-            if enable_trigger_delay:
-                _wait_post_trigger_delay(win, components, TRIGGER_DELAY_SECONDS, demo_mode=demo_mode)
 
         # Reset clocks per run (important for standard-mode absolute onsets)
         run_clock = core.Clock()
