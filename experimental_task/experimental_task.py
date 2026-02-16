@@ -45,7 +45,7 @@ LANG_BTN_FONT_SCALE = { # Enlargen font size slightly for japanese buttons
     "japanese": 1.25
     }
 # Scanner trigger -> first-trial delay (seconds).
-TRIGGER_DELAY_SECONDS = 10.0
+TRIGGER_DELAY_SECONDS = 0
 
 
 # Colors used for buttons / feedback. Keep names descriptive to make intent clear.
@@ -551,13 +551,11 @@ def setup_trial_visuals(trial, components, label_data, img_dir, demo_mode, targe
     is_fixation = (cond.strip().lower() == "fixation") or (str(trial.get("event_type", "")).strip().lower() == "fixation")
 
     if is_fixation:
-        # Clear button labels so no bogus responses/logging occur
+        # Fixation-only row: no image, no labels, no responses.
+        # Clear button labels so nothing is shown/clickable.
         for btn in components['buttons']:
             btn['text'].text = ""
-
-        # Return explicit fixation flag
         return False, "", "", ["", "", "", ""], True
-
 
     # 1) Image
     img_path = resolve_image_path(img_dir, space_id, trial.get('image_file', ''))
@@ -746,24 +744,47 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
     t_end     = float(trial['trial_onset']) + float(trial['trial_duration'])
 
     trial_t0 = float(trial.get('trial_onset', clock.getTime()))
-    # --- FIXATION TRIAL ---
+
+    # --- FIXATION-ONLY TRIAL (condition == 'fixation') ---
+    # Respect absolute timing from the design file in standard mode by drawing
+    # a fixation cross until the trial end time.
+
     if is_fixation:
-        while clock.getTime() < t_end:
+        # Fixation-only trial: draw an explicit '+' for the duration specified in the design.
+        # Priority for duration: fix_dur (if present) -> (trial_onset+trial_duration) fallback.
+        now = clock.getTime()
+        # Preferred: use trial_onset + fix_dur if available (absolute schedule)
+        end_fix = None
+        try:
+            if 'fix_dur' in trial and not pd.isna(trial.get('fix_dur')):
+                end_fix = float(trial.get('trial_onset', now)) + float(trial.get('fix_dur'))
+        except Exception:
+            end_fix = None
+        # Fallback: use standard end-of-trial timing from the design
+        if end_fix is None:
+            end_fix = t_end
+
+        # Guarantee at least one visible frame even if duration is 0 or timing already passed
+        if now >= end_fix:
+            end_fix = now + (1.0 / 60.0)
+
+        while clock.getTime() < end_fix:
             if event.getKeys(keyList=[EXIT_KEY]):
                 core.quit()
-            components['fixation'].draw()
+            components.get('fixation_trial', components['fixation']).draw()
+            _hud_set_and_draw(
+                components, demo_mode, task_clock, trial_idx, n_trials,
+                clock, trial_t0, 'Fixation', end_fix, breakdown_lines=["Fixation-only trial"]
+            )
             win.flip()
 
         return {
-            'response': None,
-            'rt': None,
-            'target': None,
-            'correct_key': None,
+            'response': None, 'rt': None,
+            'target': None, 'correct_key': None,
             'accuracy': 0,
             'img': img_path,
             'skipped': 0
         }
-
     # Pre-Dec Fixation: render fixation until decision onset
     while clock.getTime() < t_dec_on:
         if event.getKeys(keyList=[EXIT_KEY]):
@@ -924,25 +945,52 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
     isi2_dur = float(trial.get('isi2_dur', 0))
     fb_dur = float(trial.get('fb_dur', trial.get('dec_fb_dur', 0)))
     iti = float(trial.get('iti', 0))
-    # --- FIXATION TRIAL ---
+
+    # --- FIXATION-ONLY TRIAL (condition == 'fixation') ---
+    # In 3-event mode, fixation rows should present only a fixation cross for the
+    # duration specified in the design (prefer trial_duration_max/trial_duration; fall back to iti).
+
     if is_fixation:
+        # Mark trial start for HUD/debug and ensure at least one visible frame
+        trial_t0 = clock.getTime()
+
+        # Prefer explicit per-trial duration fields from the design file.
+        # (trial_duration_max is commonly present in generated 3-event designs.)
+        # Use fix_dur when provided for fixation-only trials (authoritative)
+        dur = trial.get('fix_dur', trial.get('trial_duration_max', trial.get('trial_duration', iti)))
+        try:
+            dur = float(dur)
+            # Treat NaN as 0 (common when CSV has empty cells)
+            if isinstance(dur, float) and np.isnan(dur):
+                dur = 0.0
+
+        except Exception:
+            dur = float(iti) if iti is not None else 0.0
+
+        # Ensure fixation is visible for at least one refresh, even if duration is 0.
+        min_frame = 1.0 / 60.0
+        if dur <= 0:
+            dur = min_frame
+
         t_fix = clock.getTime()
-        while clock.getTime() < (t_fix + iti):
+        end_fix = t_fix + dur
+        while clock.getTime() < end_fix:
             if event.getKeys(keyList=[EXIT_KEY]):
                 core.quit()
-            components['fixation'].draw()
+            components.get('fixation_trial', components['fixation']).draw()
+            _hud_set_and_draw(
+                components, demo_mode, task_clock, trial_idx, n_trials,
+                clock, trial_t0, 'Fixation', end_fix, breakdown_lines=["Fixation-only trial"]
+            )
             win.flip()
 
         return {
-            'response': None,
-            'rt': None,
-            'target': None,
-            'correct_key': None,
+            'response': None, 'rt': None,
+            'target': None, 'correct_key': None,
             'accuracy': 0,
             'img': img_path,
             'skipped': 0
         }
-
 
     # Ensure clean input state for upcoming trial (clear any residual clicks/keys)
     components['mouse'].clickReset()
@@ -1098,6 +1146,8 @@ def create_window_and_components(demo_mode):
 
     components = {
         'fixation': visual.TextStim(win, text='+', height=0.1, color='black'),
+        # Dedicated fixation stimulus for explicit fixation trials (condition == 'fixation')
+        'fixation_trial': visual.TextStim(win, text='+', height=0.12, color='black'),
         # Image centered at (0,0) as requested
         'main_image': visual.ImageStim(win, pos=(0, 0), size=(0.5, 0.5), interpolate=True, texRes=2048),
         # Messages (language-specific)
