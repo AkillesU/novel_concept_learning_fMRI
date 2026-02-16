@@ -1158,7 +1158,7 @@ def create_window_and_components(demo_mode):
         ),
         'respond_text': visual.TextStim(
             win,
-            text=('入力して' if LANGUAGE == 'japanese' else 'Respond'),
+            text=('押してください' if LANGUAGE == 'japanese' else 'Respond'),
             pos=(0, 0.4),
             height=0.05,
             color='red'
