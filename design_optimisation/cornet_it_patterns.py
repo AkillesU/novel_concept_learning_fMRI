@@ -63,6 +63,35 @@ import matplotlib.pyplot as plt
 IMG_EXTS = (".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp")
 
 
+
+
+def normalize_objectspace(val) -> str:
+    """Normalize ObjectSpace values from CSV (handles numeric IDs and missing values).
+    - NaN/None -> ''
+    - integer-like floats/strings -> int string (e.g., 20.0 -> '20')
+    - otherwise -> stripped string
+    """
+    if val is None:
+        return ""
+    try:
+        # pandas NaN
+        if pd.isna(val):
+            return ""
+    except Exception:
+        pass
+    # numeric handling
+    try:
+        f = float(val)
+        if np.isfinite(f) and float(f).is_integer():
+            return str(int(f))
+    except Exception:
+        pass
+    s = str(val).strip()
+    # common "nan" string
+    if s.lower() in ("nan", "none", ""):
+        return ""
+    return s
+
 # ----------------------------
 # Image path resolution
 # ----------------------------
@@ -389,7 +418,8 @@ def linear_lambda_within_class(df: pd.DataFrame, max_lambda: float, scope: str =
       - 'session': occurrences counted across the whole CSV
       - 'run': occurrences reset per run_id
     """
-    df = df.copy()
+    # original index. We need a 0..N-1 index because we allocate lambdas with len(df).
+    df = df.copy().reset_index(drop=True)
     if scope not in ("session", "run"):
         raise ValueError("scope must be 'session' or 'run'")
 
@@ -442,135 +472,178 @@ def main():
     conv_parent = Path(args.conv_parent)
     out_npz = Path(args.out_npz)
 
+    
     df = pd.read_csv(design_csv)
     if "ObjectSpace" not in df.columns or "image_file" not in df.columns:
         raise ValueError("design_csv must include columns: ObjectSpace, image_file")
 
-    # stable order (trial order) as in your GLM designs
-    if "img_onset" in df.columns:
-        df = df.sort_values(["run_id", "img_onset"]) if "run_id" in df.columns else df.sort_values("img_onset")
-    else:
-        df = df.reset_index(drop=True)
+    # --- Handle new CSVs that include non-image trials (e.g., fixation rows) ---
+    # We only generate CORnet patterns for rows that actually have an image.
+    # Keep full trial order in df, but compute patterns only for image-bearing trials,
+    # then write full-length arrays with NaN placeholders for non-image trials.
+    df["_ObjectSpace_norm"] = df["ObjectSpace"].apply(normalize_objectspace)
+    df["_image_file_norm"] = df["image_file"].astype(str).where(df["image_file"].notna(), "")
 
-    # Load model + extractor
-    model = load_cornet_rt(device=args.device)
-    extractor = ITExtractor(model, hook_output_node=True)  # hooks model.module.IT.output if available
-    tfm = imagenet_preprocess()
+    is_image_trial = (df["_ObjectSpace_norm"] != "") & (df["_image_file_norm"] != "") & (df["_image_file_norm"].str.lower() != "nan")
 
-    # 1) Task image IT vectors per trial
-    task_paths = []
-    task_vecs = []
-    for _, row in df.iterrows():
-        os_name = str(row["ObjectSpace"])
-        image_file = str(row["image_file"])
-        p = resolve_image_path(img_dir, os_name, image_file)
-        task_paths.append(str(p))
-        task_vecs.append(it_vector_for_image(p, extractor, tfm, args.device))
-    task_vecs = np.vstack(task_vecs)  # (n_trials, d)
+    n_all = len(df)
+    n_img = int(is_image_trial.sum())
+    if n_img == 0:
+        raise ValueError("No image trials detected in design_csv (all rows have missing ObjectSpace/image_file).")
 
-    # --- RDM from RAW (pre-PCA) trial IT vectors ---
-    rdm_raw = rdm_correlation_distance(task_vecs, zscore_rows=False)
+    if n_img < n_all:
+        print(f"[INFO] Detected {n_all - n_img} non-image trials (e.g., fixation). These will be kept but filled with NaNs in the output patterns.")
 
-    # 2) Convergence vectors per class: average over images in each class folder
-    class_names = sorted({str(x) for x in df["ObjectSpace"].unique().tolist()})
-    conv_vecs = []
-    conv_counts = []
-    for os_name in class_names:
-        folder = conv_parent / os_name
-        imgs = list_images_in_folder(folder)
-        if len(imgs) == 0:
-            raise FileNotFoundError(f"No convergence images found for class '{os_name}' in {folder}")
-        vecs = np.vstack([it_vector_for_image(p, extractor, tfm, args.device) for p in imgs])
-        conv_vecs.append(vecs.mean(axis=0))
-        conv_counts.append(len(imgs))
-    conv_vecs = np.vstack(conv_vecs)  # (n_classes, d)
+        # stable order (trial order) as in your GLM designs
+        if "img_onset" in df.columns:
+            df = df.sort_values(["run_id", "img_onset"]) if "run_id" in df.columns else df.sort_values("img_onset")
+        else:
+            df = df.reset_index(drop=True)
 
-    extractor.close()
+        # Recompute mask in case sorting changed row order
+        is_image_trial = (df["_ObjectSpace_norm"] != "") & (df["_image_file_norm"] != "") & (df["_image_file_norm"].str.lower() != "nan")
 
-    # 3) PCA basis fit on union of task+conv vectors
-    X_all = np.vstack([task_vecs, conv_vecs])
-    Z_all, pca_meta = pca_fit_transform(X_all, n_components=args.n_components, whiten=False)
+        # Load model + extractor
+        model = load_cornet_rt(device=args.device)
+        extractor = ITExtractor(model, hook_output_node=True)  # hooks model.module.IT.output if available
+        tfm = imagenet_preprocess()
 
-    # debug: inspect data before PCA
-    print("X_all.shape:", X_all.shape)                 # (n_samples, n_features)
-    print("requested n_components:", args.n_components)
-    print("min(n_samples, n_features):", min(X_all.shape[0], X_all.shape[1]))
+    
+        # 1) Task image IT vectors per *image* trial
+        task_paths_img: List[str] = []
+        task_vecs_img: List[np.ndarray] = []
+        img_indices = df.index[is_image_trial].to_list()
 
-    Z_task = Z_all[: task_vecs.shape[0], :]
-    Z_conv = Z_all[task_vecs.shape[0] :, :]
+        for ix in img_indices:
+            row = df.loc[ix]
+            os_name = row["_ObjectSpace_norm"]
+            image_file = str(row["image_file"])
+            p = resolve_image_path(img_dir, os_name, image_file)
+            task_paths_img.append(str(p))
+            task_vecs_img.append(it_vector_for_image(p, extractor, tfm, args.device))
 
-    # --- RDM from PCA (post-PCA) trial vectors ---
-    rdm_pca = rdm_correlation_distance(Z_task, zscore_rows=False)
-    v_raw = rdm_upper_triangle_vector(rdm_raw)
-    v_pca = rdm_upper_triangle_vector(rdm_pca)
-    rdm_raw_vs_pca_r = pearsonr_np(v_raw, v_pca)
+        task_vecs = np.vstack(task_vecs_img)  # (n_img_trials, d)
 
-    np.set_printoptions(precision=4, suppress=True, threshold=200, edgeitems=3, linewidth=140)
-    print("\n--- RDM (RAW pre-PCA; correlation distance) ---")
-    print(f"rdm_raw shape = {rdm_raw.shape}")
-    print(rdm_raw)
-    print("\n--- RDM (PCA post-PCA; correlation distance) ---")
-    print(f"rdm_pca shape = {rdm_pca.shape}")
-    print(rdm_pca)
-    print(f"\nRDM similarity (Pearson r, upper triangle): {rdm_raw_vs_pca_r:.6f}\n")
+        # --- RDM from RAW (pre-PCA) trial IT vectors ---
+        rdm_raw = rdm_correlation_distance(task_vecs, zscore_rows=False)
 
-    if args.plot_rdms:
-        default_png = Path(str(args.out_npz)).with_suffix("")
-        default_png = default_png.parent / (default_png.name + "_rdms.png")
-        out_png = Path(args.rdm_png) if args.rdm_png else default_png
-        plot_rdms(rdm_raw, rdm_pca, out_png=out_png, show=args.show_plots)
-        print(f"Saved RDM plot: {out_png}")
+        # 2) Convergence vectors per class: average over images in each class folder
+        class_names = sorted({df.loc[ix, "_ObjectSpace_norm"] for ix in img_indices})
+        conv_vecs = []
+        conv_counts = []
+        for os_name in class_names:
+            folder = conv_parent / os_name
+            imgs = list_images_in_folder(folder)
+            if len(imgs) == 0:
+                raise FileNotFoundError(f"No convergence images found for class '{os_name}' in {folder}")
+            vecs = np.vstack([it_vector_for_image(p, extractor, tfm, args.device) for p in imgs])
+            conv_vecs.append(vecs.mean(axis=0))
+            conv_counts.append(len(imgs))
+        conv_vecs = np.vstack(conv_vecs)  # (n_classes, d)
 
-    # 4) Build per-trial convergence target in 200D by class lookup
-    class_to_idx = {c: i for i, c in enumerate(class_names)}
-    conv_target = np.zeros_like(Z_task)
-    for i in range(len(df)):
-        conv_target[i] = Z_conv[class_to_idx[str(df.iloc[i]["ObjectSpace"])], :]
+        extractor.close()
 
-    # 5) Within-class linear schedule with max_lambda
-    lambdas = linear_lambda_within_class(df, max_lambda=args.max_lambda, scope=args.schedule_scope)
+        # 3) PCA basis fit on union of task+conv vectors
+        X_all = np.vstack([task_vecs, conv_vecs])
+        Z_all, pca_meta = pca_fit_transform(X_all, n_components=args.n_components, whiten=False)
 
-    # 6) Interpolate in 200D (variant 2)
-    patterns_task_200 = Z_task
-    patterns_enc_200 = (1.0 - lambdas[:, None]) * Z_task + lambdas[:, None] * conv_target
+        # debug: inspect data before PCA
+        print("X_all.shape:", X_all.shape)                 # (n_samples, n_features)
+        print("requested n_components:", args.n_components)
+        print("min(n_samples, n_features):", min(X_all.shape[0], X_all.shape[1]))
 
-    # Optional: normalize vectors (keeps scale comparable across trials)
-    def rownorm(X):
-        return X / (np.linalg.norm(X, axis=1, keepdims=True) + 1e-12)
+        Z_task = Z_all[: task_vecs.shape[0], :]
+        Z_conv = Z_all[task_vecs.shape[0] :, :]
 
-    patterns_task_200 = rownorm(patterns_task_200)
-    patterns_enc_200 = rownorm(patterns_enc_200)
-    patterns_conv_200 = rownorm(Z_conv)
+        # --- RDM from PCA (post-PCA) trial vectors ---
+        rdm_pca = rdm_correlation_distance(Z_task, zscore_rows=False)
+        v_raw = rdm_upper_triangle_vector(rdm_raw)
+        v_pca = rdm_upper_triangle_vector(rdm_pca)
+        rdm_raw_vs_pca_r = pearsonr_np(v_raw, v_pca)
 
-    # Trial metadata
-    run_id = df["run_id"].to_numpy() if "run_id" in df.columns else np.full(len(df), -1)
-    trial_id = df["trial_id"].to_numpy() if "trial_id" in df.columns else np.arange(len(df))
-    obj = df["ObjectSpace"].astype(str).to_numpy()
+        np.set_printoptions(precision=4, suppress=True, threshold=200, edgeitems=3, linewidth=140)
+        print("\n--- RDM (RAW pre-PCA; correlation distance) ---")
+        print(f"rdm_raw shape = {rdm_raw.shape}")
+        print(rdm_raw)
+        print("\n--- RDM (PCA post-PCA; correlation distance) ---")
+        print(f"rdm_pca shape = {rdm_pca.shape}")
+        print(rdm_pca)
+        print(f"\nRDM similarity (Pearson r, upper triangle): {rdm_raw_vs_pca_r:.6f}\n")
 
-    out_npz.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(
-        out_npz,
-        patterns_enc_200=patterns_enc_200.astype(np.float32),
-        patterns_task_200=patterns_task_200.astype(np.float32),
-        patterns_conv_200=patterns_conv_200.astype(np.float32),
-        class_names=np.array(class_names),
-        conv_image_counts=np.array(conv_counts, dtype=int),
-        lambdas=lambdas.astype(np.float32),
-        run_id=run_id,
-        trial_id=trial_id,
-        ObjectSpace=obj,
-        task_image_paths=np.array(task_paths),
-        pca_mean=pca_meta["mean"].astype(np.float32),
-        pca_components=pca_meta["components"].astype(np.float32),
-        pca_meta_str=str({k: v for k, v in pca_meta.items() if k not in ("mean", "components")}),
-        rdm_raw=rdm_raw.astype(np.float32),
-        rdm_pca=rdm_pca.astype(np.float32),
-        rdm_raw_vs_pca_r=np.array([rdm_raw_vs_pca_r], dtype=np.float32),
-    )
-    print(f"Wrote: {out_npz}")
-    print(f"Trials: {len(df)} | Classes: {len(class_names)} | IT dim: {task_vecs.shape[1]} -> PCA {args.n_components}")
-    print(f"Schedule scope: {args.schedule_scope} | max_lambda: {args.max_lambda}")
-    print("Convergence images per class:", dict(zip(class_names, conv_counts)))
+        if args.plot_rdms:
+            default_png = Path(str(args.out_npz)).with_suffix("")
+            default_png = default_png.parent / (default_png.name + "_rdms.png")
+            out_png = Path(args.rdm_png) if args.rdm_png else default_png
+            plot_rdms(rdm_raw, rdm_pca, out_png=out_png, show=args.show_plots)
+            print(f"Saved RDM plot: {out_png}")
+
+    
+        # 4) Build per-trial convergence target in 200D by class lookup (image trials only)
+        class_to_idx = {c: i for i, c in enumerate(class_names)}
+        conv_target = np.zeros_like(Z_task)
+        for j, ix in enumerate(img_indices):
+            os_name = df.loc[ix, "_ObjectSpace_norm"]
+            conv_target[j] = Z_conv[class_to_idx[os_name], :]
+
+        # 5) Within-class linear schedule with max_lambda
+        df_img = df.loc[img_indices].copy()
+        lambdas = linear_lambda_within_class(df_img, max_lambda=args.max_lambda, scope=args.schedule_scope)
+
+        # 6) Interpolate in 200D (variant 2)
+        patterns_task_200 = Z_task
+        patterns_enc_200 = (1.0 - lambdas[:, None]) * Z_task + lambdas[:, None] * conv_target
+
+        # Optional: normalize vectors (keeps scale comparable across trials)
+        def rownorm(X):
+            return X / (np.linalg.norm(X, axis=1, keepdims=True) + 1e-12)
+
+        patterns_task_200 = rownorm(patterns_task_200)
+        patterns_enc_200 = rownorm(patterns_enc_200)
+        patterns_conv_200 = rownorm(Z_conv)
+
+    
+        # Trial metadata (full-length; non-image rows get placeholders)
+        patterns_task_200_full = np.full((n_all, args.n_components), np.nan, dtype=float)
+        patterns_enc_200_full  = np.full((n_all, args.n_components), np.nan, dtype=float)
+        task_paths_full = np.array([""] * n_all, dtype=object)
+        lambdas_full = np.full((n_all,), np.nan, dtype=float)
+
+        # Fill image-trial rows
+        for j, ix in enumerate(img_indices):
+            patterns_task_200_full[ix, :] = patterns_task_200[j, :]
+            patterns_enc_200_full[ix, :] = patterns_enc_200[j, :]
+            task_paths_full[ix] = task_paths_img[j]
+            lambdas_full[ix] = lambdas[j]
+
+        run_id = df["run_id"].to_numpy() if "run_id" in df.columns else np.full(n_all, -1)
+        trial_id = df["trial_id"].to_numpy() if "trial_id" in df.columns else np.arange(n_all)
+        obj = df["_ObjectSpace_norm"].astype(str).to_numpy()
+
+        out_npz.parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(
+            out_npz,
+            patterns_enc_200=patterns_enc_200_full.astype(np.float32),
+            patterns_task_200=patterns_task_200_full.astype(np.float32),
+            patterns_conv_200=patterns_conv_200.astype(np.float32),
+            class_names=np.array(class_names),
+            conv_image_counts=np.array(conv_counts, dtype=int),
+            lambdas=lambdas_full.astype(np.float32),
+            img_trial_indices=np.array(img_indices, dtype=int),
+            run_id=run_id,
+            trial_id=trial_id,
+            ObjectSpace=obj,
+            task_image_paths=task_paths_full,
+            pca_mean=pca_meta["mean"].astype(np.float32),
+            pca_components=pca_meta["components"].astype(np.float32),
+            pca_meta_str=str({k: v for k, v in pca_meta.items() if k not in ("mean", "components")}),
+            rdm_raw=rdm_raw.astype(np.float32),
+            rdm_pca=rdm_pca.astype(np.float32),
+            rdm_raw_vs_pca_r=np.array([rdm_raw_vs_pca_r], dtype=np.float32),
+        )
+        print(f"Wrote: {out_npz}")
+        print(f"Trials: {len(df)} | Classes: {len(class_names)} | IT dim: {task_vecs.shape[1]} -> PCA {args.n_components}")
+        print(f"Schedule scope: {args.schedule_scope} | max_lambda: {args.max_lambda}")
+        print("Convergence images per class:", dict(zip(class_names, conv_counts)))
 
 
 if __name__ == "__main__":
