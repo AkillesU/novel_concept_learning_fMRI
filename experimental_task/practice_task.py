@@ -95,8 +95,8 @@ def get_practice_params_from_gui():
     global LANGUAGE, PRACTICE_LABEL_CSV
 
     info = {
-        "language": "english",  # english / japanese
-        "label_csv": PRACTICE_LABEL_CSV,
+        "language": "japanese",  # english / japanese
+        "label_csv": PRACTICE_LABEL_CSV_JAPANESE,
     }
 
     dlg = gui.DlgFromDict(
@@ -326,7 +326,7 @@ def run_practice():
 
     # 1. Instructions: show short practice instructions then a reminder with visual.
     if LANGUAGE == "japanese":
-        instr_text = "練習課題\n\nこれは、MRI 装置内で実行するタスクの練習バージョンです。\n\nさまざまな物体の正しい名前を学ぶことが目的です。実験中、各物体の名前は変わりません。\n\n最初に画面にオブジェクトが表示されます。しばらくすると、画像の下にオプションが表示されます。\nあなたの課題は、正しいと思う選択肢を選ぶことです。その後フィードバックが表示され、選択が間違っていた場合は正しい選択肢が表示されます。"
+        instr_text = "練習課題\n\nこれは、MRI 装置内で実行するタスクの練習バージョンです。\n\nさまざまな物体の正しい名前を学ぶことが目的です。\n実験中、各物体の名前は変わりません。\n\n最初に画面にオブジェクトが表示されます。\nしばらくすると、画像の下にオプションが表示されます。\nあなたの課題は、正しいと思う選択肢を選ぶことです。\nその後フィードバックが表示され、\n選択が間違っていた場合は正しい選択肢が表示されます。"
     else:
         instr_text = "PRACTICE TASK\n\nThis is a practice version of the task you will complete in the MRI scanner.\n\nThe aim is to learn the correct names for different objects. The names for each object won't change during the experiment.\n\nYou will first see an object on the screen. After a delay, options will appear under the image.\nYour task is to choose the option you think is correct. This will be followed by feedback and the correct option will be shown if you were incorrect in your choice."
 
