@@ -1559,19 +1559,37 @@ def load_or_make_run_noise_roi_set(
 
 
 def compute_n_scans_for_run(df_run: pd.DataFrame, TR: float, pad_s: float, dec_dur_s: float) -> int:
-    dec_on = df_run["dec_onset_est"].to_numpy(float)
+    """Compute run length in scans robustly.
+
+    Supports 'fixation' / non-image rows where some timing fields may be NaN.
+    We take the maximum *finite* end-time across:
+      - encoding end: img_onset + img_dur
+      - feedback end: (dec_onset_est + dec_dur + isi2_dur + fb_dur)
+    then add pad_s and convert to scans.
+    """
+    enc_on = df_run.get("img_onset", pd.Series(dtype=float)).to_numpy(float)
+    enc_dur = df_run.get("img_dur", pd.Series(dtype=float)).to_numpy(float)
+    enc_end = enc_on + enc_dur
+
+    dec_on = df_run.get("dec_onset_est", pd.Series(dtype=float)).to_numpy(float)
 
     # Prefer per-trial decision durations from the design file (supports per-run/per-trial max_dec_dur).
-    # Fall back to the CLI fixed duration only if the column is missing.
     if "max_dec_dur" in df_run.columns:
         dec_dur = df_run["max_dec_dur"].to_numpy(float)
     else:
         dec_dur = np.full_like(dec_on, float(dec_dur_s))
 
-    fb_on = dec_on + dec_dur + df_run["isi2_dur"].to_numpy(float)
-    fb_dur = df_run["fb_dur"].to_numpy(float)
-    total_time_s = float(np.max(fb_on + fb_dur)) + float(pad_s)
+    isi2 = df_run.get("isi2_dur", pd.Series(dtype=float)).to_numpy(float)
+    fb_dur = df_run.get("fb_dur", pd.Series(dtype=float)).to_numpy(float)
+    fb_end = dec_on + dec_dur + isi2 + fb_dur
+
+    ends = np.concatenate([enc_end.reshape(-1), fb_end.reshape(-1)])
+    finite = np.isfinite(ends)
+    max_end = float(np.max(ends[finite])) if np.any(finite) else 0.0
+
+    total_time_s = max_end + float(pad_s)
     return int(math.ceil(total_time_s / float(TR)))
+
 
 # ------------------------
 # 3-event trial-wise regressors
@@ -1582,39 +1600,54 @@ def build_event_mats(df_run: pd.DataFrame,
                      dec_dur_s: float,
                      tres: float,
                      hrf_type: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    enc_on = df_run["img_onset"].to_numpy(float)
-    enc_dur = df_run["img_dur"].to_numpy(float)
+    """Build trial-wise (n_scans x n_trials) regressors for encoding/decision/feedback.
 
-    dec_on = df_run["dec_onset_est"].to_numpy(float)
+    Robust to rows where some onsets/durations are NaN (e.g., fixation-only/non-image trials).
+    For any event with non-finite onset OR non-finite/<=0 duration, the corresponding regressor
+    column is left as zeros.
+    """
+    enc_on = df_run.get("img_onset", pd.Series(dtype=float)).to_numpy(float)
+    enc_dur = df_run.get("img_dur", pd.Series(dtype=float)).to_numpy(float)
+
+    dec_on = df_run.get("dec_onset_est", pd.Series(dtype=float)).to_numpy(float)
+
     # Prefer per-trial decision durations from the design file (supports per-run/per-trial max_dec_dur).
-    # Fall back to the CLI fixed duration only if the column is missing.
     if "max_dec_dur" in df_run.columns:
         dec_dur = df_run["max_dec_dur"].to_numpy(float)
     else:
         dec_dur = np.full_like(dec_on, float(dec_dur_s))
 
-    fb_on = dec_on + dec_dur + df_run["isi2_dur"].to_numpy(float)
-    fb_dur = df_run["fb_dur"].to_numpy(float)
+    isi2 = df_run.get("isi2_dur", pd.Series(dtype=float)).to_numpy(float)
+    fb_on = dec_on + dec_dur + isi2
+    fb_dur = df_run.get("fb_dur", pd.Series(dtype=float)).to_numpy(float)
 
-    total_time_s = float(np.max(fb_on + fb_dur)) + float(pad_s)
-    n_scans = int(math.ceil(total_time_s / TR))
+    # Determine run length robustly (include encoding-only rows)
+    enc_end = enc_on + enc_dur
+    fb_end = fb_on + fb_dur
+    ends = np.concatenate([enc_end.reshape(-1), fb_end.reshape(-1)])
+    finite = np.isfinite(ends)
+    max_end = float(np.max(ends[finite])) if np.any(finite) else 0.0
+    total_time_s = max_end + float(pad_s)
+    n_scans = int(math.ceil(total_time_s / float(TR)))
 
     n_trials = len(df_run)
     X_enc = np.zeros((n_scans, n_trials), float)
     X_dec = np.zeros((n_scans, n_trials), float)
     X_fb  = np.zeros((n_scans, n_trials), float)
 
+    def _fill_column(X: np.ndarray, j: int, onset: float, dur: float):
+        if not (np.isfinite(onset) and np.isfinite(dur) and dur > 0):
+            return
+        stim = build_stimfunction(np.array([float(onset)]), np.array([float(dur)]), total_time_s, float(tres))
+        X[:, j] = convolve_to_TR(stim, TR, tres, n_scans, hrf_type)
+
     for j in range(n_trials):
-        stim = build_stimfunction(np.array([enc_on[j]]), np.array([enc_dur[j]]), total_time_s, tres)
-        X_enc[:, j] = convolve_to_TR(stim, TR, tres, n_scans, hrf_type)
-
-        stim = build_stimfunction(np.array([dec_on[j]]), np.array([dec_dur[j]]), total_time_s, tres)
-        X_dec[:, j] = convolve_to_TR(stim, TR, tres, n_scans, hrf_type)
-
-        stim = build_stimfunction(np.array([fb_on[j]]), np.array([fb_dur[j]]), total_time_s, tres)
-        X_fb[:, j] = convolve_to_TR(stim, TR, tres, n_scans, hrf_type)
+        _fill_column(X_enc, j, enc_on[j], enc_dur[j])
+        _fill_column(X_dec, j, dec_on[j], dec_dur[j])
+        _fill_column(X_fb,  j, fb_on[j],  fb_dur[j])
 
     return X_enc, X_dec, X_fb
+
 
 
 # ------------------------
@@ -3518,6 +3551,8 @@ def main():
     # Load patterns
     patterns = np.load(args.patterns_npz, allow_pickle=True)
     P_all = patterns["patterns_enc_200"].astype(np.float32)
+    # Robustness: patterns for non-image trials may be NaN (e.g., fixation rows). Treat as zero-signal.
+    P_all = np.nan_to_num(P_all, nan=0.0, posinf=0.0, neginf=0.0)
     if P_all.shape[1] != args.n_vox:
         raise ValueError(f"patterns_enc_200 has {P_all.shape[1]} dims, expected n_vox={args.n_vox}")
     if len(df) != P_all.shape[0]:
