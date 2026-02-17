@@ -25,9 +25,10 @@ Notes:
  - Layout constants use PsychoPy 'height' units (fractions of screen height).
  - No changes are made to the main experiment code; this module is intended for operator/participant familiarisation.
 """
-from psychopy import visual, core, event
+from psychopy import visual, core, event, gui
 import pandas as pd
 import os
+import sys
 
 # Import core loaders and logic from demo_task.py so visual behaviour stays consistent.
 # demo_task provides the window factory, stimulus setup and common drawing/response helpers.
@@ -44,6 +45,10 @@ from experimental_task import (
     KEYS_RESP
 
 )
+
+
+# Language for on-screen text (manual toggle; set via GUI)
+LANGUAGE = "english"  # "english" or "japanese"
 
 # =========================== LAYOUT CONSTANTS (Standardised) =========================== #
 # Units relative to screen height (PsychoPy 'height' units). Using standardized
@@ -68,6 +73,7 @@ Y_BUTTON_LABELS   = -0.38
 # Paths and small practice design used by the script.
 PRACTICE_IMG_DIR = "images/practice_images"
 PRACTICE_LABEL_CSV = "experimental_task/label_files/practice_labels.csv"
+PRACTICE_LABEL_CSV_JAPANESE = "experimental_task/label_files/practice_labels_japanese.csv"
 
 # Short practice design demonstrating slow/fast and repeat behaviours.
 # Each dictionary represents one trial template (ObjectSpace used to resolve image and label).
@@ -82,6 +88,54 @@ PRACTICE_DESIGN = [
     {'ObjectSpace': '3', 'condition': 'Congruent', 'speed': 'fast', 'is_repeat': True}, 
     {'ObjectSpace': '4', 'condition': 'Congruent', 'speed': 'fast', 'is_repeat': True}
 ]
+
+
+def get_practice_params_from_gui():
+    """Small GUI to choose language and label CSV to load for practice."""
+    global LANGUAGE, PRACTICE_LABEL_CSV
+
+    info = {
+        "language": "english",  # english / japanese
+        "label_csv": PRACTICE_LABEL_CSV,
+    }
+
+    dlg = gui.DlgFromDict(
+        dictionary=info,
+        title="Practice Task Setup",
+        order=["language", "label_csv"],
+        tip={
+            "language": "On-screen language: english or japanese",
+            "label_csv": "Label CSV to load for practice",
+        },
+    )
+    if not dlg.OK:
+        sys.exit(0)
+
+    lang = str(info.get("language", "english")).strip().lower()
+    label_csv = str(info.get("label_csv", "")).strip()
+
+    if lang.startswith("jap"):
+        LANGUAGE = "japanese"
+        # Default label CSV for Japanese unless operator explicitly changed it away from the English default.
+        if label_csv in ("", PRACTICE_LABEL_CSV):
+            PRACTICE_LABEL_CSV = PRACTICE_LABEL_CSV_JAPANESE
+        else:
+            PRACTICE_LABEL_CSV = label_csv
+    else:
+        LANGUAGE = "english"
+        PRACTICE_LABEL_CSV = label_csv or PRACTICE_LABEL_CSV
+
+    # If label CSV doesn't exist, let operator pick one.
+    if not os.path.exists(PRACTICE_LABEL_CSV):
+        picked = gui.fileOpenDlg(
+            tryFilePath=os.getcwd(),
+            prompt="Select the practice label CSV to load",
+        )
+        if picked and len(picked) > 0:
+            PRACTICE_LABEL_CSV = picked[0]
+        else:
+            raise FileNotFoundError(f"Practice label CSV not found: {PRACTICE_LABEL_CSV}")
+
 
 def run_custom_practice_trial(win, clock, trial, components, label_data, img_dir):
     """Execute a single practice trial using the standardised layout.
@@ -179,16 +233,31 @@ def run_custom_practice_trial(win, clock, trial, components, label_data, img_dir
     
     if is_slow:
         if is_correct:
-            components['fb_main'].text = "The green highlight indicates that your choice was correct."
+            if LANGUAGE == "japanese":
+                components['fb_main'].text = "緑色のハイライトは、選択が正しかったことを示します。"
+            else:
+                components['fb_main'].text = "The green highlight indicates that your choice was correct."
             components['fb_main'].color = 'green'
         else:
-            components['fb_main'].text = "The red highlight indicates that your choice was incorrect."
+            if LANGUAGE == "japanese":
+                components['fb_main'].text = "赤いハイライトは選択が間違っていたことを示します。"
+            else:
+                components['fb_main'].text = "The red highlight indicates that your choice was incorrect."
             components['fb_main'].color = 'red'
-            components['fb_hint'].text = "The correct option is highlighted in green."
+            if LANGUAGE == "japanese":
+                components['fb_hint'].text = "正しいオプションは緑色で強調表示されます。"
+            else:
+                components['fb_hint'].text = "The correct option is highlighted in green."
     elif not is_correct and not is_slow and is_repeat:
-        components['fb_main'].text = "Check the feedback and try again"
+        if LANGUAGE == "japanese":
+            components['fb_main'].text = "フィードバックを確認してもう一度お試しください"
+        else:
+            components['fb_main'].text = "Check the feedback and try again"
         components['fb_main'].color = 'red'
-        components['fb_hint'].text = "The correct option is highlighted in green."
+        if LANGUAGE == "japanese":
+            components['fb_hint'].text = "正しいオプションは緑色で強調表示されます。"
+        else:
+            components['fb_hint'].text = "The correct option is highlighted in green."
 
     # Render feedback for the configured duration
     while clock.getTime() < (t_fb + durations['fb']):
@@ -219,12 +288,20 @@ def run_practice():
       - Iterate through PRACTICE_DESIGN, presenting trials and handling optional repeats.
       - Close the window at the end of practice.
     """
+    # Get language/label CSV from GUI (defaults to Japanese labels when LANGUAGE is japanese)
+    get_practice_params_from_gui()
+
     # Build window and shared visual components using the same factory as the main task
     win, components = create_window_and_components(demo_mode=False)
     
     # Initialize practice-only text components positioned relative to the image.
+    if LANGUAGE == "japanese":
+        prompt_text = "キーを押してオプションを選択します"
+    else:
+        prompt_text = "Choose an option by pressing a key"
+
     components['prompt'] = visual.TextStim(
-        win, text="Choose an option by pressing a key", pos=(0, Y_PROMPT),
+        win, text=prompt_text, pos=(0, Y_PROMPT),
         height=0.035, color='blue'
     )
     components['fb_main'] = visual.TextStim(
@@ -248,17 +325,24 @@ def run_practice():
     label_data = (label_map, label_pool)
 
     # 1. Instructions: show short practice instructions then a reminder with visual.
-    show_instruction_screen(
-        win,
-        "PRACTICE TASK\n\nThis is a practice version of the task you will complete in the MRI scanner.\n\n"
-        "The aim is to learn the correct names for different objects. The names for each object won't change during the experiment.\n\n"
-        "You will first see an object on the screen. After a delay, options will appear under the image.\n"
-        "Your task is to choose the option you think is correct. This will be followed by feedback and the correct option will be shown if you were incorrect in your choice."
-    )
+    if LANGUAGE == "japanese":
+        instr_text = "練習課題\n\nこれは、MRI 装置内で実行するタスクの練習バージョンです。\n\nさまざまな物体の正しい名前を学ぶことが目的です。実験中、各物体の名前は変わりません。\n\n最初に画面にオブジェクトが表示されます。しばらくすると、画像の下にオプションが表示されます。\nあなたの課題は、正しいと思う選択肢を選ぶことです。その後フィードバックが表示され、選択が間違っていた場合は正しい選択肢が表示されます。"
+    else:
+        instr_text = "PRACTICE TASK\n\nThis is a practice version of the task you will complete in the MRI scanner.\n\nThe aim is to learn the correct names for different objects. The names for each object won't change during the experiment.\n\nYou will first see an object on the screen. After a delay, options will appear under the image.\nYour task is to choose the option you think is correct. This will be followed by feedback and the correct option will be shown if you were incorrect in your choice."
 
     show_instruction_screen(
         win,
-        "SLOW START\n\nThe first few trials will be slow.\n\nPrompts on screen will guide you.\n\nPlace your fingers like this onto the '1', '2', '9', and '0' keys",
+        instr_text
+    )
+
+    if LANGUAGE == "japanese":
+        instr_text = "スロースタート\n\n最初の数回の試行は時間がかかります。\n\n画面上の指示に従って操作します\n\nこのように指を「1」、「2」、「9」、「0」のキーに置きます"
+    else:
+        instr_text = "SLOW START\n\nThe first few trials will be slow.\n\nPrompts on screen will guide you.\n\nPlace your fingers like this onto the '1', '2', '9', and '0' keys"
+
+    show_instruction_screen(
+        win,
+        instr_text,
         image_path="experimental_task/resources/instruction_image_1.png"
     )
 
@@ -267,10 +351,14 @@ def run_practice():
     for i, trial in enumerate(PRACTICE_DESIGN):
         # When transitioning from slow -> fast, show a short transition message
         if trial['speed'] == 'fast' and PRACTICE_DESIGN[i-1]['speed'] == 'slow':
+            if LANGUAGE == "japanese":
+                instr_text = "よくやった！\n\n実際の実験速度に合わせてトライアルが高速化されます。\nガイダンスプロンプトも削除されます\n\n正しい選択をするために最善を尽くしてください"
+            else:
+                instr_text = "Well done!\n\nTrials will now move faster at the actual experimental speed.\nGuidance prompts will also be removed.\n\nTry your best to make correct choices."
+
             show_instruction_screen(
                 win,
-                "Well done!\n\nTrials will now move faster at the actual experimental speed.\n"
-                "Guidance prompts will also be removed.\n\nTry your best to make correct choices."
+                instr_text
             )
 
         repeat_enabled = (trial['speed'] == 'fast' and trial['is_repeat'])
@@ -284,7 +372,12 @@ def run_practice():
                 success = True
 
     # Final message and clean shutdown
-    show_instruction_screen(win, "PRACTICE COMPLETE.\n\nPlease inform the experimenter that you are done.")
+    if LANGUAGE == "japanese":
+        end_text = "練習完了。\n\n実験者に終了したことを知らせてください。"
+    else:
+        end_text = "PRACTICE COMPLETE.\n\nPlease inform the experimenter that you are done."
+
+    show_instruction_screen(win, end_text)
     win.close()
 
 if __name__ == "__main__":
