@@ -369,6 +369,48 @@ def find_closest_image(stim_dir, space_id, target_coords):
             continue
     return best_img if best_img else "MISSING"
 
+# ---------- TEST RUN SAMPLING HELPERS ---------- #
+def _corner_set():
+    """Return the 4 corners of the [0,1]x[0,1] feature space."""
+    return [np.array([0.0, 0.0]), np.array([0.0, 1.0]), np.array([1.0, 0.0]), np.array([1.0, 1.0])]
+
+
+def _closest_corner(mean_xy: np.ndarray) -> np.ndarray:
+    """Corner with minimum Euclidean distance to mean_xy."""
+    corners = _corner_set()
+    dists = [float(np.linalg.norm(c - mean_xy)) for c in corners]
+    return corners[int(np.argmin(dists))]
+
+
+def _furthest_corner(mean_xy: np.ndarray) -> np.ndarray:
+    """Corner with maximum Euclidean distance to mean_xy."""
+    corners = _corner_set()
+    dists = [float(np.linalg.norm(c - mean_xy)) for c in corners]
+    return corners[int(np.argmax(dists))]
+
+
+def get_test_targets_for_space(mean_f0: float, mean_f1: float, mode: str) -> List[np.ndarray]:
+    """Return a list of target coordinates to use for test sampling for one ObjectSpace.
+
+    Implemented modes (as requested):
+      - all_corners: sample the three corners furthest from the *closest* corner to the learning mean.
+      - furthest_corner: sample only the single furthest corner from the learning mean.
+
+    Note:
+      - opposite_gaussian is intentionally not implemented yet (per instructions). If selected,
+        this function falls back to 'all_corners' so generation still succeeds.
+    """
+    mean_xy = np.array([float(mean_f0), float(mean_f1)])
+    mode = str(mode).strip().lower()
+
+    if mode == "furthest_corner":
+        return [_furthest_corner(mean_xy)]
+
+    # default: all_corners
+    closest = _closest_corner(mean_xy)
+    corners = _corner_set()
+    return [c for c in corners if not np.allclose(c, closest)]
+
 
 def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_override: Optional[dict] = None) -> List[dict]:
     """
@@ -566,6 +608,133 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
         if bool(getattr(cfg, 'add_run_fixations', True)) and float(getattr(cfg, 'run_fix_end_dur', 0.0)) > 0:
             _append_fixation_row(run_id, current_time, float(cfg.run_fix_end_dur), kind='run_end')
             current_time += float(cfg.run_fix_end_dur)
+    # --- OPTIONAL TEST RUNS (appended as additional runs) ---
+    # Test runs are appended after the learning runs as additional run_id blocks.
+    # Crucially, test trials are generated with *no feedback* and *no ISI2* in the exported schedule:
+    #  - 3-event: fb_dur = 0.0 and isi2_dur = 0.0 (still includes ISI1 + ITI as configured)
+    #  - 2-event: dec_fb_dur = 0.0 and dec_fb_jit = 0.0
+    if bool(getattr(cfg, "include_test_run", False)) and int(getattr(cfg, "n_test_runs", 0) or 0) > 0:
+        n_test_runs = int(getattr(cfg, "n_test_runs", 1) or 1)
+        test_mode = str(getattr(cfg, "test_mode", "all_corners") or "all_corners")
+        repeats_per_space = int(getattr(cfg, "test_repeats_per_space", 1) or 1)
+        samples_per_space = int(getattr(cfg, "test_samples_per_space", 1) or 1)
+
+        # Use a stable decision window for test runs (cfg.max_dec_dur or first per-run value if provided)
+        if getattr(cfg, "max_dec_dur_per_run", None) is not None and len(cfg.max_dec_dur_per_run) > 0:
+            _test_max_dec_dur = float(cfg.max_dec_dur_per_run[0])
+        else:
+            _test_max_dec_dur = float(cfg.max_dec_dur)
+
+        test_spaces = list(active_spaces)
+
+        for t_run_idx in range(n_test_runs):
+            test_run_id = cfg.n_runs + 1 + t_run_idx
+            current_time = float(cfg.start_time)
+
+            # Optional run-start fixation (default: 10s)
+            if bool(getattr(cfg, "add_run_fixations", True)) and float(getattr(cfg, "run_fix_start_dur", 0.0)) > 0:
+                _append_fixation_row(test_run_id, current_time, float(cfg.run_fix_start_dur), kind="run_start")
+                current_time += float(cfg.run_fix_start_dur)
+
+            # Construct per-space targets
+            per_space_targets = {}
+            for space_id in test_spaces:
+                info = dist_params[space_id]
+                targets = get_test_targets_for_space(info["Mean F0"], info["Mean F1"], test_mode)
+
+                n_trials = max(0, repeats_per_space) * max(0, samples_per_space)
+                if n_trials <= 0 or len(targets) == 0:
+                    per_space_targets[space_id] = []
+                    continue
+
+                # Sample target corners; if more trials than targets, sample with replacement.
+                idxs = rng.choice(len(targets), size=n_trials, replace=(n_trials > len(targets)))
+                t_list = [targets[int(k)].copy() for k in idxs]
+                rng.shuffle(t_list)
+                per_space_targets[space_id] = t_list
+
+            # Flatten trials across spaces and shuffle
+            test_trials = []
+            for space_id in test_spaces:
+                for tgt in per_space_targets.get(space_id, []):
+                    test_trials.append((space_id, tgt))
+            rng.shuffle(test_trials)
+
+            # Light no-1-back heuristic on ObjectSpace
+            for _ in range(1000):
+                conflict = False
+                for i in range(1, len(test_trials)):
+                    if test_trials[i][0] == test_trials[i-1][0]:
+                        swap_idx = [j for j in range(len(test_trials)) if test_trials[j][0] != test_trials[i-1][0]]
+                        if swap_idx:
+                            k = int(rng.choice(swap_idx))
+                            test_trials[i], test_trials[k] = test_trials[k], test_trials[i]
+                        else:
+                            conflict = True
+                if not conflict:
+                    break
+
+            for space_id, tgt in test_trials:
+                cond = space_cond_map[space_id]
+                f0, f1 = float(np.clip(tgt[0], 0, 1)), float(np.clip(tgt[1], 0, 1))
+                img_file = find_closest_image(cfg.stim_dir, space_id, np.array([f0, f1]))
+                iti = get_jit(cfg.jit_iti_range)
+
+                common = {
+                    "trial_id": trial_id_global, "run_id": test_run_id, "ObjectSpace": space_id,
+                    "condition": cond, "image_file": img_file, "iti": iti,
+                    "sampled_f0": round(f0, 3), "sampled_f1": round(f1, 3)
+                }
+
+                if cfg.design_type == "3event":
+                    isi1 = get_jit(cfg.jit_isi1_range)
+
+                    t_img = current_time
+                    t_dec = current_time + cfg.img_dur + isi1
+                    t_end = t_dec + _test_max_dec_dur  # no ISI2, no feedback
+
+                    rows.append({
+                        **common,
+                        "trial_duration_max": t_end - t_img,
+                        "img_onset": t_img,
+                        "img_dur": cfg.img_dur,
+                        "isi1_dur": isi1,
+                        "isi1_type": "hidden",
+                        "dec_onset_est": t_dec,
+                        "max_dec_dur": _test_max_dec_dur,
+                        # Explicitly remove ISI2 + feedback in the exported design rows
+                        "isi2_dur": 0.0,
+                        "isi2_type": "fixation",
+                        "fb_dur": 0.0,
+                    })
+
+                    current_time = t_end + iti
+                else:
+                    # 2-event test: decision only (no jitter, no feedback)
+                    t_trial = current_time
+                    t_end = t_trial + cfg.dec_dur
+
+                    rows.append({
+                        **common,
+                        "trial_onset": t_trial,
+                        "dec_onset": t_trial,
+                        "dec_dur": cfg.dec_dur,
+                        "dec_fb_onset": t_end,
+                        "dec_fb_dur": 0.0,
+                        "trial_duration": t_end - t_trial,
+                        "dec_fb_jit": 0.0,
+                    })
+
+                    current_time = t_end + iti
+
+                trial_id_global += 1
+
+            # Optional run-end fixation (default: 5s)
+            if bool(getattr(cfg, "add_run_fixations", True)) and float(getattr(cfg, "run_fix_end_dur", 0.0)) > 0:
+                _append_fixation_row(test_run_id, current_time, float(cfg.run_fix_end_dur), kind="run_end")
+                current_time += float(cfg.run_fix_end_dur)
+
+
     return rows
 
 
@@ -1256,6 +1425,14 @@ class DesignGUI(tk.Tk):
                 label_csv_path=self.v_csv.get(), 
                 jitter_config=jconf
             )
+
+            # Test run configuration (optional)
+            # When enabled, test runs are appended to the design as additional runs (run_id continues after learning runs).
+            cfg_s1.include_test_run = bool(getattr(self, "v_include_test", tk.BooleanVar(value=False)).get())
+            cfg_s1.n_test_runs = self.get_int(getattr(self, "v_n_test_runs", tk.StringVar(value="1")), 1)
+            cfg_s1.test_mode = str(getattr(self, "v_test_mode", tk.StringVar(value="all_corners")).get())
+            cfg_s1.test_repeats_per_space = self.get_int(getattr(self, "v_test_repeats", tk.StringVar(value="3")), 3)
+            cfg_s1.test_samples_per_space = self.get_int(getattr(self, "v_test_samples", tk.StringVar(value="3")), 3)
 
             # Optional run start/end fixations encoded into the design CSV
             if hasattr(self, 'v_add_run_fix'):
