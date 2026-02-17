@@ -40,7 +40,9 @@ from experimental_task import (
     draw_buttons,
     draw_buttons_feedback,
     check_response,
-    show_instruction_screen
+    show_instruction_screen,
+    KEYS_RESP
+
 )
 
 # =========================== LAYOUT CONSTANTS (Standardised) =========================== #
@@ -102,11 +104,11 @@ def run_custom_practice_trial(win, clock, trial, components, label_data, img_dir
       dict with 'accuracy' (1 or 0). No file I/O is performed here.
     """
     # Prepare stimuli and choices for this trial; returns whether image was found
-    has_img, img_path, target, choices = setup_trial_visuals(trial, components, label_data, img_dir, False)
+    has_img, img_path, target, choices, is_fixation = setup_trial_visuals(trial, components, label_data, img_dir, False)
     
     # Map the shuffled choice index to the physical key labels used in the experiment
     try:
-        correct_key = ['1', '2', '9', '0'][choices.index(target)]
+        correct_key = KEYS_RESP[choices.index(target)]
     except ValueError:
         # If target label not present in choices for any reason, treat as missing target
         correct_key = None
@@ -234,7 +236,7 @@ def run_practice():
     
     # Per-button key labels shown for slow trials so novices can map buttons to keys
     components['key_labels'] = []
-    for i, key in enumerate(['1', '2', '9', '0']):
+    for i, key in enumerate(KEYS_RESP):
         x = components['buttons'][i]['box'].pos[0]
         components['key_labels'].append(
             visual.TextStim(win, text=key, pos=(x, Y_BUTTON_LABELS), height=0.025, color='black')
@@ -257,7 +259,7 @@ def run_practice():
     show_instruction_screen(
         win,
         "SLOW START\n\nThe first few trials will be slow.\n\nPrompts on screen will guide you.\n\nPlace your fingers like this onto the '1', '2', '9', and '0' keys",
-        image_path="instruction_image_1.png"
+        image_path="experimental_task/resources/instruction_image_1.png"
     )
 
     # 2. Trial Loop: iterate practice trials and enforce repeat rules when configured
