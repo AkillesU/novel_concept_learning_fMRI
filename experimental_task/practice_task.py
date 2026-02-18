@@ -332,7 +332,8 @@ def run_practice():
 
     show_instruction_screen(
         win,
-        instr_text
+        instr_text,
+        language_version=LANGUAGE
     )
 
     if LANGUAGE == "japanese":
@@ -343,7 +344,8 @@ def run_practice():
     show_instruction_screen(
         win,
         instr_text,
-        image_path="experimental_task/resources/instruction_image_1.png"
+        image_path="experimental_task/resources/instruction_image_1.png",
+        language_version=LANGUAGE
     )
 
     # 2. Trial Loop: iterate practice trials and enforce repeat rules when configured
@@ -358,7 +360,8 @@ def run_practice():
 
             show_instruction_screen(
                 win,
-                instr_text
+                instr_text,
+                language_version=LANGUAGE
             )
 
         repeat_enabled = (trial['speed'] == 'fast' and trial['is_repeat'])
@@ -377,7 +380,7 @@ def run_practice():
     else:
         end_text = "PRACTICE COMPLETE.\n\nPlease inform the experimenter that you are done."
 
-    show_instruction_screen(win, end_text)
+    show_instruction_screen(win, end_text, language_version=LANGUAGE)
     win.close()
 
 if __name__ == "__main__":

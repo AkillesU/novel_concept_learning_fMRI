@@ -424,7 +424,7 @@ def between_run_dialog(next_run_idx, run_label=None):
 
 # =========================== VISUAL HELPERS =========================== #
 
-def show_instruction_screen(win, text_content, image_path=None, use_scanner_buttons=False):
+def show_instruction_screen(win, text_content, image_path=None, use_scanner_buttons=False, language_version=None):
     """
     Standardized instruction screen with optional image.
     Anchored to relative height units for cross-screen compatibility.
@@ -441,15 +441,28 @@ def show_instruction_screen(win, text_content, image_path=None, use_scanner_butt
     text_y = Y_INSTR_TEXT_HIGH if image_path else Y_INSTR_TEXT_MID
     msg = visual.TextStim(win, text=text_content, color='black', height=0.035, 
                           wrapWidth=0.8, pos=(0, text_y))
-    if LANGUAGE == "japanese":
-        cont_text = "続行するにはスペースバーを押してください"
-    else:
-        cont_text = "Press SPACE bar to continue"
-    if use_scanner_buttons:
-        if LANGUAGE == "japanese":
-            cont_text = "続行するには右端のボタンを押してください"
+
+    if language_version is not None:
+        if language_version == "japanese":
+            cont_text = "続行するにはスペースバーを押してください"
         else:
-            cont_text = "Press the rightmost button to continue"
+            cont_text = "Press SPACE bar to continue"
+        if use_scanner_buttons:
+            if language_version == "japanese":
+                cont_text = "続行するには右端のボタンを押してください"
+            else:
+                cont_text = "Press the rightmost button to continue"
+    else:
+        if LANGUAGE == "japanese":
+            cont_text = "続行するにはスペースバーを押してください"
+        else:
+            cont_text = "Press SPACE bar to continue"
+        if use_scanner_buttons:
+            if LANGUAGE == "japanese":
+                cont_text = "続行するには右端のボタンを押してください"
+            else:
+                cont_text = "Press the rightmost button to continue"
+
     cont_msg = visual.TextStim(win, text=cont_text,
                                pos=(0, Y_SPACE_PROMPT), color='grey', height=0.025)
     
