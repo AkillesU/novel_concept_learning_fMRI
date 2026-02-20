@@ -1156,7 +1156,7 @@ def create_window_and_components(demo_mode):
     different screen resolutions. Components (TextStim/ImageStim/Rect) are
     created here and returned in a dict for convenience.
     """
-    win = visual.Window([1280, 720], fullscr=True, color='lightgrey', units='height', allowGUI=False, useRetina=True)
+    win = visual.Window([1920, 1080], fullscr=True, color='lightgrey', units='height', allowGUI=False, useRetina=True)
 
     components = {
         'fixation': visual.TextStim(win, text='+', height=0.1, color='black'),
