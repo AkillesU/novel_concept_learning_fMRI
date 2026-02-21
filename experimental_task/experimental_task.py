@@ -36,7 +36,7 @@ LANGUAGE = "Japanese"  # "english" or "japanese"
 # =========================== CONFIGURATION =========================== #
 # Keys used by the task. Numeric keys map to response options; TRIGGER_KEY used
 # to start a run (scanner trigger simulation). EXIT_KEY exits the experiment.
-KEYS_RESP = ['1', '2', '9', '0']
+KEYS_RESP = ['7', '8', '9', '0']
 TRIGGER_KEY = '5'
 EXIT_KEY = 'escape'
 SKIP_KEY = 'right'  # Demo Mode only
@@ -1374,7 +1374,7 @@ def run_experiment():
         'Feedback Delay': True, # Selection from previous requirements
         'Fixed Decision Time': True,  # When True, always wait max_dec_dur before ISI2/Feedback
         'Demo Mode': False,
-        # Tickbox: when True use scanner button mapping (1-4). When False use PC mapping (1,2,9,0)
+        # Tickbox: when True use scanner button mapping (1-4). When False use PC mapping (7,8,9,0)
         'Scanner Buttons': True,
     }
 
@@ -1441,7 +1441,7 @@ def run_experiment():
     if use_scanner_buttons:
         KEYS_RESP = ['1', '2', '3', '4']
     else:
-        KEYS_RESP = ['1', '2', '9', '0']
+        KEYS_RESP = ['7', '8', '9', '0']
 
     
     # --------------------------- OUTPUT / LOGGING --------------------------- #
@@ -1533,7 +1533,7 @@ def run_experiment():
     show_instruction_screen(
         win,
         instr1,
-        image_path="experimental_task/resources/instruction_image_scanner.png",
+        image_path="experimental_task/resources/instruction_image_scanner_3.png",
         use_scanner_buttons=use_scanner_buttons
     )
 

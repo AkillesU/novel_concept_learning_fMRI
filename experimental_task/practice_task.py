@@ -337,14 +337,14 @@ def run_practice():
     )
 
     if LANGUAGE == "japanese":
-        instr_text = "スロースタート\n\n最初の数回の試行は時間がかかります。\n\n画面上の指示に従って操作します\n\nこのように指を「1」、「2」、「9」、「0」のキーに置きます"
+        instr_text = "スロースタート\n\n最初の数回の試行は時間がかかります。\n\n画面上の指示に従って操作します\n\nこのように指を「7」、「8」、「9」、「0」のキーに置きます"
     else:
-        instr_text = "SLOW START\n\nThe first few trials will be slow.\n\nPrompts on screen will guide you.\n\nPlace your fingers like this onto the '1', '2', '9', and '0' keys"
+        instr_text = "SLOW START\n\nThe first few trials will be slow.\n\nPrompts on screen will guide you.\n\nPlace your fingers like this onto the '7', '8', '9', and '0' keys"
 
     show_instruction_screen(
         win,
         instr_text,
-        image_path="experimental_task/resources/instruction_image_1.png",
+        image_path="experimental_task/resources/instruction_image_3.png",
         language_version=LANGUAGE
     )
 
