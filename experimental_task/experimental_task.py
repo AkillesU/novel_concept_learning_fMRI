@@ -1376,6 +1376,9 @@ def run_experiment():
         'Demo Mode': False,
         # Tickbox: when True use scanner button mapping (1-4). When False use PC mapping (7,8,9,0)
         'Scanner Buttons': True,
+        # Optional: Start task from a specific run number (1-indexed) and skip all task instructions.
+        # Leave blank/empty to start normally from run 1.
+        'Start Run': '',
     }
 
     # Define a helper for browsing (uses PsychoPy's GUI helpers)
@@ -1390,11 +1393,12 @@ def run_experiment():
     dlg = gui.DlgFromDict(
         info,
         title='Study 3 Launcher',
-        order=['Sub', 'Language', 'Design CSV', 'Label CSV', 'Image Dir', 'Feedback Delay', 'Fixed Decision Time', 'Demo Mode', 'Scanner Buttons'],
+        order=['Sub', 'Language', 'Design CSV', 'Label CSV', 'Image Dir', 'Feedback Delay', 'Fixed Decision Time', 'Demo Mode', 'Scanner Buttons', 'Start Run'],
         tip={
             'Design CSV': 'Leave blank to open file browser',
             'Label CSV': 'Leave blank to open file browser',
-            'Image Dir': 'Directory containing stimulus images'
+            'Image Dir': 'Directory containing stimulus images',
+            'Start Run': 'Optional. 1-indexed run number to start from. When set, skips task instructions.'
         }
     )
 
@@ -1498,68 +1502,97 @@ def run_experiment():
     n_runs = len(runs)
 
 
-    # Create first fullscreen window and start as-is (run 1 unchanged)
+    # Determine optional "start from run" behaviour (1-indexed).
+    # When set, we skip task instructions and jump directly to the trigger screen for that run.
+    start_run_raw = info.get('Start Run', '')
+    start_run_idx = None
+    if start_run_raw is not None:
+        s = str(start_run_raw).strip()
+        if s and s.lower() not in ('none', 'null'):
+            try:
+                start_run_idx = int(float(s))
+            except Exception:
+                print(f"Startup Error: 'Start Run' must be an integer run number (1..{n_runs}) or blank. Got: {start_run_raw!r}")
+                core.quit()
+
+    if start_run_idx is not None:
+        if start_run_idx < 1 or start_run_idx > n_runs:
+            print(f"Startup Error: 'Start Run' must be between 1 and {n_runs}. Got: {start_run_idx}")
+            core.quit()
+
+    # Create first fullscreen window
     win, components = create_window_and_components(demo_mode)
-    # Show initial experimental instructions
+
+    # Show initial experimental instructions only when starting normally (default behaviour).
     # In scanner mode, do NOT mention specific key numbers on instruction screens.
-    if LANGUAGE == "japanese":
-        if use_scanner_buttons:
-            hand_text = "指を応答ボタンの上に置いたままにします。"
+    if start_run_idx is None:
+        if LANGUAGE == "japanese":
+            if use_scanner_buttons:
+                hand_text = "指を応答ボタンの上に置いたままにします。"
+            else:
+                keys_str = ", ".join(f"'{k}'" for k in KEYS_RESP)
+                hand_text = f"指を {keys_str} キーの上に置いたままにします。"
         else:
-            keys_str = ", ".join(f"'{k}'" for k in KEYS_RESP)
-            hand_text = f"指を {keys_str} キーの上に置いたままにします。"
-    else:
-        if use_scanner_buttons:
-            hand_text = "Keep your fingers placed on the response buttons."
+            if use_scanner_buttons:
+                hand_text = "Keep your fingers placed on the response buttons."
+            else:
+                keys_str = ", ".join(f"'{k}'" for k in KEYS_RESP)
+                hand_text = f"Keep your fingers placed on the {keys_str} keys."
+
+        if LANGUAGE == "japanese":
+            instr1 = (
+                "実験セッション\n\n"
+                "メインオブジェクトの学習タスクを開始しようとしています。\n"
+                "できるだけ正確かつ迅速にオブジェクトを分類することを忘れないでください。\n\n"
+                f"{hand_text}"
+            )
         else:
-            keys_str = ", ".join(f"'{k}'" for k in KEYS_RESP)
-            hand_text = f"Keep your fingers placed on the {keys_str} keys."
+            instr1 = (
+                "EXPERIMENTAL SESSION\n\n"
+                "You are about to start the main object learning task.\n"
+                "Remember to categorize the objects as accurately and fast as possible.\n\n"
+                f"{hand_text}"
+            )
 
-    if LANGUAGE == "japanese":
-        instr1 = (
-            "実験セッション\n\n"
-            "メインオブジェクトの学習タスクを開始しようとしています。\n"
-            "できるだけ正確かつ迅速にオブジェクトを分類することを忘れないでください。\n\n"
-            f"{hand_text}"
-        )
-    else:
-        instr1 = (
-            "EXPERIMENTAL SESSION\n\n"
-            "You are about to start the main object learning task.\n"
-            "Remember to categorize the objects as accurately and fast as possible.\n\n"
-            f"{hand_text}"
+        show_instruction_screen(
+            win,
+            instr1,
+            image_path="experimental_task/resources/instruction_image_scanner_3.png",
+            use_scanner_buttons=use_scanner_buttons
         )
 
-    show_instruction_screen(
-        win,
-        instr1,
-        image_path="experimental_task/resources/instruction_image_scanner_3.png",
-        use_scanner_buttons=use_scanner_buttons
+        if LANGUAGE == "japanese":
+            instr2 = (
+                "これから学ぶ物体は、異星から来たものです。\nこれまでに見たことのあるものと似ているものもあれば、\n"
+                "似ていないものもあります。\n\n "
+                "実験中、オブジェクトの名前は変更されません。"
+            )
+        else:
+            instr2 = (
+                "The objects you are going to learn are from an alien planet. Some of them can look similar to one's you've seen before "
+                "while others will not.\n\n"
+                "The names of the objects won't change during the experiment."
+            )
+
+        show_instruction_screen(
+            win,
+            instr2,
+            image_path="experimental_task/resources/alien_image.png",
+            use_scanner_buttons=use_scanner_buttons
+        )
+
+    # Start on the trigger screen for the selected run (default: run 1).
+    first_run_idx = start_run_idx if start_run_idx is not None else 1
+    trigger_screen(
+        win, components, mode, demo_mode,
+        run_idx=first_run_idx, n_runs=n_runs,
+        run_label=runs[first_run_idx - 1][0]
     )
 
-    if LANGUAGE == "japanese":
-        instr2 = (
-            "これから学ぶ物体は、異星から来たものです。\nこれまでに見たことのあるものと似ているものもあれば、\n似ていないものもあります。\n\n "
-            "実験中、オブジェクトの名前は変更されません。"
-        )
-    else:
-        instr2 = (
-            "The objects you are going to learn are from an alien planet. Some of them can look similar to one's you've seen before "
-            "while others will not.\n\n"
-            "The names of the objects won't change during the experiment."
-        )
-
-    show_instruction_screen(
-        win,
-        instr2,
-        image_path="experimental_task/resources/alien_image.png",
-        use_scanner_buttons=use_scanner_buttons
-    )
-    trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=n_runs, run_label=runs[0][0])
-
-    for run_idx, (run_label, run_df) in enumerate(runs, start=1):
+    for run_idx in range(first_run_idx, n_runs + 1):
+        run_label, run_df = runs[run_idx - 1]
         # Between-run flow (run 2+): close fullscreen -> GUI -> reopen fullscreen -> trigger screen
-        if run_idx > 1:
+        if run_idx > first_run_idx:
             try:
                 win.close()
             except Exception:
