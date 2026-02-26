@@ -291,7 +291,9 @@ def run_practice():
     # Get language/label CSV from GUI (defaults to Japanese labels when LANGUAGE is japanese)
     get_practice_params_from_gui()
 
-    # Build window and shared visual components using the same factory as the main task
+    import experimental_task as et
+    et.LANGUAGE = LANGUAGE  # sync language into the module that builds respond_text
+
     win, components = create_window_and_components(demo_mode=False)
     
     # Initialize practice-only text components positioned relative to the image.
