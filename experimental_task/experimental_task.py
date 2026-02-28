@@ -23,6 +23,7 @@ ADDED:
 """
 
 from psychopy import visual, core, event, gui
+from psychopy.hardware import keyboard
 import pandas as pd
 import numpy as np
 import os
@@ -40,6 +41,51 @@ KEYS_RESP = ['7', '8', '9', '0']
 TRIGGER_KEY = '5'
 EXIT_KEY = 'escape'
 SKIP_KEY = 'right'  # Demo Mode only
+
+
+# =========================== TIMING / TR LOGGING =========================== #
+
+def _poll_triggers(kb, tr_log, run_start_abs, trial_idx=None, phase=None):
+    """Poll the PsychoPy Keyboard for scanner triggers ('5') and log them."""
+    if kb is None:
+        return []
+    try:
+        keys = kb.getKeys(keyList=[TRIGGER_KEY], waitRelease=False, clear=True)
+    except Exception:
+        return []
+    out = []
+    for k in keys:
+        t_abs = None
+        try:
+            t_abs = float(getattr(k, "tDown", None))
+        except Exception:
+            t_abs = None
+        if t_abs is None:
+            t_abs = core.getTime()
+        t_s = float(t_abs - run_start_abs) if run_start_abs is not None else None
+        out.append(t_s)
+        if tr_log is not None:
+            tr_log.append({
+                "tr_index": len(tr_log) + 1,   # 1-indexed (TR #0 reserved for run-start trigger)
+                "t_s": t_s,
+                "t_abs": t_abs,
+                "trial_idx": trial_idx,
+                "phase": phase,
+            })
+    return out
+
+
+def _mark_onset_once(onsets, key, t_abs, run_start_abs):
+    if onsets is None:
+        return
+    if onsets.get(key, None) is None:
+        onsets[key] = float(t_abs - run_start_abs) if (t_abs is not None and run_start_abs is not None) else None
+
+
+def _flip_and_log(win, onsets, key, run_start_abs):
+    t_abs = win.flip()
+    _mark_onset_once(onsets, key, t_abs, run_start_abs)
+    return t_abs
 LANG_BTN_FONT_SCALE = { # Enlargen font size slightly for japanese buttons
     "english": 1.0,
     "japanese": 1.25
@@ -734,7 +780,7 @@ def _return_skipped(img_path):
 # =========================== TRIALS =========================== #
 
 def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_mode,
-                       task_clock=None, trial_idx=1, n_trials=1, target_button_idx=None):
+                       task_clock=None, trial_idx=1, n_trials=1, target_button_idx=None, run_start_abs=None, tr_log=None):
     """Restored 2-Event Logic with new visuals.
 
     Standard mode timeline is absolute: onsets in the design CSV are respected
@@ -758,6 +804,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
     t_end     = float(trial['trial_onset']) + float(trial['trial_duration'])
 
     trial_t0 = float(trial.get('trial_onset', clock.getTime()))
+
 
     # --- FIXATION-ONLY TRIAL (condition == 'fixation') ---
     # Respect absolute timing from the design file in standard mode by drawing
@@ -783,6 +830,8 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
             end_fix = now + (1.0 / 60.0)
 
         while clock.getTime() < end_fix:
+
+            _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='fixation_only')
             if event.getKeys(keyList=[EXIT_KEY]):
                 core.quit()
             components.get('fixation_trial', components['fixation']).draw()
@@ -792,15 +841,30 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
             )
             win.flip()
 
-        return {
+        res = {
             'response': None, 'rt': None,
             'target': None, 'correct_key': None,
             'accuracy': 0,
             'img': img_path,
             'skipped': 0
         }
+
+        if onsets.get('trial_onset_actual_s') is None:
+
+            for _k in ('fix_onset_actual_s','enc_onset_actual_s','dec_onset_actual_s','isi2_onset_actual_s','fb_onset_actual_s','iti_onset_actual_s'):
+
+                if onsets.get(_k) is not None:
+
+                    onsets['trial_onset_actual_s'] = onsets[_k]
+
+                    break
+
+        res.update(onsets)
+
+        return res
     # Pre-Dec Fixation: render fixation until decision onset
     while clock.getTime() < t_dec_on:
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='pre_dec_fix')
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -828,6 +892,8 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
     rt = None
 
     while clock.getTime() < (t_dec_on + t_dec_dur):
+
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='decision')
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -854,6 +920,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
 
     # Pre-Feedback Fixation: wait until feedback onset
     while clock.getTime() < t_fb_on:
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='pre_fb_fix')
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -875,6 +942,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
 
     # Feedback: show correct/incorrect highlighting for the configured duration
     while clock.getTime() < (t_fb_on + t_fb_dur):
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='feedback')
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -899,6 +967,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
 
     # ITI: wait until trial end before returning results
     while clock.getTime() < t_end:
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='iti')
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -918,7 +987,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
                           clock, trial_t0, 'ITI', t_end, breakdown)
         win.flip()
 
-    return {
+    res = {
         'response': response_made, 'rt': rt,
         'target': target, 'correct_key': correct_key,
         'accuracy': 1 if response_made == correct_key else 0,
@@ -926,10 +995,24 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
         'skipped': 0
     }
 
+    if onsets.get('trial_onset_actual_s') is None:
+
+        for _k in ('fix_onset_actual_s','enc_onset_actual_s','dec_onset_actual_s','isi2_onset_actual_s','fb_onset_actual_s','iti_onset_actual_s'):
+
+            if onsets.get(_k) is not None:
+
+                onsets['trial_onset_actual_s'] = onsets[_k]
+
+                break
+
+    res.update(onsets)
+
+    return res
+
 
 def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mode, feedback_delay,
                      fixed_decision_time,
-                     task_clock=None, trial_idx=1, n_trials=1, target_button_idx=None):
+                     task_clock=None, trial_idx=1, n_trials=1, target_button_idx=None, run_start_abs=None, tr_log=None):
     """3-event (self-paced) trial.
 
     Phases:
@@ -968,6 +1051,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
         # Mark trial start for HUD/debug and ensure at least one visible frame
         trial_t0 = clock.getTime()
 
+
         # Prefer explicit per-trial duration fields from the design file.
         # (trial_duration_max is commonly present in generated 3-event designs.)
         # Use fix_dur when provided for fixation-only trials (authoritative)
@@ -989,6 +1073,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
         t_fix = clock.getTime()
         end_fix = t_fix + dur
         while clock.getTime() < end_fix:
+            _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='fixation_only')
             if event.getKeys(keyList=[EXIT_KEY]):
                 core.quit()
             components.get('fixation_trial', components['fixation']).draw()
@@ -998,13 +1083,27 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
             )
             win.flip()
 
-        return {
+        res = {
             'response': None, 'rt': None,
             'target': None, 'correct_key': None,
             'accuracy': 0,
             'img': img_path,
             'skipped': 0
         }
+
+        if onsets.get('trial_onset_actual_s') is None:
+
+            for _k in ('fix_onset_actual_s','enc_onset_actual_s','dec_onset_actual_s','isi2_onset_actual_s','fb_onset_actual_s','iti_onset_actual_s'):
+
+                if onsets.get(_k) is not None:
+
+                    onsets['trial_onset_actual_s'] = onsets[_k]
+
+                    break
+
+        res.update(onsets)
+
+        return res
 
     # Ensure clean input state for upcoming trial (clear any residual clicks/keys)
     components['mouse'].clickReset()
@@ -1013,9 +1112,21 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
     # Demo HUD trial start
     trial_t0 = clock.getTime()
 
+    onsets = {
+        'trial_onset_actual_s': None,
+        'enc_onset_actual_s': None,
+        'dec_onset_actual_s': None,
+        'isi2_onset_actual_s': None,
+        'fb_onset_actual_s': None,
+        'iti_onset_actual_s': None,
+        'fix_onset_actual_s': None,
+    }
+
+
     # 1) Encoding + ISI1 (image visible throughout)
     t0 = trial_t0
     while clock.getTime() < (t0 + img_dur + isi1_dur):
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='encoding')
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -1045,6 +1156,8 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
     response_made, rt = None, None
 
     while clock.getTime() < dec_end:
+
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='decision')
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -1086,6 +1199,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
     if feedback_delay and response_made:
         t_isi2 = clock.getTime()
         while clock.getTime() < (t_isi2 + isi2_dur):
+            _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='isi2')
             if event.getKeys(keyList=[EXIT_KEY]):
                 core.quit()
             if _demo_skip_pressed(demo_mode):
@@ -1105,6 +1219,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
     # 4) Feedback
     t_fb = clock.getTime()
     while clock.getTime() < (t_fb + fb_dur):
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='feedback')
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -1125,6 +1240,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
     # 5) ITI (fixation)
     t_iti = clock.getTime()
     while clock.getTime() < (t_iti + iti):
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='iti')
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -1138,13 +1254,27 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
                           clock, trial_t0, 'ITI', (t_iti + iti), breakdown)
         win.flip()
 
-    return {
+    res = {
         'response': response_made, 'rt': rt,
         'target': target, 'correct_key': correct_key,
         'accuracy': 1 if (correct_key is not None and response_made == correct_key) else 0,
         'img': img_path,
         'skipped': 0
     }
+
+    if onsets.get('trial_onset_actual_s') is None:
+
+        for _k in ('fix_onset_actual_s','enc_onset_actual_s','dec_onset_actual_s','isi2_onset_actual_s','fb_onset_actual_s','iti_onset_actual_s'):
+
+            if onsets.get(_k) is not None:
+
+                onsets['trial_onset_actual_s'] = onsets[_k]
+
+                break
+
+    res.update(onsets)
+
+    return res
 
 # =========================== WINDOW/COMPONENT FACTORY =========================== #
 
@@ -1164,6 +1294,7 @@ def create_window_and_components(demo_mode):
         'fixation_trial': visual.TextStim(win, text='+', height=0.12, color='black'),
         # Image centered at (0,0) as requested
         'main_image': visual.ImageStim(win, pos=(0, 0), size=(0.5, 0.5), interpolate=True, texRes=2048),
+        'kb': keyboard.Keyboard(),
         # Messages (language-specific)
         'missing_text': visual.TextStim(
             win,
@@ -1204,7 +1335,7 @@ def create_window_and_components(demo_mode):
     return win, components
 
 
-def trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=1, run_label=None):
+def trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=1, run_label=None, tr_log=None):
     """Interactive trigger screen: waits for TRIGGER_KEY.
 
     Displays run/mode/demo information and allows the operator to press a
@@ -1251,11 +1382,37 @@ def trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=1, run_la
     triggered = False
     event.clearEvents()
 
+    kb = components.get('kb', None)
+    if kb is not None:
+        try:
+            kb.clearEvents()
+        except Exception:
+            pass
+
+    trigger_t_abs = None
+
     while not triggered:
         msg.draw()
         pressed = event.getKeys()
-        if TRIGGER_KEY in pressed:
+
+        if kb is not None:
+            try:
+                trg = kb.getKeys(keyList=[TRIGGER_KEY], waitRelease=False, clear=True)
+            except Exception:
+                trg = []
+            if trg:
+                triggered = True
+                try:
+                    trigger_t_abs = float(getattr(trg[0], 'tDown', None))
+                except Exception:
+                    trigger_t_abs = None
+                if trigger_t_abs is None:
+                    trigger_t_abs = core.getTime()
+                _poll_triggers(kb, tr_log, trigger_t_abs, trial_idx=None, phase='trigger_screen')
+
+        if (not triggered) and (TRIGGER_KEY in pressed):
             triggered = True
+            trigger_t_abs = core.getTime()
         elif EXIT_KEY in pressed:
             core.quit()
 
@@ -1275,6 +1432,8 @@ def trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=1, run_la
         win.flip()
 
 # =========================== MAIN =========================== #
+
+    return trigger_t_abs
 
 
 def _sanitize_run_label(label):
@@ -1583,11 +1742,16 @@ def run_experiment():
 
     # Start on the trigger screen for the selected run (default: run 1).
     first_run_idx = start_run_idx if start_run_idx is not None else 1
-    trigger_screen(
+    run_tr_log = []
+    run_start_abs = trigger_screen(
         win, components, mode, demo_mode,
         run_idx=first_run_idx, n_runs=n_runs,
-        run_label=runs[first_run_idx - 1][0]
+        run_label=runs[first_run_idx - 1][0],
+        tr_log=run_tr_log
     )
+    if run_start_abs is None:
+        run_start_abs = core.getTime()
+    run_tr_log.insert(0, {"tr_index": 0, "t_s": 0.0, "t_abs": float(run_start_abs), "trial_idx": None, "phase": "run_start"})
 
     for run_idx in range(first_run_idx, n_runs + 1):
         run_label, run_df = runs[run_idx - 1]
@@ -1600,7 +1764,11 @@ def run_experiment():
             between_run_dialog(run_idx, run_label=run_label)
 
             win, components = create_window_and_components(demo_mode)
-            trigger_screen(win, components, mode, demo_mode, run_idx=run_idx, n_runs=n_runs, run_label=run_label)
+            run_tr_log = []
+            run_start_abs = trigger_screen(win, components, mode, demo_mode, run_idx=run_idx, n_runs=n_runs, run_label=run_label, tr_log=run_tr_log)
+            if run_start_abs is None:
+                run_start_abs = core.getTime()
+            run_tr_log.insert(0, {"tr_index": 0, "t_s": 0.0, "t_abs": float(run_start_abs), "trial_idx": None, "phase": "run_start"})
 
         # Reset clocks per run (important for standard-mode absolute onsets)
         run_clock = core.Clock()
@@ -1619,14 +1787,18 @@ def run_experiment():
                 res = run_trial_standard(
                     win, run_clock, trial, components, label_data, info['Image Dir'],
                     demo_mode, task_clock=task_clock, trial_idx=trial_idx, n_trials=n_trials,
-                    target_button_idx=target_btn_seq[trial_idx-1]
+                    target_button_idx=target_btn_seq[trial_idx-1],
+                    run_start_abs=run_start_abs,
+                    tr_log=run_tr_log
                 )
             else:
                 res = run_trial_3event(
                     win, run_clock, trial, components, label_data, info['Image Dir'],
                     demo_mode, feedback_delay, fixed_decision_time,
                     task_clock=task_clock, trial_idx=trial_idx, n_trials=n_trials,
-                    target_button_idx=target_btn_seq[trial_idx-1]
+                    target_button_idx=target_btn_seq[trial_idx-1],
+                    run_start_abs=run_start_abs,
+                    tr_log=run_tr_log
                 )
 
             row = dict(trial)
@@ -1656,6 +1828,16 @@ def run_experiment():
                 run_out_df = pd.DataFrame(run_rows)
                 _safe_write_csv(run_out_df, run_path)
             _freeze_clock_for_io(run_clock, _write_run)
+
+        if run_tr_log is not None and len(run_tr_log) > 0:
+            run_token = _sanitize_run_label(run_label)
+            tr_path = os.path.join(dir_runs, f"sub-{sub_token}_{mode}_run-{run_idx:02d}_{run_token}_{session_ts}_triggers.csv")
+            def _write_tr():
+                tr_df = pd.DataFrame(run_tr_log)
+                tr_df.insert(0, 'run_idx', run_idx)
+                tr_df.insert(1, 'run_label', run_label)
+                _safe_write_csv(tr_df, tr_path)
+            _freeze_clock_for_io(run_clock, _write_tr)
 
     out_df = pd.DataFrame(out_rows)
     # Final joined file across all runs (crash-safe)
