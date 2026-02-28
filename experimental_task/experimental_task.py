@@ -30,6 +30,7 @@ import os
 import random
 import re
 import sys
+import pathlib
 from datetime import datetime
 
 LANGUAGE = "Japanese"  # "english" or "japanese"
@@ -1603,10 +1604,12 @@ def _freeze_clock_for_io(clock, fn, *args, **kwargs):
 def run_experiment():
     # 1. Start Dialog: basic participant/run configuration
     info = {
-        'Sub': '001',
-        'Language': 'English',  # English or Japanese
+        'Sub': '',
+        'Language': 'Japanese',  # English or Japanese
+        'Session': '',          # Session index/tag used to auto-load design (e.g., 1)
+        'Task Design Parent': 'experimental_task/task_designs/final/',
         'Design CSV': '',        # Leave blank to browse
-        'Label CSV': '',         # Leave blank to browse
+        'Label CSV': 'experimental_task/label_files/v6-9cat-japanese.csv',         # Leave blank to browse
         'Image Dir': 'images/task_images/',   # Default directory
         'Feedback Delay': True, # Selection from previous requirements
         'Fixed Decision Time': True,  # When True, always wait max_dec_dur before ISI2/Feedback
@@ -1626,11 +1629,105 @@ def run_experiment():
             path = gui.fileOpenDlg(prompt=prompt, allowed="CSV files (*.csv);;All files (*.*)")
         return path[0] if path else None
 
+
+    def _normalize_session_tag(sess):
+        s = str(sess).strip()
+        if not s:
+            return None
+        # Accept "session-1" / "sess-1" / "1"
+        m = re.search(r"(\d+)", s)
+        if not m:
+            return s
+        return m.group(1).lstrip('0') or '0'
+
+    def resolve_design_csv_from_gui(info_dict):
+        """Try to auto-locate a task design CSV based on GUI args (Sub, Session, Task Design Parent).
+        Returns a path string if found, else None. Does not prompt the user.
+        """
+        if info_dict.get('Design CSV'):
+            return info_dict['Design CSV']
+
+        # Sub tag: sub-YYY (3 digits)
+        sub_raw = str(info_dict.get('Sub', '')).strip()
+        msub = re.search(r"(\d+)", sub_raw)
+        if not msub:
+            return None
+        sub_tag = f"{int(msub.group(1)):03d}"
+
+        sess_norm = _normalize_session_tag(info_dict.get('Session', ''))
+        if not sess_norm:
+            return None
+
+        parent_raw = str(info_dict.get('Task Design Parent', '')).strip()
+        if not parent_raw:
+            return None
+
+        # Build candidate parent directories robustly across different CWDs
+        candidates = []
+        if os.path.isabs(parent_raw):
+            candidates.append(parent_raw)
+        else:
+            candidates.append(parent_raw)  # relative to CWD
+            script_dir = os.path.dirname(os.path.abspath(__file__))  # .../experimental_task
+            repo_root = os.path.abspath(os.path.join(script_dir, os.pardir))
+            candidates.append(os.path.join(repo_root, parent_raw))   # relative to repo root
+            candidates.append(os.path.join(script_dir, parent_raw))  # relative to script dir
+
+        parent_dirs = []
+        seen = set()
+        for c in candidates:
+            if not c:
+                continue
+            c_norm = os.path.normpath(c)
+            if c_norm in seen:
+                continue
+            seen.add(c_norm)
+            if os.path.isdir(c_norm):
+                parent_dirs.append(c_norm)
+
+        if not parent_dirs:
+            return None
+
+        # Prefer session-x directory, then fallback to recursive search
+        patterns = [
+            f"final_sub-{sub_tag}_sess-{sess_norm}_*.csv",
+            f"*sub-{sub_tag}*sess-{sess_norm}*.csv",
+        ]
+
+        def _rank_path(p: pathlib.Path):
+            s = str(p).lower()
+            return (0 if 'final' in s else 1, 0 if '3event' in s else 1, len(s))
+
+        for base in parent_dirs:
+            session_dir = os.path.join(base, f"session-{sess_norm}")
+            search_dirs = []
+            if os.path.isdir(session_dir):
+                search_dirs.append(session_dir)
+
+            # If user directly passed a session-x dir as the parent
+            if os.path.basename(base).lower() == f"session-{sess_norm}":
+                search_dirs.insert(0, base)
+
+            for sd in search_dirs:
+                for pat in patterns:
+                    hits = sorted(pathlib.Path(sd).glob(pat), key=_rank_path)
+                    if hits:
+                        return str(hits[0])
+
+            # Fallback: recursive within base
+            for pat in patterns:
+                hits = sorted(pathlib.Path(base).rglob(pat), key=_rank_path)
+                if hits:
+                    # Prefer hits that live inside session-x
+                    hits_in_session = [h for h in hits if f"session-{sess_norm}" in str(h.parent).replace('\\', '/') ]
+                    return str((sorted(hits_in_session, key=_rank_path)[0] if hits_in_session else hits[0]))
+
+        return None
     # Initial Setup GUI: allow operator to edit defaults and choose files
     dlg = gui.DlgFromDict(
         info,
         title='Study 3 Launcher',
-        order=['Sub', 'Language', 'Design CSV', 'Label CSV', 'Image Dir', 'Feedback Delay', 'Fixed Decision Time', 'Demo Mode', 'Scanner Buttons', 'Start Run'],
+        order=['Sub', 'Session', 'Task Design Parent', 'Language', 'Design CSV', 'Label CSV', 'Image Dir', 'Feedback Delay', 'Fixed Decision Time', 'Demo Mode', 'Scanner Buttons', 'Start Run'],
         tip={
             'Design CSV': 'Leave blank to open file browser',
             'Label CSV': 'Leave blank to open file browser',
@@ -1647,10 +1744,18 @@ def run_experiment():
 
 
 
-    # 2. Trigger Browser for Empty Fields: ensure all required paths are set
-    if not info['Design CSV']:
-        info['Design CSV'] = browse_for_path("Select Design CSV")
-    if not info['Label CSV']:
+    # 2. Ensure all required paths are set.
+    # If Design CSV is blank, try to auto-locate it from (Sub, Session, Task Design Parent).
+    if not info.get('Design CSV'):
+        auto_path = resolve_design_csv_from_gui(info)
+        if auto_path and os.path.exists(auto_path):
+            info['Design CSV'] = auto_path
+            print(f"[info] Auto-selected Design CSV: {info['Design CSV']}")
+        else:
+            # Fallback to file browser
+            info['Design CSV'] = browse_for_path("Select Design CSV")
+
+    if not info.get('Label CSV'):
         info['Label CSV'] = browse_for_path("Select Label CSV")
 
     # Optional: Browse for image directory if default doesn't exist
