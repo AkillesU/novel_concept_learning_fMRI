@@ -1,0 +1,423 @@
+participant,localiser_session,run,event_type,fix_dur,block_index,category,trial_in_block,image_path,is_target,img_dur,isi_dur
+28,4,1,fixation,16.0,,,,,,,
+28,4,1,trial,,1,hammer,1,images/localiser_images/hammer\n02898173_1047.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,2,images/localiser_images/hammer\hammer_11n.jpg,0,0.3,0.5
+28,4,1,trial,,1,hammer,3,images/localiser_images/hammer\n03481521_1461.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,4,images/localiser_images/hammer\hammer_12s.jpg,0,0.3,0.5
+28,4,1,trial,,1,hammer,5,images/localiser_images/hammer\hammer_09s.jpg,0,0.3,0.5
+28,4,1,trial,,1,hammer,6,images/localiser_images/hammer\n03481172_4034.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,7,images/localiser_images/hammer\n03481172_12872.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,8,images/localiser_images/hammer\n04383301_1791.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,9,images/localiser_images/hammer\n03481172_14196.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,10,images/localiser_images/hammer\n02783035_803.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,11,images/localiser_images/hammer\n03481172_5007.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,12,images/localiser_images/hammer\n03481172_5007.JPEG,1,0.3,0.5
+28,4,1,trial,,1,hammer,13,images/localiser_images/hammer\n03481172_2625.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,14,images/localiser_images/hammer\hammer_03s.jpg,0,0.3,0.5
+28,4,1,trial,,1,hammer,15,images/localiser_images/hammer\n03715669_22663.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,16,images/localiser_images/hammer\n03481172_8584.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,17,images/localiser_images/hammer\hammer_07s.jpg,0,0.3,0.5
+28,4,1,trial,,1,hammer,18,images/localiser_images/hammer\n03481521_8561.JPEG,0,0.3,0.5
+28,4,1,trial,,1,hammer,19,images/localiser_images/hammer\hammer_08s.jpg,0,0.3,0.5
+28,4,1,trial,,1,hammer,20,images/localiser_images/hammer\n03481172_14176.JPEG,0,0.3,0.5
+28,4,1,fixation,4.0,,,,,,,
+28,4,1,trial,,2,radio,1,images/localiser_images/radio\radio_156.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,2,images/localiser_images/radio\radio_162.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,3,images/localiser_images/radio\radio_44.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,4,images/localiser_images/radio\radio_01b.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,5,images/localiser_images/radio\radio_03s.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,6,images/localiser_images/radio\radio_241.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,7,images/localiser_images/radio\radio_13s.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,8,images/localiser_images/radio\radio_151.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,9,images/localiser_images/radio\radio_142.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,10,images/localiser_images/radio\radio_12s.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,11,images/localiser_images/radio\radio_32.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,12,images/localiser_images/radio\radio_139.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,13,images/localiser_images/radio\radio_06s.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,14,images/localiser_images/radio\radio_14.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,15,images/localiser_images/radio\radio_115.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,16,images/localiser_images/radio\radio_215.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,17,images/localiser_images/radio\radio_2.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,18,images/localiser_images/radio\radio_159.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,19,images/localiser_images/radio\radio_122.jpg,0,0.3,0.5
+28,4,1,trial,,2,radio,20,images/localiser_images/radio\radio_160.jpg,0,0.3,0.5
+28,4,1,fixation,4.0,,,,,,,
+28,4,1,trial,,3,refrigerator,1,images/localiser_images/refrigerator\n03273913_19598.JPEG,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,2,images/localiser_images/refrigerator\refrigerator_135.jpg,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,3,images/localiser_images/refrigerator\refrigerator_134.jpg,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,4,images/localiser_images/refrigerator\refrigerator_127.jpg,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,5,images/localiser_images/refrigerator\n04070727_19814.JPEG,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,6,images/localiser_images/refrigerator\n03273913_12802.JPEG,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,7,images/localiser_images/refrigerator\n03273913_18462.JPEG,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,8,images/localiser_images/refrigerator\refrigerator_3.jpg,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,9,images/localiser_images/refrigerator\refrigerator_03s.jpg,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,10,images/localiser_images/refrigerator\refrigerator_03s.jpg,1,0.3,0.5
+28,4,1,trial,,3,refrigerator,11,images/localiser_images/refrigerator\n04070727_21731.JPEG,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,12,images/localiser_images/refrigerator\refrigerator_120.jpg,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,13,images/localiser_images/refrigerator\refrigerator_5.jpg,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,14,images/localiser_images/refrigerator\n04070727_16103.JPEG,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,15,images/localiser_images/refrigerator\n04070727_29739.JPEG,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,16,images/localiser_images/refrigerator\refrigerator_140.jpg,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,17,images/localiser_images/refrigerator\refrigerator_01b.jpg,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,18,images/localiser_images/refrigerator\refrigerator_28.jpg,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,19,images/localiser_images/refrigerator\n03273913_18612.JPEG,0,0.3,0.5
+28,4,1,trial,,3,refrigerator,20,images/localiser_images/refrigerator\n03273913_5065.JPEG,0,0.3,0.5
+28,4,1,fixation,4.0,,,,,,,
+28,4,1,trial,,4,scrambled,1,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000014_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,2,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000017_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,3,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000044_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,4,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000012_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,5,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000028_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,6,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000071_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,7,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000016_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,8,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000053_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,9,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000037_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,10,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000035_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,11,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000077_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,12,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000057_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,13,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000072_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,14,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000065_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,15,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000061_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,16,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000021_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,17,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000023_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,18,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000030_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,19,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000067_n9.png,0,0.3,0.5
+28,4,1,trial,,4,scrambled,20,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000054_n9.png,0,0.3,0.5
+28,4,1,fixation,4.0,,,,,,,
+28,4,1,trial,,5,table lamp,1,images/localiser_images/table lamp\table lamp_100.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,2,images/localiser_images/table lamp\table lamp_50.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,3,images/localiser_images/table lamp\table lamp_81.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,4,images/localiser_images/table lamp\table lamp_18.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,5,images/localiser_images/table lamp\table lamp_33.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,6,images/localiser_images/table lamp\table lamp_134.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,7,images/localiser_images/table lamp\table lamp_70.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,8,images/localiser_images/table lamp\n03636248_1176.JPEG,0,0.3,0.5
+28,4,1,trial,,5,table lamp,9,images/localiser_images/table lamp\n03636248_11737.JPEG,0,0.3,0.5
+28,4,1,trial,,5,table lamp,10,images/localiser_images/table lamp\n03636248_9554.JPEG,0,0.3,0.5
+28,4,1,trial,,5,table lamp,11,images/localiser_images/table lamp\n03636248_3550.JPEG,0,0.3,0.5
+28,4,1,trial,,5,table lamp,12,images/localiser_images/table lamp\n03636248_7484.JPEG,0,0.3,0.5
+28,4,1,trial,,5,table lamp,13,images/localiser_images/table lamp\table lamp_93.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,14,images/localiser_images/table lamp\table lamp_39.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,15,images/localiser_images/table lamp\table lamp_147.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,16,images/localiser_images/table lamp\table lamp_43.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,17,images/localiser_images/table lamp\table lamp_7.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,18,images/localiser_images/table lamp\table lamp_7.jpg,1,0.3,0.5
+28,4,1,trial,,5,table lamp,19,images/localiser_images/table lamp\table lamp_3.jpg,0,0.3,0.5
+28,4,1,trial,,5,table lamp,20,images/localiser_images/table lamp\table lamp_115.jpg,0,0.3,0.5
+28,4,1,fixation,4.0,,,,,,,
+28,4,1,trial,,6,teapot,1,images/localiser_images/teapot\teapot_08s.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,2,images/localiser_images/teapot\teapot_97.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,3,images/localiser_images/teapot\teapot_78.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,4,images/localiser_images/teapot\teapot_102.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,5,images/localiser_images/teapot\teapot_45.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,6,images/localiser_images/teapot\teapot_04s.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,7,images/localiser_images/teapot\teapot_47.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,8,images/localiser_images/teapot\teapot_03s.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,9,images/localiser_images/teapot\teapot_145.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,10,images/localiser_images/teapot\teapot_43.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,11,images/localiser_images/teapot\teapot_09s.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,12,images/localiser_images/teapot\teapot_123.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,13,images/localiser_images/teapot\teapot_40.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,14,images/localiser_images/teapot\teapot_13s.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,15,images/localiser_images/teapot\teapot_22.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,16,images/localiser_images/teapot\teapot_22.jpg,1,0.3,0.5
+28,4,1,trial,,6,teapot,17,images/localiser_images/teapot\teapot_84.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,18,images/localiser_images/teapot\teapot_126.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,19,images/localiser_images/teapot\teapot_106.jpg,0,0.3,0.5
+28,4,1,trial,,6,teapot,20,images/localiser_images/teapot\bing_teapot_0244.jpg,0,0.3,0.5
+28,4,1,fixation,4.0,,,,,,,
+28,4,1,trial,,7,wallet,1,images/localiser_images/wallet\wallet_13s.jpg,0,0.3,0.5
+28,4,1,trial,,7,wallet,2,images/localiser_images/wallet\wallet_12s.jpg,0,0.3,0.5
+28,4,1,trial,,7,wallet,3,images/localiser_images/wallet\n04548362_13078.JPEG,0,0.3,0.5
+28,4,1,trial,,7,wallet,4,images/localiser_images/wallet\n04548362_10711.JPEG,0,0.3,0.5
+28,4,1,trial,,7,wallet,5,images/localiser_images/wallet\wallet_18.jpg,0,0.3,0.5
+28,4,1,trial,,7,wallet,6,images/localiser_images/wallet\n04548362_15338.JPEG,0,0.3,0.5
+28,4,1,trial,,7,wallet,7,images/localiser_images/wallet\wallet_01b.jpg,0,0.3,0.5
+28,4,1,trial,,7,wallet,8,images/localiser_images/wallet\wallet_28.jpg,0,0.3,0.5
+28,4,1,trial,,7,wallet,9,images/localiser_images/wallet\wallet_03s.jpg,0,0.3,0.5
+28,4,1,trial,,7,wallet,10,images/localiser_images/wallet\n04548362_48820.JPEG,0,0.3,0.5
+28,4,1,trial,,7,wallet,11,images/localiser_images/wallet\wallet_20.jpg,0,0.3,0.5
+28,4,1,trial,,7,wallet,12,images/localiser_images/wallet\n04548362_14236.JPEG,0,0.3,0.5
+28,4,1,trial,,7,wallet,13,images/localiser_images/wallet\wallet_36.jpg,0,0.3,0.5
+28,4,1,trial,,7,wallet,14,images/localiser_images/wallet\n04548362_13682.JPEG,0,0.3,0.5
+28,4,1,trial,,7,wallet,15,images/localiser_images/wallet\n04548362_16451.JPEG,0,0.3,0.5
+28,4,1,trial,,7,wallet,16,images/localiser_images/wallet\wallet_06s.jpg,0,0.3,0.5
+28,4,1,trial,,7,wallet,17,images/localiser_images/wallet\n04548362_11350.JPEG,0,0.3,0.5
+28,4,1,trial,,7,wallet,18,images/localiser_images/wallet\n04548362_8281.JPEG,0,0.3,0.5
+28,4,1,trial,,7,wallet,19,images/localiser_images/wallet\wallet_35.jpg,0,0.3,0.5
+28,4,1,trial,,7,wallet,20,images/localiser_images/wallet\n04548362_30482.JPEG,0,0.3,0.5
+28,4,1,fixation,4.0,,,,,,,
+28,4,1,trial,,8,crib,1,images/localiser_images/crib\n03131574_32965.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,2,images/localiser_images/crib\n03131574_32965.JPEG,1,0.3,0.5
+28,4,1,trial,,8,crib,3,images/localiser_images/crib\n03131574_25081.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,4,images/localiser_images/crib\n03131669_4992.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,5,images/localiser_images/crib\crib_05s.jpg,0,0.3,0.5
+28,4,1,trial,,8,crib,6,images/localiser_images/crib\n03131574_6091.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,7,images/localiser_images/crib\n03131574_3507.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,8,images/localiser_images/crib\n03131669_11180.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,9,images/localiser_images/crib\n03131574_2136.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,10,images/localiser_images/crib\n03131574_13344.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,11,images/localiser_images/crib\n03131574_23147.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,12,images/localiser_images/crib\n03131669_16103.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,13,images/localiser_images/crib\crib_08s.jpg,0,0.3,0.5
+28,4,1,trial,,8,crib,14,images/localiser_images/crib\crib_03s.jpg,0,0.3,0.5
+28,4,1,trial,,8,crib,15,images/localiser_images/crib\n03131574_11467.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,16,images/localiser_images/crib\crib_02s.jpg,0,0.3,0.5
+28,4,1,trial,,8,crib,17,images/localiser_images/crib\crib_09n.jpg,0,0.3,0.5
+28,4,1,trial,,8,crib,18,images/localiser_images/crib\crib_14n.jpg,0,0.3,0.5
+28,4,1,trial,,8,crib,19,images/localiser_images/crib\n03131574_17697.JPEG,0,0.3,0.5
+28,4,1,trial,,8,crib,20,images/localiser_images/crib\n03131574_18263.JPEG,0,0.3,0.5
+28,4,1,fixation,4.0,,,,,,,
+28,4,1,trial,,9,cup,1,images/localiser_images/cup\n03147509_18643.JPEG,0,0.3,0.5
+28,4,1,trial,,9,cup,2,images/localiser_images/cup\n03063073_7675.JPEG,0,0.3,0.5
+28,4,1,trial,,9,cup,3,images/localiser_images/cup\cup_7.jpg,0,0.3,0.5
+28,4,1,trial,,9,cup,4,images/localiser_images/cup\cup_51.jpg,0,0.3,0.5
+28,4,1,trial,,9,cup,5,images/localiser_images/cup\cup_09s.jpg,0,0.3,0.5
+28,4,1,trial,,9,cup,6,images/localiser_images/cup\n03063073_5391.JPEG,0,0.3,0.5
+28,4,1,trial,,9,cup,7,images/localiser_images/cup\n03063073_9931.JPEG,0,0.3,0.5
+28,4,1,trial,,9,cup,8,images/localiser_images/cup\cup_55.jpg,0,0.3,0.5
+28,4,1,trial,,9,cup,9,images/localiser_images/cup\n03063073_8439.JPEG,0,0.3,0.5
+28,4,1,trial,,9,cup,10,images/localiser_images/cup\cup_12s.jpg,0,0.3,0.5
+28,4,1,trial,,9,cup,11,images/localiser_images/cup\cup_14s.jpg,0,0.3,0.5
+28,4,1,trial,,9,cup,12,images/localiser_images/cup\n03216710_4107.JPEG,0,0.3,0.5
+28,4,1,trial,,9,cup,13,images/localiser_images/cup\cup_23.jpg,0,0.3,0.5
+28,4,1,trial,,9,cup,14,images/localiser_images/cup\n04397452_281.JPEG,0,0.3,0.5
+28,4,1,trial,,9,cup,15,images/localiser_images/cup\cup_12.jpg,0,0.3,0.5
+28,4,1,trial,,9,cup,16,images/localiser_images/cup\n04397452_15784.JPEG,0,0.3,0.5
+28,4,1,trial,,9,cup,17,images/localiser_images/cup\cup_31.jpg,0,0.3,0.5
+28,4,1,trial,,9,cup,18,images/localiser_images/cup\cup_11s.jpg,0,0.3,0.5
+28,4,1,trial,,9,cup,19,images/localiser_images/cup\cup_42.jpg,0,0.3,0.5
+28,4,1,trial,,9,cup,20,images/localiser_images/cup\cup_78.jpg,0,0.3,0.5
+28,4,1,fixation,4.0,,,,,,,
+28,4,1,trial,,10,eraser,1,images/localiser_images/eraser\rubber eraser_226.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,2,images/localiser_images/eraser\rubber eraser_126.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,3,images/localiser_images/eraser\rubber eraser_200.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,4,images/localiser_images/eraser\rubber eraser_7.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,5,images/localiser_images/eraser\rubber eraser_151.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,6,images/localiser_images/eraser\rubber eraser_237.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,7,images/localiser_images/eraser\rubber eraser_245.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,8,images/localiser_images/eraser\eraser_08s.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,9,images/localiser_images/eraser\rubber eraser_213.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,10,images/localiser_images/eraser\eraser_02s.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,11,images/localiser_images/eraser\rubber eraser_42.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,12,images/localiser_images/eraser\rubber eraser_176.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,13,images/localiser_images/eraser\rubber eraser_52.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,14,images/localiser_images/eraser\rubber eraser_56.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,15,images/localiser_images/eraser\rubber eraser_111.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,16,images/localiser_images/eraser\rubber eraser_172.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,17,images/localiser_images/eraser\rubber eraser_223.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,18,images/localiser_images/eraser\rubber eraser_44.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,19,images/localiser_images/eraser\rubber eraser_179.jpg,0,0.3,0.5
+28,4,1,trial,,10,eraser,20,images/localiser_images/eraser\rubber eraser_123.jpg,0,0.3,0.5
+28,4,1,fixation,16.0,,,,,,,
+28,4,2,fixation,16.0,,,,,,,
+28,4,2,trial,,1,hammer,1,images/localiser_images/hammer\n03481521_15582.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,2,images/localiser_images/hammer\n03481172_24804.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,3,images/localiser_images/hammer\n03715669_24407.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,4,images/localiser_images/hammer\hammer_01b.jpg,0,0.3,0.5
+28,4,2,trial,,1,hammer,5,images/localiser_images/hammer\n03715669_13179.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,6,images/localiser_images/hammer\n03482001_1534.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,7,images/localiser_images/hammer\hammer_02s.jpg,0,0.3,0.5
+28,4,2,trial,,1,hammer,8,images/localiser_images/hammer\hammer_03s.jpg,0,0.3,0.5
+28,4,2,trial,,1,hammer,9,images/localiser_images/hammer\n03481521_134.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,10,images/localiser_images/hammer\n03481521_14058.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,11,images/localiser_images/hammer\n03481521_15006.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,12,images/localiser_images/hammer\n03482001_2099.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,13,images/localiser_images/hammer\n04383301_1791.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,14,images/localiser_images/hammer\n02783035_1323.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,15,images/localiser_images/hammer\n03715669_20365.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,16,images/localiser_images/hammer\n03481521_16657.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,17,images/localiser_images/hammer\hammer_04s.jpg,0,0.3,0.5
+28,4,2,trial,,1,hammer,18,images/localiser_images/hammer\hammer_09s.jpg,0,0.3,0.5
+28,4,2,trial,,1,hammer,19,images/localiser_images/hammer\n03481172_12077.JPEG,0,0.3,0.5
+28,4,2,trial,,1,hammer,20,images/localiser_images/hammer\n03481172_31212.JPEG,0,0.3,0.5
+28,4,2,fixation,4.0,,,,,,,
+28,4,2,trial,,2,eraser,1,images/localiser_images/eraser\rubber eraser_164.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,2,images/localiser_images/eraser\eraser_07s.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,3,images/localiser_images/eraser\rubber eraser_213.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,4,images/localiser_images/eraser\eraser_03s.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,5,images/localiser_images/eraser\rubber eraser_244.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,6,images/localiser_images/eraser\rubber eraser_219.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,7,images/localiser_images/eraser\eraser_05s.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,8,images/localiser_images/eraser\rubber eraser_179.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,9,images/localiser_images/eraser\rubber eraser_212.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,10,images/localiser_images/eraser\rubber eraser_44.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,11,images/localiser_images/eraser\rubber eraser_111.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,12,images/localiser_images/eraser\rubber eraser_86.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,13,images/localiser_images/eraser\rubber eraser_238.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,14,images/localiser_images/eraser\rubber eraser_125.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,15,images/localiser_images/eraser\rubber eraser_174.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,16,images/localiser_images/eraser\rubber eraser_243.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,17,images/localiser_images/eraser\rubber eraser_198.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,18,images/localiser_images/eraser\eraser_04s.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,19,images/localiser_images/eraser\rubber eraser_223.jpg,0,0.3,0.5
+28,4,2,trial,,2,eraser,20,images/localiser_images/eraser\rubber eraser_87.jpg,0,0.3,0.5
+28,4,2,fixation,4.0,,,,,,,
+28,4,2,trial,,3,cup,1,images/localiser_images/cup\n04397452_16514.JPEG,0,0.3,0.5
+28,4,2,trial,,3,cup,2,images/localiser_images/cup\cup_64.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,3,images/localiser_images/cup\cup_131.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,4,images/localiser_images/cup\n03802643_1539.JPEG,0,0.3,0.5
+28,4,2,trial,,3,cup,5,images/localiser_images/cup\n07930864_33614.JPEG,0,0.3,0.5
+28,4,2,trial,,3,cup,6,images/localiser_images/cup\n07930864_20919.JPEG,0,0.3,0.5
+28,4,2,trial,,3,cup,7,images/localiser_images/cup\cup_12.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,8,images/localiser_images/cup\cup_11s.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,9,images/localiser_images/cup\cup_105.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,10,images/localiser_images/cup\cup_78.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,11,images/localiser_images/cup\cup_69.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,12,images/localiser_images/cup\cup_23.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,13,images/localiser_images/cup\cup_31.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,14,images/localiser_images/cup\cup_10s.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,15,images/localiser_images/cup\cup_29.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,16,images/localiser_images/cup\cup_81.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,17,images/localiser_images/cup\cup_14s.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,18,images/localiser_images/cup\n04397452_10399.JPEG,0,0.3,0.5
+28,4,2,trial,,3,cup,19,images/localiser_images/cup\cup_55.jpg,0,0.3,0.5
+28,4,2,trial,,3,cup,20,images/localiser_images/cup\cup_07s.jpg,0,0.3,0.5
+28,4,2,fixation,4.0,,,,,,,
+28,4,2,trial,,4,crib,1,images/localiser_images/crib\n03131574_6790.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,2,images/localiser_images/crib\n03131574_554.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,3,images/localiser_images/crib\n03131574_40619.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,4,images/localiser_images/crib\n03131574_15572.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,5,images/localiser_images/crib\n03131574_29104.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,6,images/localiser_images/crib\n03131574_18263.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,7,images/localiser_images/crib\crib_10s.jpg,0,0.3,0.5
+28,4,2,trial,,4,crib,8,images/localiser_images/crib\n03131669_4992.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,9,images/localiser_images/crib\n03131574_9119.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,10,images/localiser_images/crib\n03131574_16783.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,11,images/localiser_images/crib\crib_13n.jpg,0,0.3,0.5
+28,4,2,trial,,4,crib,12,images/localiser_images/crib\n03131574_19238.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,13,images/localiser_images/crib\n03131574_14853.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,14,images/localiser_images/crib\n03131574_13344.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,15,images/localiser_images/crib\n03131669_7684.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,16,images/localiser_images/crib\n03131574_30490.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,17,images/localiser_images/crib\n03131669_4009.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,18,images/localiser_images/crib\n03131574_17648.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,19,images/localiser_images/crib\n03131574_3172.JPEG,0,0.3,0.5
+28,4,2,trial,,4,crib,20,images/localiser_images/crib\n03131574_8145.JPEG,0,0.3,0.5
+28,4,2,fixation,4.0,,,,,,,
+28,4,2,trial,,5,wallet,1,images/localiser_images/wallet\wallet_42.jpg,0,0.3,0.5
+28,4,2,trial,,5,wallet,2,images/localiser_images/wallet\wallet_35.jpg,0,0.3,0.5
+28,4,2,trial,,5,wallet,3,images/localiser_images/wallet\n04548362_17350.JPEG,0,0.3,0.5
+28,4,2,trial,,5,wallet,4,images/localiser_images/wallet\n04548362_28337.JPEG,0,0.3,0.5
+28,4,2,trial,,5,wallet,5,images/localiser_images/wallet\wallet_7.jpg,0,0.3,0.5
+28,4,2,trial,,5,wallet,6,images/localiser_images/wallet\n04548362_21729.JPEG,0,0.3,0.5
+28,4,2,trial,,5,wallet,7,images/localiser_images/wallet\wallet_11s.jpg,0,0.3,0.5
+28,4,2,trial,,5,wallet,8,images/localiser_images/wallet\wallet_14s.jpg,0,0.3,0.5
+28,4,2,trial,,5,wallet,9,images/localiser_images/wallet\wallet_14s.jpg,1,0.3,0.5
+28,4,2,trial,,5,wallet,10,images/localiser_images/wallet\n04548362_5813.JPEG,0,0.3,0.5
+28,4,2,trial,,5,wallet,11,images/localiser_images/wallet\n04548362_29068.JPEG,0,0.3,0.5
+28,4,2,trial,,5,wallet,12,images/localiser_images/wallet\n04548362_27806.JPEG,0,0.3,0.5
+28,4,2,trial,,5,wallet,13,images/localiser_images/wallet\wallet_5.jpg,0,0.3,0.5
+28,4,2,trial,,5,wallet,14,images/localiser_images/wallet\wallet_28.jpg,0,0.3,0.5
+28,4,2,trial,,5,wallet,15,images/localiser_images/wallet\wallet_33.jpg,0,0.3,0.5
+28,4,2,trial,,5,wallet,16,images/localiser_images/wallet\n04548362_30183.JPEG,0,0.3,0.5
+28,4,2,trial,,5,wallet,17,images/localiser_images/wallet\wallet_30.jpg,0,0.3,0.5
+28,4,2,trial,,5,wallet,18,images/localiser_images/wallet\n04548362_8281.JPEG,0,0.3,0.5
+28,4,2,trial,,5,wallet,19,images/localiser_images/wallet\wallet_01b.jpg,0,0.3,0.5
+28,4,2,trial,,5,wallet,20,images/localiser_images/wallet\wallet_05s.jpg,0,0.3,0.5
+28,4,2,fixation,4.0,,,,,,,
+28,4,2,trial,,6,teapot,1,images/localiser_images/teapot\bing_teapot_0096.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,2,images/localiser_images/teapot\teapot_56.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,3,images/localiser_images/teapot\teapot_51.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,4,images/localiser_images/teapot\teapot_4.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,5,images/localiser_images/teapot\bing_theiere_0091.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,6,images/localiser_images/teapot\bing_teapot_0244.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,7,images/localiser_images/teapot\teapot_40.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,8,images/localiser_images/teapot\teapot_79.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,9,images/localiser_images/teapot\teapot_97.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,10,images/localiser_images/teapot\teapot_60.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,11,images/localiser_images/teapot\teapot_17.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,12,images/localiser_images/teapot\teapot_69.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,13,images/localiser_images/teapot\teapot_9.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,14,images/localiser_images/teapot\teapot_114.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,15,images/localiser_images/teapot\teapot_19.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,16,images/localiser_images/teapot\teapot_13.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,17,images/localiser_images/teapot\teapot_16.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,18,images/localiser_images/teapot\teapot_22.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,19,images/localiser_images/teapot\teapot_90.jpg,0,0.3,0.5
+28,4,2,trial,,6,teapot,20,images/localiser_images/teapot\teapot_90.jpg,1,0.3,0.5
+28,4,2,fixation,4.0,,,,,,,
+28,4,2,trial,,7,table lamp,1,images/localiser_images/table lamp\n03636248_1134.JPEG,0,0.3,0.5
+28,4,2,trial,,7,table lamp,2,images/localiser_images/table lamp\table lamp_3.jpg,0,0.3,0.5
+28,4,2,trial,,7,table lamp,3,images/localiser_images/table lamp\table lamp_67.jpg,0,0.3,0.5
+28,4,2,trial,,7,table lamp,4,images/localiser_images/table lamp\table lamp_7.jpg,0,0.3,0.5
+28,4,2,trial,,7,table lamp,5,images/localiser_images/table lamp\n03636248_308.JPEG,0,0.3,0.5
+28,4,2,trial,,7,table lamp,6,images/localiser_images/table lamp\table lamp_56.jpg,0,0.3,0.5
+28,4,2,trial,,7,table lamp,7,images/localiser_images/table lamp\n04380533_5469.JPEG,0,0.3,0.5
+28,4,2,trial,,7,table lamp,8,images/localiser_images/table lamp\n03636248_23696.JPEG,0,0.3,0.5
+28,4,2,trial,,7,table lamp,9,images/localiser_images/table lamp\table lamp_17.jpg,0,0.3,0.5
+28,4,2,trial,,7,table lamp,10,images/localiser_images/table lamp\table lamp_74.jpg,0,0.3,0.5
+28,4,2,trial,,7,table lamp,11,images/localiser_images/table lamp\table lamp_73.jpg,0,0.3,0.5
+28,4,2,trial,,7,table lamp,12,images/localiser_images/table lamp\n04380533_1849.JPEG,0,0.3,0.5
+28,4,2,trial,,7,table lamp,13,images/localiser_images/table lamp\table lamp_115.jpg,0,0.3,0.5
+28,4,2,trial,,7,table lamp,14,images/localiser_images/table lamp\n03636248_1176.JPEG,0,0.3,0.5
+28,4,2,trial,,7,table lamp,15,images/localiser_images/table lamp\n03636248_3003.JPEG,0,0.3,0.5
+28,4,2,trial,,7,table lamp,16,images/localiser_images/table lamp\n03636248_5566.JPEG,0,0.3,0.5
+28,4,2,trial,,7,table lamp,17,images/localiser_images/table lamp\table lamp_50.jpg,0,0.3,0.5
+28,4,2,trial,,7,table lamp,18,images/localiser_images/table lamp\n03636248_7484.JPEG,0,0.3,0.5
+28,4,2,trial,,7,table lamp,19,images/localiser_images/table lamp\table lamp_70.jpg,0,0.3,0.5
+28,4,2,trial,,7,table lamp,20,images/localiser_images/table lamp\n03636248_29700.JPEG,0,0.3,0.5
+28,4,2,fixation,4.0,,,,,,,
+28,4,2,trial,,8,scrambled,1,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000038_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,2,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000031_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,3,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000051_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,4,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000062_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,5,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000043_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,6,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000047_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,7,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000015_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,8,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000046_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,9,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000024_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,10,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000003_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,11,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000033_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,12,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000033_n9.png,1,0.3,0.5
+28,4,2,trial,,8,scrambled,13,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000000_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,14,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000023_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,15,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000012_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,16,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000042_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,17,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000064_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,18,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000001_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,19,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000039_n9.png,0,0.3,0.5
+28,4,2,trial,,8,scrambled,20,images/localiser_images/scrambled\scr_group_ycbcr_spectrum_000077_n9.png,0,0.3,0.5
+28,4,2,fixation,4.0,,,,,,,
+28,4,2,trial,,9,refrigerator,1,images/localiser_images/refrigerator\refrigerator_12s.jpg,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,2,images/localiser_images/refrigerator\n04070727_31500.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,3,images/localiser_images/refrigerator\n04070727_29739.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,4,images/localiser_images/refrigerator\refrigerator_99.jpg,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,5,images/localiser_images/refrigerator\n03273913_4037.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,6,images/localiser_images/refrigerator\n04070727_16577.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,7,images/localiser_images/refrigerator\n04070727_22013.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,8,images/localiser_images/refrigerator\n04070727_19814.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,9,images/localiser_images/refrigerator\refrigerator_136.jpg,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,10,images/localiser_images/refrigerator\n03273913_16415.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,11,images/localiser_images/refrigerator\n04070727_6606.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,12,images/localiser_images/refrigerator\n04070727_5685.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,13,images/localiser_images/refrigerator\n04070727_5685.JPEG,1,0.3,0.5
+28,4,2,trial,,9,refrigerator,14,images/localiser_images/refrigerator\n03273913_18612.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,15,images/localiser_images/refrigerator\n04070727_5005.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,16,images/localiser_images/refrigerator\n03170635_26815.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,17,images/localiser_images/refrigerator\refrigerator_113.jpg,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,18,images/localiser_images/refrigerator\refrigerator_113.jpg,1,0.3,0.5
+28,4,2,trial,,9,refrigerator,19,images/localiser_images/refrigerator\n04070727_6281.JPEG,0,0.3,0.5
+28,4,2,trial,,9,refrigerator,20,images/localiser_images/refrigerator\n03273913_13818.JPEG,0,0.3,0.5
+28,4,2,fixation,4.0,,,,,,,
+28,4,2,trial,,10,radio,1,images/localiser_images/radio\radio_147.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,2,images/localiser_images/radio\radio_139.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,3,images/localiser_images/radio\radio_32.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,4,images/localiser_images/radio\radio_156.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,5,images/localiser_images/radio\radio_240.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,6,images/localiser_images/radio\radio_37.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,7,images/localiser_images/radio\radio_190.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,8,images/localiser_images/radio\radio_179.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,9,images/localiser_images/radio\radio_41.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,10,images/localiser_images/radio\radio_87.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,11,images/localiser_images/radio\radio_02s.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,12,images/localiser_images/radio\radio_85.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,13,images/localiser_images/radio\radio_215.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,14,images/localiser_images/radio\radio_246.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,15,images/localiser_images/radio\radio_06s.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,16,images/localiser_images/radio\radio_151.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,17,images/localiser_images/radio\radio_115.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,18,images/localiser_images/radio\radio_79.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,19,images/localiser_images/radio\radio_14.jpg,0,0.3,0.5
+28,4,2,trial,,10,radio,20,images/localiser_images/radio\radio_55.jpg,0,0.3,0.5
+28,4,2,fixation,16.0,,,,,,,
