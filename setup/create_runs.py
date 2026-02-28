@@ -132,11 +132,30 @@ class DesignConfig:
     stim_dir: str = "images/task_images/"
     # Test run configuration
     include_test_run: bool = False
+    # How many test runs to append (if enabled for this session)
     n_test_runs: int = 1
-    test_mode: str = "all_corners"  # all_corners | furthest_corner | opposite_gaussian
+    # all_corners | furthest_corner | opposite_gaussian
+    test_mode: str = "all_corners"
+
+    # Legacy corner sampling params (used for all_corners / furthest_corner)
     test_repeats_per_space: int = 3
     test_samples_per_space: int = 3
-    
+
+    # Opposite-corner Gaussian sampling params (used for opposite_gaussian)
+    # These are PER RUN, PER CATEGORY/ObjectSpace. Test runs can mix OOD (corner) and
+    # in-distribution (learning mean/SD) samples.
+    test_opposite_sd: float = 0.15
+    test_corner_samples_per_space: int = 6
+    test_indist_samples_per_space: int = 6
+
+    # Optional: restrict which ObjectSpaces are used for test runs (subset of active spaces)
+    # If None/empty, uses all active spaces for the participant.
+    test_objectspaces: Optional[List[str]] = None
+
+    # Optional: override max decision duration used for test runs (3-event only).
+    # If None, defaults to cfg.max_dec_dur.
+    test_max_dec_dur: Optional[float] = None
+
     # Timing (2-Event)
     dec_dur: float = 0.0
     dec_fb_dur: float = 0.0
@@ -390,20 +409,22 @@ def _furthest_corner(mean_xy: np.ndarray) -> np.ndarray:
 
 
 def get_test_targets_for_space(mean_f0: float, mean_f1: float, mode: str) -> List[np.ndarray]:
-    """Return a list of target coordinates to use for test sampling for one ObjectSpace.
+    """Return a list of *target means* (coordinates) for test sampling for one ObjectSpace.
 
-    Implemented modes (as requested):
-      - all_corners: sample the three corners furthest from the *closest* corner to the learning mean.
-      - furthest_corner: sample only the single furthest corner from the learning mean.
+    Modes:
+      - all_corners: return the three corners furthest from the *closest* corner to the learning mean.
+      - furthest_corner: return only the single furthest corner from the learning mean.
+      - opposite_gaussian: return only the single furthest corner from the learning mean, but downstream
+        sampling uses a Gaussian cloud centred on that corner (mean=corner, SD=cfg.test_opposite_sd).
 
     Note:
-      - opposite_gaussian is intentionally not implemented yet (per instructions). If selected,
-        this function falls back to 'all_corners' so generation still succeeds.
+      - The returned list is interpreted as a set of target coordinates to draw from. For
+        opposite_gaussian, this list is used only to define the corner mean.
     """
     mean_xy = np.array([float(mean_f0), float(mean_f1)])
     mode = str(mode).strip().lower()
 
-    if mode == "furthest_corner":
+    if mode in {"furthest_corner", "opposite_gaussian"}:
         return [_furthest_corner(mean_xy)]
 
     # default: all_corners
@@ -613,19 +634,38 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
     # Crucially, test trials are generated with *no feedback* and *no ISI2* in the exported schedule:
     #  - 3-event: fb_dur = 0.0 and isi2_dur = 0.0 (still includes ISI1 + ITI as configured)
     #  - 2-event: dec_fb_dur = 0.0 and dec_fb_jit = 0.0
+    #
+    # Additional features:
+    #  - test_mode == 'opposite_gaussian' supports mixing OOD corner-cloud samples with in-distribution samples.
+    #  - cfg.test_objectspaces can restrict the set of ObjectSpaces used in test runs (subset of active spaces).
     if bool(getattr(cfg, "include_test_run", False)) and int(getattr(cfg, "n_test_runs", 0) or 0) > 0:
         n_test_runs = int(getattr(cfg, "n_test_runs", 1) or 1)
-        test_mode = str(getattr(cfg, "test_mode", "all_corners") or "all_corners")
+        test_mode = str(getattr(cfg, "test_mode", "all_corners") or "all_corners").strip().lower()
+
+        # Legacy params (all_corners / furthest_corner)
         repeats_per_space = int(getattr(cfg, "test_repeats_per_space", 1) or 1)
         samples_per_space = int(getattr(cfg, "test_samples_per_space", 1) or 1)
 
-        # Use a stable decision window for test runs (cfg.max_dec_dur or first per-run value if provided)
-        if getattr(cfg, "max_dec_dur_per_run", None) is not None and len(cfg.max_dec_dur_per_run) > 0:
-            _test_max_dec_dur = float(cfg.max_dec_dur_per_run[0])
-        else:
-            _test_max_dec_dur = float(cfg.max_dec_dur)
+        # Opposite-corner Gaussian params (opposite_gaussian)
+        opp_sd = float(getattr(cfg, "test_opposite_sd", 0.15) or 0.15)
+        n_corner = int(getattr(cfg, "test_corner_samples_per_space", 0) or 0)
+        n_indist = int(getattr(cfg, "test_indist_samples_per_space", 0) or 0)
 
-        test_spaces = list(active_spaces)
+        # Determine max decision window for 3-event test runs (override allowed)
+        _test_max_dec_dur = None
+        if cfg.design_type == "3event":
+            if getattr(cfg, "test_max_dec_dur", None) is not None and str(getattr(cfg, "test_max_dec_dur")).strip() != "":
+                _test_max_dec_dur = float(getattr(cfg, "test_max_dec_dur"))
+            else:
+                _test_max_dec_dur = float(cfg.max_dec_dur)
+
+        # Restrict test spaces if requested (subset of active_spaces); otherwise use all active.
+        req_spaces = getattr(cfg, "test_objectspaces", None)
+        if req_spaces:
+            req_spaces = [str(s).strip() for s in req_spaces if str(s).strip() != ""]
+        test_spaces = [s for s in (req_spaces or active_spaces) if s in active_spaces]
+        if not test_spaces:
+            test_spaces = list(active_spaces)
 
         for t_run_idx in range(n_test_runs):
             test_run_id = cfg.n_runs + 1 + t_run_idx
@@ -636,29 +676,53 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
                 _append_fixation_row(test_run_id, current_time, float(cfg.run_fix_start_dur), kind="run_start")
                 current_time += float(cfg.run_fix_start_dur)
 
-            # Construct per-space targets
-            per_space_targets = {}
-            for space_id in test_spaces:
-                info = dist_params[space_id]
-                targets = get_test_targets_for_space(info["Mean F0"], info["Mean F1"], test_mode)
-
-                n_trials = max(0, repeats_per_space) * max(0, samples_per_space)
-                if n_trials <= 0 or len(targets) == 0:
-                    per_space_targets[space_id] = []
-                    continue
-
-                # Sample target corners; if more trials than targets, sample with replacement.
-                idxs = rng.choice(len(targets), size=n_trials, replace=(n_trials > len(targets)))
-                t_list = [targets[int(k)].copy() for k in idxs]
-                rng.shuffle(t_list)
-                per_space_targets[space_id] = t_list
-
-            # Flatten trials across spaces and shuffle
             test_trials = []
-            for space_id in test_spaces:
-                for tgt in per_space_targets.get(space_id, []):
-                    test_trials.append((space_id, tgt))
-            rng.shuffle(test_trials)
+
+            if test_mode == "opposite_gaussian":
+                # For each ObjectSpace: mix corner-cloud (OOD) and in-distribution samples.
+                # Counts are PER RUN, PER SPACE.
+                for space_id in test_spaces:
+                    info = dist_params[space_id]
+                    corner_mean = get_test_targets_for_space(info["Mean F0"], info["Mean F1"], "opposite_gaussian")[0]
+
+                    # OOD samples: Gaussian cloud centred on opposite corner
+                    for _ in range(max(0, n_corner)):
+                        f0 = float(np.clip(rng.normal(float(corner_mean[0]), opp_sd), 0, 1))
+                        f1 = float(np.clip(rng.normal(float(corner_mean[1]), opp_sd), 0, 1))
+                        test_trials.append((space_id, f0, f1))
+
+                    # In-distribution samples: Gaussian around learning mean/SD (as learning runs)
+                    for _ in range(max(0, n_indist)):
+                        f0 = float(np.clip(rng.normal(info['Mean F0'], info['SD F0']), 0, 1))
+                        f1 = float(np.clip(rng.normal(info['Mean F1'], info['SD F1']), 0, 1))
+                        test_trials.append((space_id, f0, f1))
+
+                rng.shuffle(test_trials)
+
+            else:
+                # Legacy corner target list sampling
+                per_space_targets = {}
+                for space_id in test_spaces:
+                    info = dist_params[space_id]
+                    targets = get_test_targets_for_space(info["Mean F0"], info["Mean F1"], test_mode)
+
+                    n_trials = max(0, repeats_per_space) * max(0, samples_per_space)
+                    if n_trials <= 0 or len(targets) == 0:
+                        per_space_targets[space_id] = []
+                        continue
+
+                    # Sample target corners; if more trials than targets, sample with replacement.
+                    idxs = rng.choice(len(targets), size=n_trials, replace=(n_trials > len(targets)))
+                    t_list = [targets[int(k)].copy() for k in idxs]
+                    rng.shuffle(t_list)
+                    per_space_targets[space_id] = t_list
+
+                # Flatten trials across spaces and shuffle
+                for space_id in test_spaces:
+                    for tgt in per_space_targets.get(space_id, []):
+                        f0, f1 = float(np.clip(tgt[0], 0, 1)), float(np.clip(tgt[1], 0, 1))
+                        test_trials.append((space_id, f0, f1))
+                rng.shuffle(test_trials)
 
             # Light no-1-back heuristic on ObjectSpace
             for _ in range(1000):
@@ -674,24 +738,22 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
                 if not conflict:
                     break
 
-            for space_id, tgt in test_trials:
-                cond = space_cond_map[space_id]
-                f0, f1 = float(np.clip(tgt[0], 0, 1)), float(np.clip(tgt[1], 0, 1))
+            for space_id, f0, f1 in test_trials:
+                cond = space_cond_map.get(space_id, "Test")
                 img_file = find_closest_image(cfg.stim_dir, space_id, np.array([f0, f1]))
                 iti = get_jit(cfg.jit_iti_range)
 
                 common = {
                     "trial_id": trial_id_global, "run_id": test_run_id, "ObjectSpace": space_id,
                     "condition": cond, "image_file": img_file, "iti": iti,
-                    "sampled_f0": round(f0, 3), "sampled_f1": round(f1, 3)
+                    "sampled_f0": round(float(f0), 3), "sampled_f1": round(float(f1), 3)
                 }
 
                 if cfg.design_type == "3event":
                     isi1 = get_jit(cfg.jit_isi1_range)
-
                     t_img = current_time
                     t_dec = current_time + cfg.img_dur + isi1
-                    t_end = t_dec + _test_max_dec_dur  # no ISI2, no feedback
+                    t_end = t_dec + float(_test_max_dec_dur)  # no ISI2, no feedback
 
                     rows.append({
                         **common,
@@ -701,14 +763,14 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
                         "isi1_dur": isi1,
                         "isi1_type": "hidden",
                         "dec_onset_est": t_dec,
-                        "max_dec_dur": _test_max_dec_dur,
+                        "max_dec_dur": float(_test_max_dec_dur),
                         # Explicitly remove ISI2 + feedback in the exported design rows
                         "isi2_dur": 0.0,
                         "isi2_type": "fixation",
                         "fb_dur": 0.0,
                     })
-
                     current_time = t_end + iti
+
                 else:
                     # 2-event test: decision only (no jitter, no feedback)
                     t_trial = current_time
@@ -724,7 +786,6 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
                         "trial_duration": t_end - t_trial,
                         "dec_fb_jit": 0.0,
                     })
-
                     current_time = t_end + iti
 
                 trial_id_global += 1
@@ -734,8 +795,8 @@ def generate_design_rows(rng, cfg: DesignConfig, sub_id: int, space_cond_map_ove
                 _append_fixation_row(test_run_id, current_time, float(cfg.run_fix_end_dur), kind="run_end")
                 current_time += float(cfg.run_fix_end_dur)
 
-
     return rows
+
 
 
 # 2. Restore the Latin Square (Order of selection changes per participant)
@@ -1059,23 +1120,75 @@ class DesignGUI(tk.Tk):
         self.v_add_run_fix = tk.BooleanVar(value=True)
         ttk.Checkbutton(fr_glob, text="Add run fixations (10s start / 5s end)", variable=self.v_add_run_fix).pack(side="left", padx=8)
 
-        # Test run settings
+                # Test run settings
         ttk.Label(fr_glob, text=" | Test Run:").pack(side="left", padx=8)
         self.v_include_test = tk.BooleanVar(value=False)
-        ttk.Checkbutton(fr_glob, text="Include", variable=self.v_include_test).pack(side="left")
+        ttk.Checkbutton(fr_glob, text="Include", variable=self.v_include_test, command=self.update_estimates).pack(side="left")
+
+        ttk.Label(fr_glob, text="Append to:").pack(side="left", padx=(6, 0))
+        # Where to append test runs (end of Session 1, Session 2, or both)
+        self.v_test_append_to = tk.StringVar(value="both")
+        ttk.OptionMenu(fr_glob, self.v_test_append_to, "both", "s1", "s2", "both", command=lambda *_: self.update_estimates()).pack(side="left", padx=(2, 6))
+
         ttk.Label(fr_glob, text="# Test Runs:").pack(side="left")
         self.v_n_test_runs = tk.StringVar(value="1")
         ttk.Entry(fr_glob, textvariable=self.v_n_test_runs, width=4).pack(side="left", padx=5)
 
         ttk.Label(fr_glob, text="Mode:").pack(side="left")
         self.v_test_mode = tk.StringVar(value="all_corners")
-        ttk.OptionMenu(fr_glob, self.v_test_mode, "all_corners", "all_corners", "furthest_corner", "opposite_gaussian").pack(side="left")
+        ttk.OptionMenu(fr_glob, self.v_test_mode, "all_corners", "all_corners", "furthest_corner", "opposite_gaussian",
+                       command=lambda *_: self._on_test_mode_change()).pack(side="left")
+
+        # Legacy (corner list) controls
         ttk.Label(fr_glob, text="Repeats:").pack(side="left")
         self.v_test_repeats = tk.StringVar(value="3")
-        ttk.Entry(fr_glob, textvariable=self.v_test_repeats, width=4).pack(side="left", padx=2)
+        self.ent_test_repeats = ttk.Entry(fr_glob, textvariable=self.v_test_repeats, width=4)
+        self.ent_test_repeats.pack(side="left", padx=2)
+
         ttk.Label(fr_glob, text="Samples:").pack(side="left")
         self.v_test_samples = tk.StringVar(value="3")
-        ttk.Entry(fr_glob, textvariable=self.v_test_samples, width=4).pack(side="left", padx=2)
+        self.ent_test_samples = ttk.Entry(fr_glob, textvariable=self.v_test_samples, width=4)
+        self.ent_test_samples.pack(side="left", padx=2)
+
+        # Opposite-corner Gaussian mix controls (per run, per category)
+        ttk.Label(fr_glob, text="OOD#:").pack(side="left", padx=(6, 0))
+        self.v_test_corner_n = tk.StringVar(value="6")
+        self.ent_test_corner_n = ttk.Entry(fr_glob, textvariable=self.v_test_corner_n, width=4)
+        self.ent_test_corner_n.pack(side="left", padx=2)
+
+        ttk.Label(fr_glob, text="InDist#:").pack(side="left")
+        self.v_test_indist_n = tk.StringVar(value="6")
+        self.ent_test_indist_n = ttk.Entry(fr_glob, textvariable=self.v_test_indist_n, width=4)
+        self.ent_test_indist_n.pack(side="left", padx=2)
+
+        ttk.Label(fr_glob, text="Opp SD:").pack(side="left")
+        self.v_test_opp_sd = tk.StringVar(value="0.15")
+        self.ent_test_opp_sd = ttk.Entry(fr_glob, textvariable=self.v_test_opp_sd, width=5)
+        self.ent_test_opp_sd.pack(side="left", padx=2)
+
+        # Optional ObjectSpace restriction (comma-separated)
+        ttk.Label(fr_glob, text="Test ObjectSpaces:").pack(side="left", padx=(8, 0))
+        self.v_test_objectspaces = tk.StringVar(value="")
+        self.ent_test_objectspaces = ttk.Entry(fr_glob, textvariable=self.v_test_objectspaces, width=14)
+        self.ent_test_objectspaces.pack(side="left", padx=2)
+
+        # Optional test max decision duration override (3-event only; blank = use learning)
+        ttk.Label(fr_glob, text="Test MaxDec:").pack(side="left", padx=(6, 0))
+        self.v_test_max_dec = tk.StringVar(value="")
+        self.ent_test_max_dec = ttk.Entry(fr_glob, textvariable=self.v_test_max_dec, width=5)
+        self.ent_test_max_dec.pack(side="left", padx=2)
+
+        # Keep estimates responsive
+        for _v in [self.v_n_test_runs, self.v_test_repeats, self.v_test_samples,
+                  self.v_test_corner_n, self.v_test_indist_n, self.v_test_opp_sd,
+                  self.v_test_objectspaces, self.v_test_max_dec, self.v_test_append_to]:
+            try:
+                _v.trace_add("write", lambda *a: self.update_estimates())
+            except Exception:
+                pass
+
+        # Apply initial enabling/disabling based on test mode
+        self._on_test_mode_change()
 
         # 3. Timing Tabs (2-event vs 3-event configuration)
         self.nb = ttk.Notebook(main)
@@ -1261,6 +1374,43 @@ class DesignGUI(tk.Tk):
         self.v_3_max_per_run_s2 = _build_row("Session 2:", n_s2)
 
 
+
+def _on_test_mode_change(self):
+    """Enable/disable test-run sampling controls based on selected test mode."""
+    try:
+        mode = str(self.v_test_mode.get()).strip().lower()
+    except Exception:
+        mode = "all_corners"
+
+    # Legacy (corner list) controls
+    legacy_state = "normal" if mode in {"all_corners", "furthest_corner"} else "disabled"
+    # Opposite-corner Gaussian mix controls
+    opp_state = "normal" if mode == "opposite_gaussian" else "disabled"
+
+    for w in [getattr(self, "ent_test_repeats", None), getattr(self, "ent_test_samples", None)]:
+        if w is not None:
+            try:
+                w.configure(state=legacy_state)
+            except Exception:
+                pass
+
+    for w in [getattr(self, "ent_test_corner_n", None), getattr(self, "ent_test_indist_n", None), getattr(self, "ent_test_opp_sd", None)]:
+        if w is not None:
+            try:
+                w.configure(state=opp_state)
+            except Exception:
+                pass
+
+    # Always allow restriction / overrides
+    for w in [getattr(self, "ent_test_objectspaces", None), getattr(self, "ent_test_max_dec", None)]:
+        if w is not None:
+            try:
+                w.configure(state="normal")
+            except Exception:
+                pass
+
+    # Refresh estimates
+    self.update_estimates()
     def browse_csv(self):
         """Open a file dialog to select the label CSV and set the entry field."""
         f = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
@@ -1312,17 +1462,29 @@ class DesignGUI(tk.Tk):
             n_runs2 = self.get_int(self.v_runs_s2, 0)
             n_trials2 = self.get_int(self.v_trials_s2, 0)
             
-            # Test Run Parameters
-            include_test = self.v_include_test.get()
-            n_test_runs = self.get_int(self.v_n_test_runs, 0)
-            test_repeats = self.get_int(self.v_test_repeats, 3)
-            test_samples = self.get_int(self.v_test_samples, 3)
+                        # Test Run Parameters
+            include_test = bool(getattr(self, "v_include_test", tk.BooleanVar(value=False)).get())
+            append_to = str(getattr(self, "v_test_append_to", tk.StringVar(value="both")).get()).strip().lower()
+            n_test_runs = self.get_int(getattr(self, "v_n_test_runs", tk.StringVar(value="0")), 0)
+            test_mode = str(getattr(self, "v_test_mode", tk.StringVar(value="all_corners")).get()).strip().lower()
+
+            test_repeats = self.get_int(getattr(self, "v_test_repeats", tk.StringVar(value="3")), 3)
+            test_samples = self.get_int(getattr(self, "v_test_samples", tk.StringVar(value="3")), 3)
+
+            test_corner_n = self.get_int(getattr(self, "v_test_corner_n", tk.StringVar(value="6")), 6)
+            test_indist_n = self.get_int(getattr(self, "v_test_indist_n", tk.StringVar(value="6")), 6)
+
             n_cats = self.get_int(self.v_n_cats, 6)
-            
-            # Total test trials across all test runs
-            total_test_trials = n_cats * test_repeats * test_samples * n_test_runs
-            
-            # 1. Calculate Base and Jitter components based on selected tab
+
+            # Total test trials across all test runs (estimation uses selected category count)
+            if include_test and n_test_runs > 0:
+                if test_mode == "opposite_gaussian":
+                    total_test_trials = n_cats * max(0, (test_corner_n + test_indist_n)) * n_test_runs
+                else:
+                    total_test_trials = n_cats * max(0, test_repeats) * max(0, test_samples) * n_test_runs
+            else:
+                total_test_trials = 0
+# 1. Calculate Base and Jitter components based on selected tab
             if tab == 0: # 2-Event
                 dec = self.get_float(self.v_2_dec)
                 fb = self.get_float(self.v_2_fb)
@@ -1380,15 +1542,18 @@ class DesignGUI(tk.Tk):
                 s2_full += extra_s2
                 s2_no_isi2 += extra_s2
             
-            # Test run duration (total across all specified test runs)
-            test_dur = (total_test_trials * test_t_mean) / 60 if include_test else 0.0
+                        # Test run duration (total across all specified test runs)
+            test_dur_total = (total_test_trials * test_t_mean) / 60.0 if include_test else 0.0
 
+            # Apply append target (Session 1, Session 2, or both)
+            test_dur_s1 = test_dur_total if include_test and append_to in {"s1", "both"} else 0.0
+            test_dur_s2 = test_dur_total if include_test and append_to in {"s2", "both"} else 0.0
             # 3. Final String Formatting for display
             self.lbl_s1_total.config(text=f"~{s1_full:.2f} min")
-            self.lbl_s1_total_nojit.config(text=f"No-ISI2: ~{s1_no_isi2:.2f} min | test length: ~{test_dur:.2f} min")
+            self.lbl_s1_total_nojit.config(text=f"No-ISI2: ~{s1_no_isi2:.2f} min | test length: ~{test_dur_s1:.2f} min")
             
             self.lbl_s2_total.config(text=f"~{s2_full:.2f} min")
-            self.lbl_s2_total_nojit.config(text=f"No-ISI2: ~{s2_no_isi2:.2f} min | test length: ~{test_dur:.2f} min")
+            self.lbl_s2_total_nojit.config(text=f"No-ISI2: ~{s2_no_isi2:.2f} min | test length: ~{test_dur_s2:.2f} min")
 
         except Exception:
             # Silent guard: GUI should remain responsive even if a transient parse error occurs
@@ -1426,13 +1591,30 @@ class DesignGUI(tk.Tk):
                 jitter_config=jconf
             )
 
-            # Test run configuration (optional)
-            # When enabled, test runs are appended to the design as additional runs (run_id continues after learning runs).
-            cfg_s1.include_test_run = bool(getattr(self, "v_include_test", tk.BooleanVar(value=False)).get())
+            #             # Test run configuration (optional)
+            # Test runs are appended to the end of the sessions selected in the GUI.
+            include_test = bool(getattr(self, "v_include_test", tk.BooleanVar(value=False)).get())
+            append_to = str(getattr(self, "v_test_append_to", tk.StringVar(value="both")).get()).strip().lower()
+
+            cfg_s1.include_test_run = bool(include_test and append_to in {"s1", "both"})
             cfg_s1.n_test_runs = self.get_int(getattr(self, "v_n_test_runs", tk.StringVar(value="1")), 1)
-            cfg_s1.test_mode = str(getattr(self, "v_test_mode", tk.StringVar(value="all_corners")).get())
+            cfg_s1.test_mode = str(getattr(self, "v_test_mode", tk.StringVar(value="all_corners")).get()).strip()
             cfg_s1.test_repeats_per_space = self.get_int(getattr(self, "v_test_repeats", tk.StringVar(value="3")), 3)
             cfg_s1.test_samples_per_space = self.get_int(getattr(self, "v_test_samples", tk.StringVar(value="3")), 3)
+
+            # Opposite-corner Gaussian mix (per run, per category)
+            cfg_s1.test_corner_samples_per_space = self.get_int(getattr(self, "v_test_corner_n", tk.StringVar(value="6")), 6)
+            cfg_s1.test_indist_samples_per_space = self.get_int(getattr(self, "v_test_indist_n", tk.StringVar(value="6")), 6)
+            cfg_s1.test_opposite_sd = self.get_float(getattr(self, "v_test_opp_sd", tk.StringVar(value="0.15")), 0.15)
+
+            # Optional: restrict test ObjectSpaces (comma-separated). Empty -> all active spaces.
+            raw_spaces = str(getattr(self, "v_test_objectspaces", tk.StringVar(value="")).get())
+            spaces_list = [s.strip() for s in raw_spaces.split(",") if s.strip() != ""]
+            cfg_s1.test_objectspaces = spaces_list if spaces_list else None
+
+            # Optional: test max decision duration override (3-event only). Blank -> None.
+            raw_test_max = str(getattr(self, "v_test_max_dec", tk.StringVar(value="")).get()).strip()
+            cfg_s1.test_max_dec_dur = float(raw_test_max) if raw_test_max != "" else None
 
             # Optional run start/end fixations encoded into the design CSV
             if hasattr(self, 'v_add_run_fix'):
@@ -1462,6 +1644,9 @@ class DesignGUI(tk.Tk):
                 n_runs=self.get_int(self.v_runs_s2, 2), 
                 trials_per_run=self.get_int(self.v_trials_s2, 20)
             )
+
+            # Apply test-run append target to Session 2
+            cfg_s2.include_test_run = bool(include_test and append_to in {"s2", "both"})
 
             # Optional per-run max decision durations (session 2)
             if mode == "3event" and hasattr(self, "v_3_max_per_run") and bool(self.v_3_max_per_run.get()):
