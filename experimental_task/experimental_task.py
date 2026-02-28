@@ -45,7 +45,7 @@ SKIP_KEY = 'right'  # Demo Mode only
 
 # =========================== TIMING / TR LOGGING =========================== #
 
-def _poll_triggers(kb, tr_log, run_start_abs, trial_idx=None, phase=None):
+def _poll_triggers(kb, tr_log, run_start_abs, trial_idx=None, phase=None, tr_log_all=None):
     """Poll the PsychoPy Keyboard for scanner triggers ('5') and log them."""
     if kb is None:
         return []
@@ -64,16 +64,35 @@ def _poll_triggers(kb, tr_log, run_start_abs, trial_idx=None, phase=None):
             t_abs = core.getTime()
         t_s = float(t_abs - run_start_abs) if run_start_abs is not None else None
         out.append(t_s)
+        rec = {
+            "t_s": t_s,
+            "t_abs": t_abs,
+            "trial_idx": trial_idx,
+            "phase": phase,
+        }
         if tr_log is not None:
-            tr_log.append({
-                "tr_index": len(tr_log) + 1,   # 1-indexed (TR #0 reserved for run-start trigger)
-                "t_s": t_s,
-                "t_abs": t_abs,
-                "trial_idx": trial_idx,
-                "phase": phase,
-            })
+            rec_run = dict(rec)
+            rec_run["tr_index"] = len(tr_log) + 1  # 1-indexed within this run
+            tr_log.append(rec_run)
+        if tr_log_all is not None:
+            rec_all = dict(rec)
+            rec_all["tr_index"] = len(tr_log_all) + 1  # 1-indexed across entire session
+            tr_log_all.append(rec_all)
     return out
 
+
+
+def _flip_and_stamp(win, onsets, key, run_start_abs):
+    """Flip the window and stamp the first flip time for a phase.
+
+    Uses the timestamp returned by win.flip() (PsychoPy wall-clock seconds).
+    Stores run-relative seconds (flip_time - run_start_abs) when available.
+    """
+    t_flip = win.flip()
+    if onsets is not None and key is not None and onsets.get(key) is None:
+        if run_start_abs is not None:
+            onsets[key] = t_flip - run_start_abs
+    return t_flip
 
 def _mark_onset_once(onsets, key, t_abs, run_start_abs):
     if onsets is None:
@@ -780,7 +799,7 @@ def _return_skipped(img_path):
 # =========================== TRIALS =========================== #
 
 def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_mode,
-                       task_clock=None, trial_idx=1, n_trials=1, target_button_idx=None, run_start_abs=None, tr_log=None):
+                       task_clock=None, trial_idx=1, n_trials=1, target_button_idx=None, run_start_abs=None, tr_log=None, tr_log_all=None):
     """Restored 2-Event Logic with new visuals.
 
     Standard mode timeline is absolute: onsets in the design CSV are respected
@@ -788,6 +807,9 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
     provided PsychoPy clock to maintain precise timing.
     """
     has_img, img_path, target, choices, is_fixation = setup_trial_visuals(trial, components, label_data, img_dir, demo_mode, target_button_idx=target_button_idx)
+
+    # Keyboard used both for responses and for polling scanner triggers
+    kb = components.get('kb', None)
 
     # Identify correct key
     try:
@@ -804,6 +826,17 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
     t_end     = float(trial['trial_onset']) + float(trial['trial_duration'])
 
     trial_t0 = float(trial.get('trial_onset', clock.getTime()))
+
+    onsets = {
+        'trial_onset_actual_s': None,
+        'fix_onset_actual_s': None,
+        'enc_onset_actual_s': None,
+        'dec_onset_actual_s': None,
+        'isi2_onset_actual_s': None,
+        'fb_onset_actual_s': None,
+        'iti_onset_actual_s': None,
+    }
+
 
 
     # --- FIXATION-ONLY TRIAL (condition == 'fixation') ---
@@ -831,7 +864,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
 
         while clock.getTime() < end_fix:
 
-            _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='fixation_only')
+            _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='fixation_only', tr_log_all=tr_log_all)
             if event.getKeys(keyList=[EXIT_KEY]):
                 core.quit()
             components.get('fixation_trial', components['fixation']).draw()
@@ -839,7 +872,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
                 components, demo_mode, task_clock, trial_idx, n_trials,
                 clock, trial_t0, 'Fixation', end_fix, breakdown_lines=["Fixation-only trial"]
             )
-            win.flip()
+            _flip_and_stamp(win, onsets, 'fix_onset_actual_s', run_start_abs)
 
         res = {
             'response': None, 'rt': None,
@@ -864,7 +897,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
         return res
     # Pre-Dec Fixation: render fixation until decision onset
     while clock.getTime() < t_dec_on:
-        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='pre_dec_fix')
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='pre_dec_fix', tr_log_all=tr_log_all)
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -883,7 +916,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
         ]
         _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                           clock, trial_t0, 'Fixation', t_dec_on, breakdown)
-        win.flip()
+        _flip_and_stamp(win, onsets, 'fix_onset_actual_s', run_start_abs)
 
     # Decision phase: collect keyboard/mouse responses while drawing choices
     components['mouse'].clickReset()
@@ -893,7 +926,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
 
     while clock.getTime() < (t_dec_on + t_dec_dur):
 
-        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='decision')
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='decision', tr_log_all=tr_log_all)
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -916,11 +949,11 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
         ]
         _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                           clock, trial_t0, 'Decision', (t_dec_on + t_dec_dur), breakdown)
-        win.flip()
+        _flip_and_stamp(win, onsets, 'dec_onset_actual_s', run_start_abs)
 
     # Pre-Feedback Fixation: wait until feedback onset
     while clock.getTime() < t_fb_on:
-        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='pre_fb_fix')
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='pre_fb_fix', tr_log_all=tr_log_all)
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -938,11 +971,11 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
         ]
         _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                           clock, trial_t0, 'Jitter', t_fb_on, breakdown)
-        win.flip()
+        _flip_and_stamp(win, onsets, 'dec_onset_actual_s', run_start_abs)
 
     # Feedback: show correct/incorrect highlighting for the configured duration
     while clock.getTime() < (t_fb_on + t_fb_dur):
-        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='feedback')
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='feedback', tr_log_all=tr_log_all)
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -963,11 +996,11 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
         ]
         _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                           clock, trial_t0, 'Feedback', (t_fb_on + t_fb_dur), breakdown)
-        win.flip()
+        _flip_and_stamp(win, onsets, 'fb_onset_actual_s', run_start_abs)
 
     # ITI: wait until trial end before returning results
     while clock.getTime() < t_end:
-        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='iti')
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='iti', tr_log_all=tr_log_all)
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -985,7 +1018,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
         ]
         _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                           clock, trial_t0, 'ITI', t_end, breakdown)
-        win.flip()
+        _flip_and_stamp(win, onsets, 'iti_onset_actual_s', run_start_abs)
 
     res = {
         'response': response_made, 'rt': rt,
@@ -1012,7 +1045,7 @@ def run_trial_standard(win, clock, trial, components, label_data, img_dir, demo_
 
 def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mode, feedback_delay,
                      fixed_decision_time,
-                     task_clock=None, trial_idx=1, n_trials=1, target_button_idx=None, run_start_abs=None, tr_log=None):
+                     task_clock=None, trial_idx=1, n_trials=1, target_button_idx=None, run_start_abs=None, tr_log=None, tr_log_all=None):
     """3-event (self-paced) trial.
 
     Phases:
@@ -1027,6 +1060,19 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
     after a response (useful for reaction-time based tasks).
     """
     has_img, img_path, target, choices, is_fixation = setup_trial_visuals(trial, components, label_data, img_dir, demo_mode, target_button_idx=target_button_idx)
+
+    # Keyboard used both for responses and for polling scanner triggers
+    kb = components.get('kb', None)
+
+    onsets = {
+        'trial_onset_actual_s': None,
+        'fix_onset_actual_s': None,
+        'enc_onset_actual_s': None,
+        'dec_onset_actual_s': None,
+        'isi2_onset_actual_s': None,
+        'fb_onset_actual_s': None,
+        'iti_onset_actual_s': None,
+    }
 
     # Identify correct key based on shuffled choices
     try:
@@ -1052,6 +1098,8 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
         trial_t0 = clock.getTime()
 
 
+
+
         # Prefer explicit per-trial duration fields from the design file.
         # (trial_duration_max is commonly present in generated 3-event designs.)
         # Use fix_dur when provided for fixation-only trials (authoritative)
@@ -1073,7 +1121,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
         t_fix = clock.getTime()
         end_fix = t_fix + dur
         while clock.getTime() < end_fix:
-            _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='fixation_only')
+            _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='fixation_only', tr_log_all=tr_log_all)
             if event.getKeys(keyList=[EXIT_KEY]):
                 core.quit()
             components.get('fixation_trial', components['fixation']).draw()
@@ -1081,7 +1129,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
                 components, demo_mode, task_clock, trial_idx, n_trials,
                 clock, trial_t0, 'Fixation', end_fix, breakdown_lines=["Fixation-only trial"]
             )
-            win.flip()
+            _flip_and_stamp(win, onsets, 'fix_onset_actual_s', run_start_abs)
 
         res = {
             'response': None, 'rt': None,
@@ -1112,21 +1160,12 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
     # Demo HUD trial start
     trial_t0 = clock.getTime()
 
-    onsets = {
-        'trial_onset_actual_s': None,
-        'enc_onset_actual_s': None,
-        'dec_onset_actual_s': None,
-        'isi2_onset_actual_s': None,
-        'fb_onset_actual_s': None,
-        'iti_onset_actual_s': None,
-        'fix_onset_actual_s': None,
-    }
 
 
     # 1) Encoding + ISI1 (image visible throughout)
     t0 = trial_t0
     while clock.getTime() < (t0 + img_dur + isi1_dur):
-        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='encoding')
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='encoding', tr_log_all=tr_log_all)
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -1142,7 +1181,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
         ]
         _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                           clock, trial_t0, 'Encoding', (t0 + img_dur + isi1_dur), breakdown)
-        win.flip()
+        _flip_and_stamp(win, onsets, 'enc_onset_actual_s', run_start_abs)
 
     # --- IMPORTANT: reset input state right at decision onset so earlier presses
     # do not carry over from the encoding phase. This ensures responses only have
@@ -1157,7 +1196,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
 
     while clock.getTime() < dec_end:
 
-        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='decision')
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='decision', tr_log_all=tr_log_all)
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -1179,7 +1218,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
                 ]
                 _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                                   clock, trial_t0, 'Decision', dec_end, breakdown)
-                win.flip()
+                _flip_and_stamp(win, onsets, 'dec_onset_actual_s', run_start_abs)
                 break
 
         # In fixed decision-time mode, keep the decision screen up until dec_end,
@@ -1194,12 +1233,12 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
         ]
         _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                           clock, trial_t0, 'Decision', dec_end, breakdown)
-        win.flip()
+        _flip_and_stamp(win, onsets, 'dec_onset_actual_s', run_start_abs)
 # 3) Optional hidden ISI2 delay (keep image + selected button on screen)
     if feedback_delay and response_made:
         t_isi2 = clock.getTime()
         while clock.getTime() < (t_isi2 + isi2_dur):
-            _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='isi2')
+            _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='isi2', tr_log_all=tr_log_all)
             if event.getKeys(keyList=[EXIT_KEY]):
                 core.quit()
             if _demo_skip_pressed(demo_mode):
@@ -1214,12 +1253,12 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
             ]
             _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                               clock, trial_t0, 'ISI2', (t_isi2 + isi2_dur), breakdown)
-            win.flip()
+            _flip_and_stamp(win, onsets, 'isi2_onset_actual_s', run_start_abs)
 
     # 4) Feedback
     t_fb = clock.getTime()
     while clock.getTime() < (t_fb + fb_dur):
-        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='feedback')
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='feedback', tr_log_all=tr_log_all)
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -1235,12 +1274,12 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
         ]
         _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                           clock, trial_t0, 'Feedback', (t_fb + fb_dur), breakdown)
-        win.flip()
+        _flip_and_stamp(win, onsets, 'fb_onset_actual_s', run_start_abs)
 
     # 5) ITI (fixation)
     t_iti = clock.getTime()
     while clock.getTime() < (t_iti + iti):
-        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='iti')
+        _poll_triggers(kb, tr_log, run_start_abs, trial_idx=trial_idx, phase='iti', tr_log_all=tr_log_all)
         if event.getKeys(keyList=[EXIT_KEY]):
             core.quit()
         if _demo_skip_pressed(demo_mode):
@@ -1252,7 +1291,7 @@ def run_trial_3event(win, clock, trial, components, label_data, img_dir, demo_mo
         ]
         _hud_set_and_draw(components, demo_mode, task_clock, trial_idx, n_trials,
                           clock, trial_t0, 'ITI', (t_iti + iti), breakdown)
-        win.flip()
+        _flip_and_stamp(win, onsets, 'iti_onset_actual_s', run_start_abs)
 
     res = {
         'response': response_made, 'rt': rt,
@@ -1335,7 +1374,7 @@ def create_window_and_components(demo_mode):
     return win, components
 
 
-def trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=1, run_label=None, tr_log=None):
+def trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=1, run_label=None, tr_log=None, tr_log_all=None):
     """Interactive trigger screen: waits for TRIGGER_KEY.
 
     Displays run/mode/demo information and allows the operator to press a
@@ -1408,7 +1447,7 @@ def trigger_screen(win, components, mode, demo_mode, run_idx=1, n_runs=1, run_la
                     trigger_t_abs = None
                 if trigger_t_abs is None:
                     trigger_t_abs = core.getTime()
-                _poll_triggers(kb, tr_log, trigger_t_abs, trial_idx=None, phase='trigger_screen')
+                _poll_triggers(kb, tr_log, trigger_t_abs, trial_idx=None, phase='trigger_screen', tr_log_all=tr_log_all)
 
         if (not triggered) and (TRIGGER_KEY in pressed):
             triggered = True
@@ -1453,16 +1492,55 @@ def _sanitize_run_label(label):
 
 
 def _safe_write_csv(df, path):
-    """Write CSV atomically to reduce risk of corruption on crash.
+    """Write CSV robustly (atomic when possible) and ensure the file lands on disk.
 
-    Writes to a temporary file then renames it into place which is an atomic
-    operation on most platforms and reduces the chance of partial files being
-    left behind if the process is terminated while writing.
+    - Creates parent directories if needed.
+    - Writes to a temporary file then renames into place (atomic on most platforms).
+    - Falls back to direct write if atomic replace fails (e.g., on some network FS).
+    - Verifies that the output file exists and is non-empty; retries once if not.
     """
     path = str(path)
+    parent = os.path.dirname(path)
+    if parent:
+        try:
+            os.makedirs(parent, exist_ok=True)
+        except Exception:
+            pass
+
     tmp = path + ".tmp"
-    df.to_csv(tmp, index=False)
-    os.replace(tmp, path)
+
+    def _direct_write(dst):
+        df.to_csv(dst, index=False)
+        # Best-effort flush to disk
+        try:
+            with open(dst, "ab") as fh:
+                fh.flush()
+                os.fsync(fh.fileno())
+        except Exception:
+            pass
+
+    # First try: atomic write
+    try:
+        _direct_write(tmp)
+        os.replace(tmp, path)
+    except Exception:
+        # Fallback: direct write (and try to clean tmp)
+        try:
+            if os.path.exists(tmp):
+                try:
+                    os.remove(tmp)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        _direct_write(path)
+
+    # Verify the output is present and non-empty (retry once)
+    try:
+        if (not os.path.exists(path)) or (os.path.getsize(path) <= 0):
+            _direct_write(path)
+    except Exception:
+        pass
 
 
 
@@ -1657,6 +1735,7 @@ def run_experiment():
 
     # Output rows (one per trial) will be accumulated and written per-run for crash safety
     out_rows = []
+    tr_log_all = []  # accumulate scanner triggers across entire session (for 9-trial checkpoints)
 
     n_runs = len(runs)
 
@@ -1747,7 +1826,8 @@ def run_experiment():
         win, components, mode, demo_mode,
         run_idx=first_run_idx, n_runs=n_runs,
         run_label=runs[first_run_idx - 1][0],
-        tr_log=run_tr_log
+        tr_log=run_tr_log,
+        tr_log_all=tr_log_all
     )
     if run_start_abs is None:
         run_start_abs = core.getTime()
@@ -1765,7 +1845,7 @@ def run_experiment():
 
             win, components = create_window_and_components(demo_mode)
             run_tr_log = []
-            run_start_abs = trigger_screen(win, components, mode, demo_mode, run_idx=run_idx, n_runs=n_runs, run_label=run_label, tr_log=run_tr_log)
+            run_start_abs = trigger_screen(win, components, mode, demo_mode, run_idx=run_idx, n_runs=n_runs, run_label=run_label, tr_log=run_tr_log, tr_log_all=tr_log_all)
             if run_start_abs is None:
                 run_start_abs = core.getTime()
             run_tr_log.insert(0, {"tr_index": 0, "t_s": 0.0, "t_abs": float(run_start_abs), "trial_idx": None, "phase": "run_start"})
@@ -1790,7 +1870,7 @@ def run_experiment():
                     target_button_idx=target_btn_seq[trial_idx-1],
                     run_start_abs=run_start_abs,
                     tr_log=run_tr_log
-                )
+                , tr_log_all=tr_log_all)
             else:
                 res = run_trial_3event(
                     win, run_clock, trial, components, label_data, info['Image Dir'],
@@ -1799,7 +1879,7 @@ def run_experiment():
                     target_button_idx=target_btn_seq[trial_idx-1],
                     run_start_abs=run_start_abs,
                     tr_log=run_tr_log
-                )
+                , tr_log_all=tr_log_all)
 
             row = dict(trial)
             row.update(res)
@@ -1818,6 +1898,34 @@ def run_experiment():
                     ckpt_df = pd.DataFrame(out_rows)
                     _safe_write_csv(ckpt_df, ckpt_path)
                 _freeze_clock_for_io(run_clock, _write_ckpt)
+                try:
+                    print(f"[save] checkpoint trials -> {ckpt_path}")
+                except Exception:
+                    pass
+
+                # Also checkpoint scanner trigger timings with the same 9-trial policy.
+                # This mirrors the crash-robustness of the main behavioural output.
+                if tr_log_all is not None and len(tr_log_all) > 0:
+                    tr_ckpt_path = os.path.join(dir_ckpt9, f"sub-{sub_token}_{mode}_ckpt-triggers-{len(out_rows):05d}_{session_ts}.csv")
+                    def _write_tr_ckpt():
+                        tr_df = pd.DataFrame(tr_log_all)
+                        _safe_write_csv(tr_df, tr_ckpt_path)
+                    _freeze_clock_for_io(run_clock, _write_tr_ckpt)
+                    try:
+                        print(f"[save] checkpoint triggers -> {tr_ckpt_path}")
+                    except Exception:
+                        pass
+
+                # Flush console tee streams on the same cadence so logs survive crashes.
+                try:
+                    sys.stdout.flush()
+                except Exception:
+                    pass
+                try:
+                    sys.stderr.flush()
+                except Exception:
+                    pass
+
 
         # Save results for this run immediately (crash-safe).
         # This ensures we still have earlier runs if the task crashes later.
@@ -1828,6 +1936,10 @@ def run_experiment():
                 run_out_df = pd.DataFrame(run_rows)
                 _safe_write_csv(run_out_df, run_path)
             _freeze_clock_for_io(run_clock, _write_run)
+            try:
+                print(f"[save] run file -> {run_path}")
+            except Exception:
+                pass
 
         if run_tr_log is not None and len(run_tr_log) > 0:
             run_token = _sanitize_run_label(run_label)
@@ -1838,14 +1950,26 @@ def run_experiment():
                 tr_df.insert(1, 'run_label', run_label)
                 _safe_write_csv(tr_df, tr_path)
             _freeze_clock_for_io(run_clock, _write_tr)
+            try:
+                print(f"[save] run triggers -> {tr_path}")
+            except Exception:
+                pass
 
     out_df = pd.DataFrame(out_rows)
     # Final joined file across all runs (crash-safe)
     joined_path = os.path.join(dir_final, f"sub-{sub_token}_{mode}_joined_{session_ts}.csv")
     _freeze_clock_for_io(None, _safe_write_csv, out_df, joined_path)
+    try:
+        print(f"[save] final joined -> {joined_path}")
+    except Exception:
+        pass
     # Also write/keep the legacy filename for compatibility
     legacy_path = os.path.join(dir_final, f"sub-{sub_token}_{mode}_{session_ts}.csv")
     _freeze_clock_for_io(None, _safe_write_csv, out_df, legacy_path)
+    try:
+        print(f"[save] final legacy -> {legacy_path}")
+    except Exception:
+        pass
 
     try:
         win.close()
