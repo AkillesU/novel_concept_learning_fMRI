@@ -1791,10 +1791,24 @@ def run_experiment():
 
     
     # --------------------------- OUTPUT / LOGGING --------------------------- #
-    # Create a clean, per-participant output folder with a per-session timestamp.
+    # Create a clean, per-participant output folder that includes GUI session number.
+
     session_ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     sub_token = str(info['Sub']).strip()
-    base_out_dir = os.path.join('participant_data', f"sub-{sub_token}", f"session-{session_ts}")
+
+    # Robust session tag from GUI
+    gui_session = str(info.get('Session', '')).strip()
+    if not gui_session:
+        gui_session = "NA"
+
+    # Sanitize session tag for filesystem safety
+    gui_session = re.sub(r"[^A-Za-z0-9._-]+", "-", gui_session)
+
+    base_out_dir = os.path.join(
+        'participant_data',
+        f"sub-{sub_token}",
+        f"session-{gui_session}_{session_ts}"
+    ) 
     dir_logs = os.path.join(base_out_dir, "logs")
     dir_ckpt9 = os.path.join(base_out_dir, "checkpoints_9trials")
     dir_runs = os.path.join(base_out_dir, "per_run")
