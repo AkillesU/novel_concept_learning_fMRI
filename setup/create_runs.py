@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 create_runs.py
 
@@ -1060,8 +1060,50 @@ class DesignGUI(tk.Tk):
 
     def _build_ui(self):
         """Construct the GUI layout: file inputs, global settings, timing tabs, and action button."""
-        main = ttk.Frame(self, padding=10)
-        main.pack(fill="both", expand=True)
+        # ---- Scrollable main container (prevents UI extending beyond screen) ----
+        container = ttk.Frame(self)
+        container.pack(fill="both", expand=True)
+
+        canvas = tk.Canvas(container, highlightthickness=0)
+        vscroll = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=vscroll.set)
+
+        vscroll.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+
+        main = ttk.Frame(canvas, padding=10)
+        main_window = canvas.create_window((0, 0), window=main, anchor="nw")
+
+        def _on_main_configure(_event=None):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        def _on_canvas_configure(event):
+            # Keep the inner frame the same width as the canvas so widgets don't get clipped horizontally
+            canvas.itemconfigure(main_window, width=event.width)
+
+        main.bind("<Configure>", _on_main_configure)
+        canvas.bind("<Configure>", _on_canvas_configure)
+
+        # Mousewheel scrolling (Windows/macOS)
+        def _on_mousewheel(event):
+            # event.delta is typically 120 increments on Windows; on macOS it can be smaller.
+            delta = event.delta
+            if delta == 0:
+                return
+            canvas.yview_scroll(int(-1 * (delta / 120)), "units")
+
+        # Linux (X11) uses Button-4/5
+        def _on_mousewheel_linux(event):
+            if event.num == 4:
+                canvas.yview_scroll(-1, "units")
+            elif event.num == 5:
+                canvas.yview_scroll(1, "units")
+
+        # Bind to the canvas (not the whole app) to avoid hijacking scrolling in other windows
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        canvas.bind_all("<Button-4>", _on_mousewheel_linux)
+        canvas.bind_all("<Button-5>", _on_mousewheel_linux)
+        # -------------------------------------------------------------------
 
         # 1. File Inputs
         fr_file = ttk.LabelFrame(main, text="Files & Output")
@@ -1120,65 +1162,74 @@ class DesignGUI(tk.Tk):
         self.v_add_run_fix = tk.BooleanVar(value=True)
         ttk.Checkbutton(fr_glob, text="Add run fixations (10s start / 5s end)", variable=self.v_add_run_fix).pack(side="left", padx=8)
 
-                # Test run settings
-        ttk.Label(fr_glob, text=" | Test Run:").pack(side="left", padx=8)
-        self.v_include_test = tk.BooleanVar(value=False)
-        ttk.Checkbutton(fr_glob, text="Include", variable=self.v_include_test, command=self.update_estimates).pack(side="left")
+                
+        # Test run settings (placed on separate rows so it doesn't exceed screen width)
+        fr_test = ttk.LabelFrame(main, text="Test Runs")
+        fr_test.pack(fill="x", pady=5)
 
-        ttk.Label(fr_glob, text="Append to:").pack(side="left", padx=(6, 0))
+        fr_test_row1 = ttk.Frame(fr_test)
+        fr_test_row1.pack(fill="x", pady=(0, 2))
+        fr_test_row2 = ttk.Frame(fr_test)
+        fr_test_row2.pack(fill="x")
+
+        self.v_include_test = tk.BooleanVar(value=False)
+        ttk.Checkbutton(fr_test_row1, text="Include", variable=self.v_include_test, command=self.update_estimates).pack(side="left", padx=(0, 8))
+
+        ttk.Label(fr_test_row1, text="Append to:").pack(side="left")
         # Where to append test runs (end of Session 1, Session 2, or both)
         self.v_test_append_to = tk.StringVar(value="both")
-        ttk.OptionMenu(fr_glob, self.v_test_append_to, "both", "s1", "s2", "both", command=lambda *_: self.update_estimates()).pack(side="left", padx=(2, 6))
+        ttk.OptionMenu(fr_test_row1, self.v_test_append_to, "both", "s1", "s2", "both",
+                       command=lambda *_: self.update_estimates()).pack(side="left", padx=(2, 10))
 
-        ttk.Label(fr_glob, text="# Test Runs:").pack(side="left")
+        ttk.Label(fr_test_row1, text="# Test Runs:").pack(side="left")
         self.v_n_test_runs = tk.StringVar(value="1")
-        ttk.Entry(fr_glob, textvariable=self.v_n_test_runs, width=4).pack(side="left", padx=5)
+        ttk.Entry(fr_test_row1, textvariable=self.v_n_test_runs, width=4).pack(side="left", padx=(2, 10))
 
-        ttk.Label(fr_glob, text="Mode:").pack(side="left")
+        ttk.Label(fr_test_row1, text="Mode:").pack(side="left")
         self.v_test_mode = tk.StringVar(value="all_corners")
-        ttk.OptionMenu(fr_glob, self.v_test_mode, "all_corners", "all_corners", "furthest_corner", "opposite_gaussian",
-                       command=lambda *_: self._on_test_mode_change()).pack(side="left")
+        ttk.OptionMenu(fr_test_row1, self.v_test_mode, "all_corners", "all_corners", "furthest_corner", "opposite_gaussian",
+                       command=lambda *_: self._on_test_mode_change()).pack(side="left", padx=(2, 10))
 
         # Legacy (corner list) controls
-        ttk.Label(fr_glob, text="Repeats:").pack(side="left")
+        ttk.Label(fr_test_row1, text="Repeats:").pack(side="left")
         self.v_test_repeats = tk.StringVar(value="3")
-        self.ent_test_repeats = ttk.Entry(fr_glob, textvariable=self.v_test_repeats, width=4)
-        self.ent_test_repeats.pack(side="left", padx=2)
+        self.ent_test_repeats = ttk.Entry(fr_test_row1, textvariable=self.v_test_repeats, width=4)
+        self.ent_test_repeats.pack(side="left", padx=(2, 10))
 
-        ttk.Label(fr_glob, text="Samples:").pack(side="left")
+        ttk.Label(fr_test_row1, text="Samples:").pack(side="left")
         self.v_test_samples = tk.StringVar(value="3")
-        self.ent_test_samples = ttk.Entry(fr_glob, textvariable=self.v_test_samples, width=4)
-        self.ent_test_samples.pack(side="left", padx=2)
+        self.ent_test_samples = ttk.Entry(fr_test_row1, textvariable=self.v_test_samples, width=4)
+        self.ent_test_samples.pack(side="left", padx=(2, 0))
 
         # Opposite-corner Gaussian mix controls (per run, per category)
-        ttk.Label(fr_glob, text="OOD#:").pack(side="left", padx=(6, 0))
+        ttk.Label(fr_test_row2, text="OOD#:").pack(side="left")
         self.v_test_corner_n = tk.StringVar(value="6")
-        self.ent_test_corner_n = ttk.Entry(fr_glob, textvariable=self.v_test_corner_n, width=4)
-        self.ent_test_corner_n.pack(side="left", padx=2)
+        self.ent_test_corner_n = ttk.Entry(fr_test_row2, textvariable=self.v_test_corner_n, width=4)
+        self.ent_test_corner_n.pack(side="left", padx=(2, 10))
 
-        ttk.Label(fr_glob, text="InDist#:").pack(side="left")
+        ttk.Label(fr_test_row2, text="InDist#:").pack(side="left")
         self.v_test_indist_n = tk.StringVar(value="6")
-        self.ent_test_indist_n = ttk.Entry(fr_glob, textvariable=self.v_test_indist_n, width=4)
-        self.ent_test_indist_n.pack(side="left", padx=2)
+        self.ent_test_indist_n = ttk.Entry(fr_test_row2, textvariable=self.v_test_indist_n, width=4)
+        self.ent_test_indist_n.pack(side="left", padx=(2, 10))
 
-        ttk.Label(fr_glob, text="Opp SD:").pack(side="left")
+        ttk.Label(fr_test_row2, text="Opp SD:").pack(side="left")
         self.v_test_opp_sd = tk.StringVar(value="0.15")
-        self.ent_test_opp_sd = ttk.Entry(fr_glob, textvariable=self.v_test_opp_sd, width=5)
-        self.ent_test_opp_sd.pack(side="left", padx=2)
+        self.ent_test_opp_sd = ttk.Entry(fr_test_row2, textvariable=self.v_test_opp_sd, width=6)
+        self.ent_test_opp_sd.pack(side="left", padx=(2, 10))
 
         # Optional ObjectSpace restriction (comma-separated)
-        ttk.Label(fr_glob, text="Test ObjectSpaces:").pack(side="left", padx=(8, 0))
+        ttk.Label(fr_test_row2, text="Test ObjectSpaces:").pack(side="left")
         self.v_test_objectspaces = tk.StringVar(value="")
-        self.ent_test_objectspaces = ttk.Entry(fr_glob, textvariable=self.v_test_objectspaces, width=14)
-        self.ent_test_objectspaces.pack(side="left", padx=2)
+        self.ent_test_objectspaces = ttk.Entry(fr_test_row2, textvariable=self.v_test_objectspaces, width=18)
+        self.ent_test_objectspaces.pack(side="left", padx=(2, 10))
 
         # Optional test max decision duration override (3-event only; blank = use learning)
-        ttk.Label(fr_glob, text="Test MaxDec:").pack(side="left", padx=(6, 0))
+        ttk.Label(fr_test_row2, text="Test MaxDec:").pack(side="left")
         self.v_test_max_dec = tk.StringVar(value="")
-        self.ent_test_max_dec = ttk.Entry(fr_glob, textvariable=self.v_test_max_dec, width=5)
-        self.ent_test_max_dec.pack(side="left", padx=2)
+        self.ent_test_max_dec = ttk.Entry(fr_test_row2, textvariable=self.v_test_max_dec, width=6)
+        self.ent_test_max_dec.pack(side="left", padx=(2, 0))
 
-        # Keep estimates responsive
+# Keep estimates responsive
         for _v in [self.v_n_test_runs, self.v_test_repeats, self.v_test_samples,
                   self.v_test_corner_n, self.v_test_indist_n, self.v_test_opp_sd,
                   self.v_test_objectspaces, self.v_test_max_dec, self.v_test_append_to]:
@@ -1375,42 +1426,42 @@ class DesignGUI(tk.Tk):
 
 
 
-def _on_test_mode_change(self):
-    """Enable/disable test-run sampling controls based on selected test mode."""
-    try:
-        mode = str(self.v_test_mode.get()).strip().lower()
-    except Exception:
-        mode = "all_corners"
+    def _on_test_mode_change(self):
+        """Enable/disable test-run sampling controls based on selected test mode."""
+        try:
+            mode = str(self.v_test_mode.get()).strip().lower()
+        except Exception:
+            mode = "all_corners"
 
-    # Legacy (corner list) controls
-    legacy_state = "normal" if mode in {"all_corners", "furthest_corner"} else "disabled"
-    # Opposite-corner Gaussian mix controls
-    opp_state = "normal" if mode == "opposite_gaussian" else "disabled"
+        # Legacy (corner list) controls
+        legacy_state = "normal" if mode in {"all_corners", "furthest_corner"} else "disabled"
+        # Opposite-corner Gaussian mix controls
+        opp_state = "normal" if mode == "opposite_gaussian" else "disabled"
 
-    for w in [getattr(self, "ent_test_repeats", None), getattr(self, "ent_test_samples", None)]:
-        if w is not None:
-            try:
-                w.configure(state=legacy_state)
-            except Exception:
-                pass
+        for w in [getattr(self, "ent_test_repeats", None), getattr(self, "ent_test_samples", None)]:
+            if w is not None:
+                try:
+                    w.configure(state=legacy_state)
+                except Exception:
+                    pass
 
-    for w in [getattr(self, "ent_test_corner_n", None), getattr(self, "ent_test_indist_n", None), getattr(self, "ent_test_opp_sd", None)]:
-        if w is not None:
-            try:
-                w.configure(state=opp_state)
-            except Exception:
-                pass
+        for w in [getattr(self, "ent_test_corner_n", None), getattr(self, "ent_test_indist_n", None), getattr(self, "ent_test_opp_sd", None)]:
+            if w is not None:
+                try:
+                    w.configure(state=opp_state)
+                except Exception:
+                    pass
 
-    # Always allow restriction / overrides
-    for w in [getattr(self, "ent_test_objectspaces", None), getattr(self, "ent_test_max_dec", None)]:
-        if w is not None:
-            try:
-                w.configure(state="normal")
-            except Exception:
-                pass
+        # Always allow restriction / overrides
+        for w in [getattr(self, "ent_test_objectspaces", None), getattr(self, "ent_test_max_dec", None)]:
+            if w is not None:
+                try:
+                    w.configure(state="normal")
+                except Exception:
+                    pass
 
-    # Refresh estimates
-    self.update_estimates()
+        # Refresh estimates
+        self.update_estimates()
     def browse_csv(self):
         """Open a file dialog to select the label CSV and set the entry field."""
         f = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
@@ -1462,7 +1513,7 @@ def _on_test_mode_change(self):
             n_runs2 = self.get_int(self.v_runs_s2, 0)
             n_trials2 = self.get_int(self.v_trials_s2, 0)
             
-                        # Test Run Parameters
+            # Test Run Parameters
             include_test = bool(getattr(self, "v_include_test", tk.BooleanVar(value=False)).get())
             append_to = str(getattr(self, "v_test_append_to", tk.StringVar(value="both")).get()).strip().lower()
             n_test_runs = self.get_int(getattr(self, "v_n_test_runs", tk.StringVar(value="0")), 0)
@@ -1484,7 +1535,7 @@ def _on_test_mode_change(self):
                     total_test_trials = n_cats * max(0, test_repeats) * max(0, test_samples) * n_test_runs
             else:
                 total_test_trials = 0
-# 1. Calculate Base and Jitter components based on selected tab
+            # 1. Calculate Base and Jitter components based on selected tab
             if tab == 0: # 2-Event
                 dec = self.get_float(self.v_2_dec)
                 fb = self.get_float(self.v_2_fb)
@@ -1715,6 +1766,30 @@ def _on_test_mode_change(self):
         except Exception as e:
             # Surface the error both in the GUI log and a popup dialog
             self.log(f"Error: {e}"); messagebox.showerror("Error", str(e))
+
+
+# ---- Hotfix: ensure GUI methods are bound on DesignGUI (in case of indentation issues) ----
+def _designgui_browse_csv(self):
+    """Open a file dialog to select the label CSV and set the entry field."""
+    f = filedialog.askopenfilename(filetypes=[("CSV", "*.csv")])
+    if f:
+        self.v_csv.set(f)
+
+def _designgui_log(self, txt):
+    """Append a line to the GUI log box and scroll to the bottom."""
+    try:
+        self.log_box.insert("end", txt + "\n")
+        self.log_box.see("end")
+    except Exception:
+        pass
+
+# Bind as methods if missing
+if "DesignGUI" in globals():
+    if not hasattr(DesignGUI, "browse_csv"):
+        DesignGUI.browse_csv = _designgui_browse_csv
+    if not hasattr(DesignGUI, "log"):
+        DesignGUI.log = _designgui_log
+
 
 if __name__ == "__main__":
     app = DesignGUI()
