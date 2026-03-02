@@ -8,6 +8,11 @@
 images/task_images/
 images/images_THINGS/
 *token.txt
+
+# participant data
+/participant_data
+/localiser_data
+/data
 # Any frmi Files
 *.nii
 # User-specific files
