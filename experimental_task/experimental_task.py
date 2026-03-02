@@ -1609,7 +1609,7 @@ def run_experiment():
         'Session': '',          # Session index/tag used to auto-load design (e.g., 1)
         'Task Design Parent': 'experimental_task/task_designs/final/',
         'Design CSV': '',        # Leave blank to browse
-        'Label CSV': 'experimental_task/label_files/v6-9cat-japanese.csv',         # Leave blank to browse
+        'Label CSV': 'experimental_task/label_files/final-japanese.csv',         # Leave blank to browse
         'Image Dir': 'images/task_images/',   # Default directory
         'Feedback Delay': True, # Selection from previous requirements
         'Fixed Decision Time': True,  # When True, always wait max_dec_dur before ISI2/Feedback
