@@ -206,46 +206,66 @@ def build_block_sequence(
     Build a trial sequence for a block:
     - No accidental immediate repeats (we add repeats only at target positions)
     - Use unique images within the run when possible
+    - Only draw the number of distinct images that will actually be presented
+      once 1-back target repeats are taken into account
     """
     if len(cat_images) < 2:
         raise RuntimeError("Need at least 2 images per category to support 1-back without trivial repeats.")
 
+    valid_target_positions = sorted({
+        t for t in target_positions
+        if 0 < t < trials_per_block
+    })
+    n_needed_unique = trials_per_block - len(valid_target_positions)
+    if n_needed_unique <= 0:
+        raise RuntimeError(
+            "Block requires at least one non-target trial; check trials_per_block and target_positions."
+        )
+
     draw_pool = _sample_unique_images_for_run(
         cat_images,
-        n_needed_unique=trials_per_block,
+        n_needed_unique=n_needed_unique,
         used_in_run=used_in_run,
         used_across_participant=used_across_participant,
         rng=rng,
     )
 
     base: List[str] = []
-    for _ in range(trials_per_block):
-        if draw_pool:
-            cand = draw_pool.pop(0)
+    draw_idx = 0
+    for trial_idx in range(trials_per_block):
+        if trial_idx in valid_target_positions:
+            # Placeholder; overwritten after the non-target skeleton is built.
+            base.append("")
+            continue
+
+        if draw_idx < len(draw_pool):
+            cand = draw_pool[draw_idx]
+            draw_idx += 1
         else:
             cand = rng.choice(cat_images)
 
-        if base and cand == base[-1]:
-            # Try to find a non-repeating alternative
-            alt = None
-            for j in range(len(draw_pool)):
-                if draw_pool[j] != base[-1]:
-                    alt = draw_pool.pop(j)
-                    draw_pool.insert(0, cand)  # put cand back
-                    cand = alt
-                    break
-            if alt is None:
-                tries = 0
-                while cand == base[-1] and tries < 50:
-                    cand = rng.choice(cat_images)
-                    tries += 1
+        if base:
+            prev = base[-1]
+            if prev and cand == prev:
+                # Try to find a non-repeating alternative among the remaining pool
+                alt = None
+                for j in range(draw_idx, len(draw_pool)):
+                    if draw_pool[j] != prev:
+                        alt = draw_pool[j]
+                        draw_pool[j] = cand
+                        cand = alt
+                        draw_idx += 1
+                        break
+                if alt is None:
+                    tries = 0
+                    while cand == prev and tries < 50:
+                        cand = rng.choice(cat_images)
+                        tries += 1
 
         base.append(cand)
 
     is_target = [False] * trials_per_block
-    for t in target_positions:
-        if t <= 0 or t >= trials_per_block:
-            continue
+    for t in valid_target_positions:
         base[t] = base[t - 1]
         is_target[t] = True
 
