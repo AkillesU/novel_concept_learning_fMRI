@@ -1,0 +1,2188 @@
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\results_all.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\results_all.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\results_all_filtered.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\results_all_filtered.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-001_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-001_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-002_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-002_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-003_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-003_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-004_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-004_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-005_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-005_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-006_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-006_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-007_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-007_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-008_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-008_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-009_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-009_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-010_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-010_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-011_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-011_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-012_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-012_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-013_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-013_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-014_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-014_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-015_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-015_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-016_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-016_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-017_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-017_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-018_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-018_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-019_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-019_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-020_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-020_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-021_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-021_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-022_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-022_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-023_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-023_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-024_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-024_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-025_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-025_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-026_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-026_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-027_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-027_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-028_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-028_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-029_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-029_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-030_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-030_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-031_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-031_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-032_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-032_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-033_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-033_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-034_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-034_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-035_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-035_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-036_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-036_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-037_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-037_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-038_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-038_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-039_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-039_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-040_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-040_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-041_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-041_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-042_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-042_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-043_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-043_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-044_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-044_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-045_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-045_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-046_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-046_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-047_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-047_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-048_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-048_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-049_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-049_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-050_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-050_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-051_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-051_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-052_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-052_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-053_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-053_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-054_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-054_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-055_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-055_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-056_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-056_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-057_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-057_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-058_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-058_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-059_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-059_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-060_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-060_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-061_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-061_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-062_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-062_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-063_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-063_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-064_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-064_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-065_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-065_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-066_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-066_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-067_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-067_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-068_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-068_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-069_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-069_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-070_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-070_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-071_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-071_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-072_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-072_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-073_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-073_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-074_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-074_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-075_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-075_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-076_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-076_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-077_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-077_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-078_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-078_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-079_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-079_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-080_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-080_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-081_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-081_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-082_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-082_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-083_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-083_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-084_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-084_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-085_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-085_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-086_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-086_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-087_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-087_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-088_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-088_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-089_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-089_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-090_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-090_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-091_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-091_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-092_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-092_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-093_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-093_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-094_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-094_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-095_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-095_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-096_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-096_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-097_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-097_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-098_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-098_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-099_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-099_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-1\final_sub-100_sess-1_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-1\final_sub-100_sess-1_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-001_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-001_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 7 trial_id 182 (obj 3.0, img 3_0.857_0.898.png) <-> row-pos 8 trial_id 183 (obj 2.0, img 2_0.000_0.837.png)
+  swap run 8 | row-pos 4 trial_id 213 (obj 18.0, img 18_0.857_1.000.png) <-> row-pos 5 trial_id 214 (obj 22.0, img 13b_0.000_0.000.png)
+  swap run 8 | row-pos 9 trial_id 218 (obj 3.0, img 3_0.061_0.020.png) <-> row-pos 10 trial_id 219 (obj 2.0, img 2_0.714_0.347.png)
+  swap run 8 | row-pos 21 trial_id 230 (obj 2.0, img 2_0.000_1.000.png) <-> row-pos 25 trial_id 234 (obj 22.0, img 13b_1.000_0.653.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-002_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-002_sess-2_3event.csv
+CHANGED: True
+SWAPS: 5
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 1 trial_id 176 (obj 3.0, img 3_0.551_0.327.png) <-> row-pos 2 trial_id 177 (obj 2.0, img 2_0.000_1.000.png)
+  swap run 7 | row-pos 7 trial_id 182 (obj 22.0, img 13b_0.000_0.082.png) <-> row-pos 14 trial_id 189 (obj 18.0, img 18_1.000_1.000.png)
+  swap run 8 | row-pos 2 trial_id 211 (obj 18.0, img 18_1.000_1.000.png) <-> row-pos 3 trial_id 212 (obj 3.0, img 3_0.286_0.061.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 9 trial_id 218 (obj 3.0, img 3_0.959_0.714.png)
+  swap run 8 | row-pos 11 trial_id 220 (obj 2.0, img 2_0.959_0.531.png) <-> row-pos 19 trial_id 228 (obj 18.0, img 18_1.000_0.980.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-003_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-003_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 1 trial_id 210 (obj 2.0, img 2_0.000_0.918.png) <-> row-pos 2 trial_id 211 (obj 3.0, img 3_0.000_0.204.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-004_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-004_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 18 trial_id 193 (obj 3.0, img 3_0.857_0.816.png) <-> row-pos 19 trial_id 194 (obj 2.0, img 2_0.000_0.939.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 2.0, img 2_0.000_1.000.png) <-> row-pos 10 trial_id 219 (obj 18.0, img 18_0.000_0.469.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-005_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-005_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 21 trial_id 196 (obj 3.0, img 3_0.633_0.204.png) <-> row-pos 3 trial_id 178 (obj 18.0, img 18_1.000_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-006_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-006_sess-2_3event.csv
+CHANGED: True
+SWAPS: 5
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 13 trial_id 188 (obj 3.0, img 3_0.122_0.184.png) <-> row-pos 14 trial_id 189 (obj 18.0, img 18_1.000_0.714.png)
+  swap run 7 | row-pos 23 trial_id 198 (obj 22.0, img 13b_0.898_0.551.png) <-> row-pos 30 trial_id 205 (obj 18.0, img 18_1.000_1.000.png)
+  swap run 8 | row-pos 2 trial_id 211 (obj 22.0, img 13b_0.878_0.653.png) <-> row-pos 3 trial_id 212 (obj 3.0, img 3_0.490_0.163.png)
+  swap run 8 | row-pos 7 trial_id 216 (obj 2.0, img 2_0.633_0.612.png) <-> row-pos 8 trial_id 217 (obj 3.0, img 3_0.367_0.612.png)
+  swap run 8 | row-pos 20 trial_id 229 (obj 18.0, img 18_0.816_0.959.png) <-> row-pos 23 trial_id 232 (obj 2.0, img 2_0.000_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-007_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-007_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 3 trial_id 212 (obj 2.0, img 2_0.612_0.286.png) <-> row-pos 8 trial_id 217 (obj 3.0, img 3_0.490_0.510.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-008_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-008_sess-2_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-009_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-009_sess-2_3event.csv
+CHANGED: True
+SWAPS: 5
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 4 trial_id 179 (obj 22.0, img 13b_0.000_0.245.png) <-> row-pos 17 trial_id 192 (obj 2.0, img 2_0.061_0.878.png)
+  swap run 7 | row-pos 8 trial_id 183 (obj 18.0, img 18_0.857_1.000.png) <-> row-pos 9 trial_id 184 (obj 3.0, img 3_0.959_1.000.png)
+  swap run 7 | row-pos 12 trial_id 187 (obj 22.0, img 13b_0.000_0.102.png) <-> row-pos 13 trial_id 188 (obj 2.0, img 2_0.612_0.000.png)
+  swap run 7 | row-pos 23 trial_id 198 (obj 2.0, img 2_0.224_0.980.png) <-> row-pos 26 trial_id 201 (obj 18.0, img 18_0.122_0.429.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 3.0, img 3_1.000_1.000.png) <-> row-pos 7 trial_id 216 (obj 22.0, img 13b_0.633_0.571.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-010_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-010_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 3 trial_id 178 (obj 18.0, img 18_0.347_0.122.png) <-> row-pos 9 trial_id 184 (obj 22.0, img 13b_0.224_0.102.png)
+  swap run 7 | row-pos 14 trial_id 189 (obj 22.0, img 13b_0.000_0.163.png) <-> row-pos 15 trial_id 190 (obj 18.0, img 18_1.000_0.939.png)
+  swap run 7 | row-pos 26 trial_id 201 (obj 22.0, img 13b_0.816_0.694.png) <-> row-pos 1 trial_id 176 (obj 3.0, img 3_0.327_1.000.png)
+  swap run 8 | row-pos 1 trial_id 210 (obj 18.0, img 18_0.959_0.918.png) <-> row-pos 2 trial_id 211 (obj 3.0, img 3_0.429_0.265.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-011_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-011_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 16 trial_id 191 (obj 2.0, img 2_0.776_0.204.png) <-> row-pos 17 trial_id 192 (obj 3.0, img 3_0.286_0.408.png)
+  swap run 8 | row-pos 20 trial_id 229 (obj 18.0, img 18_0.347_0.551.png) <-> row-pos 21 trial_id 230 (obj 3.0, img 3_1.000_0.959.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-012_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-012_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 12 trial_id 187 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 13 trial_id 188 (obj 2.0, img 2_1.000_0.735.png)
+  swap run 7 | row-pos 16 trial_id 191 (obj 2.0, img 2_0.653_0.327.png) <-> row-pos 17 trial_id 192 (obj 18.0, img 18_0.653_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-013_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-013_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 5 trial_id 180 (obj 2.0, img 2_0.000_0.816.png) <-> row-pos 6 trial_id 181 (obj 18.0, img 18_1.000_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-014_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-014_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 3 trial_id 178 (obj 22.0, img 13b_0.082_0.000.png) <-> row-pos 4 trial_id 179 (obj 2.0, img 2_0.673_0.122.png)
+  swap run 8 | row-pos 12 trial_id 221 (obj 2.0, img 2_0.000_1.000.png) <-> row-pos 19 trial_id 228 (obj 22.0, img 13b_0.449_0.980.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-015_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-015_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 3 trial_id 178 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 4 trial_id 179 (obj 2.0, img 2_0.204_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-016_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-016_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 13 trial_id 222 (obj 2.0, img 2_0.490_0.408.png) <-> row-pos 16 trial_id 225 (obj 22.0, img 13b_0.673_0.918.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-017_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-017_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 16 trial_id 191 (obj 3.0, img 3_0.000_0.265.png) <-> row-pos 20 trial_id 195 (obj 2.0, img 2_0.755_0.306.png)
+  swap run 8 | row-pos 14 trial_id 223 (obj 2.0, img 2_0.020_1.000.png) <-> row-pos 25 trial_id 234 (obj 22.0, img 13b_0.102_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-018_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-018_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 13 trial_id 188 (obj 18.0, img 18_0.408_0.265.png) <-> row-pos 17 trial_id 192 (obj 22.0, img 13b_0.592_0.776.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-019_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-019_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 3 trial_id 178 (obj 18.0, img 18_1.000_0.918.png) <-> row-pos 4 trial_id 179 (obj 22.0, img 13b_0.224_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-020_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-020_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 5 trial_id 180 (obj 18.0, img 18_0.347_0.490.png) <-> row-pos 8 trial_id 183 (obj 3.0, img 3_1.000_0.918.png)
+  swap run 7 | row-pos 20 trial_id 195 (obj 3.0, img 3_0.837_1.000.png) <-> row-pos 21 trial_id 196 (obj 2.0, img 2_0.571_0.245.png)
+  swap run 8 | row-pos 9 trial_id 218 (obj 22.0, img 13b_0.980_0.959.png) <-> row-pos 10 trial_id 219 (obj 18.0, img 18_0.204_0.510.png)
+  swap run 8 | row-pos 15 trial_id 224 (obj 3.0, img 3_0.245_0.592.png) <-> row-pos 20 trial_id 229 (obj 2.0, img 2_0.755_0.510.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-021_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-021_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 28 trial_id 203 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 2 trial_id 177 (obj 3.0, img 3_0.224_0.000.png)
+  swap run 8 | row-pos 12 trial_id 221 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 13 trial_id 222 (obj 3.0, img 3_0.714_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-022_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-022_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 5 trial_id 180 (obj 18.0, img 18_0.735_0.816.png) <-> row-pos 8 trial_id 183 (obj 22.0, img 13b_0.000_0.020.png)
+  swap run 7 | row-pos 10 trial_id 185 (obj 2.0, img 2_0.000_0.857.png) <-> row-pos 14 trial_id 189 (obj 22.0, img 13b_0.612_0.898.png)
+  swap run 8 | row-pos 18 trial_id 227 (obj 22.0, img 13b_0.000_0.122.png) <-> row-pos 21 trial_id 230 (obj 18.0, img 18_1.000_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-023_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-023_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 9 trial_id 218 (obj 18.0, img 18_0.490_0.245.png) <-> row-pos 13 trial_id 222 (obj 22.0, img 13b_0.082_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-024_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-024_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 9 trial_id 184 (obj 2.0, img 2_0.143_0.898.png) <-> row-pos 26 trial_id 201 (obj 22.0, img 13b_0.878_1.000.png)
+  swap run 8 | row-pos 5 trial_id 214 (obj 22.0, img 13b_0.837_0.592.png) <-> row-pos 10 trial_id 219 (obj 2.0, img 2_0.000_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-025_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-025_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 10 trial_id 185 (obj 22.0, img 13b_0.143_0.000.png) <-> row-pos 11 trial_id 186 (obj 2.0, img 2_0.061_1.000.png)
+  swap run 7 | row-pos 14 trial_id 189 (obj 18.0, img 18_1.000_0.980.png) <-> row-pos 18 trial_id 193 (obj 3.0, img 3_0.245_0.306.png)
+  swap run 8 | row-pos 19 trial_id 228 (obj 3.0, img 3_0.816_0.918.png) <-> row-pos 24 trial_id 233 (obj 22.0, img 13b_0.000_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-026_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-026_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 1 trial_id 176 (obj 18.0, img 18_1.000_1.000.png) <-> row-pos 2 trial_id 177 (obj 3.0, img 3_1.000_0.735.png)
+  swap run 8 | row-pos 1 trial_id 210 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 2 trial_id 211 (obj 2.0, img 2_0.571_0.061.png)
+  swap run 8 | row-pos 12 trial_id 221 (obj 18.0, img 18_1.000_1.000.png) <-> row-pos 13 trial_id 222 (obj 2.0, img 2_0.571_0.204.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-027_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-027_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 20 trial_id 195 (obj 2.0, img 2_0.000_0.653.png) <-> row-pos 21 trial_id 196 (obj 3.0, img 3_0.347_0.224.png)
+  swap run 8 | row-pos 8 trial_id 217 (obj 2.0, img 2_0.776_0.388.png) <-> row-pos 9 trial_id 218 (obj 18.0, img 18_1.000_0.837.png)
+  swap run 8 | row-pos 15 trial_id 224 (obj 2.0, img 2_0.000_0.918.png) <-> row-pos 16 trial_id 225 (obj 18.0, img 18_0.102_0.224.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-028_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-028_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 5 trial_id 180 (obj 2.0, img 2_0.000_1.000.png) <-> row-pos 6 trial_id 181 (obj 22.0, img 13b_0.510_0.429.png)
+  swap run 8 | row-pos 14 trial_id 223 (obj 18.0, img 18_1.000_1.000.png) <-> row-pos 15 trial_id 224 (obj 3.0, img 3_0.449_0.490.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-029_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-029_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 5 trial_id 180 (obj 18.0, img 18_0.878_0.959.png) <-> row-pos 6 trial_id 181 (obj 3.0, img 3_1.000_1.000.png)
+  swap run 8 | row-pos 27 trial_id 236 (obj 18.0, img 18_0.367_0.000.png) <-> row-pos 31 trial_id 240 (obj 2.0, img 2_0.000_0.633.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-030_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-030_sess-2_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-031_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-031_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 9 trial_id 184 (obj 2.0, img 2_0.612_0.306.png) <-> row-pos 10 trial_id 185 (obj 22.0, img 13b_0.490_0.714.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-032_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-032_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 10 trial_id 185 (obj 22.0, img 13b_0.735_0.531.png) <-> row-pos 11 trial_id 186 (obj 2.0, img 2_0.571_0.735.png)
+  swap run 8 | row-pos 1 trial_id 210 (obj 2.0, img 2_0.776_0.143.png) <-> row-pos 6 trial_id 215 (obj 3.0, img 3_0.122_0.000.png)
+  swap run 8 | row-pos 9 trial_id 218 (obj 18.0, img 18_0.857_0.939.png) <-> row-pos 17 trial_id 226 (obj 22.0, img 13b_0.000_0.000.png)
+  swap run 8 | row-pos 19 trial_id 228 (obj 22.0, img 13b_0.673_0.653.png) <-> row-pos 31 trial_id 240 (obj 2.0, img 2_0.755_0.327.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-033_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-033_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 7 trial_id 182 (obj 18.0, img 18_0.490_0.245.png) <-> row-pos 8 trial_id 183 (obj 22.0, img 13b_0.102_0.224.png)
+  swap run 7 | row-pos 14 trial_id 189 (obj 2.0, img 2_0.878_0.286.png) <-> row-pos 15 trial_id 190 (obj 3.0, img 3_0.367_0.510.png)
+  swap run 7 | row-pos 20 trial_id 195 (obj 22.0, img 13b_0.367_0.551.png) <-> row-pos 4 trial_id 179 (obj 2.0, img 2_0.633_0.408.png)
+  swap run 8 | row-pos 13 trial_id 222 (obj 2.0, img 2_0.000_0.837.png) <-> row-pos 14 trial_id 223 (obj 18.0, img 18_0.224_0.531.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-034_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-034_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 3 trial_id 178 (obj 22.0, img 13b_0.102_0.000.png) <-> row-pos 7 trial_id 182 (obj 3.0, img 3_1.000_1.000.png)
+  swap run 7 | row-pos 18 trial_id 193 (obj 18.0, img 18_0.837_1.000.png) <-> row-pos 26 trial_id 201 (obj 22.0, img 13b_0.000_0.061.png)
+  swap run 8 | row-pos 10 trial_id 219 (obj 22.0, img 13b_0.551_0.857.png) <-> row-pos 11 trial_id 220 (obj 3.0, img 3_0.367_0.000.png)
+  swap run 8 | row-pos 22 trial_id 231 (obj 18.0, img 18_1.000_0.776.png) <-> row-pos 26 trial_id 235 (obj 3.0, img 3_0.571_0.286.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-035_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-035_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 3 trial_id 178 (obj 18.0, img 18_0.918_1.000.png) <-> row-pos 7 trial_id 182 (obj 3.0, img 3_0.714_0.918.png)
+  swap run 7 | row-pos 13 trial_id 188 (obj 3.0, img 3_0.388_0.204.png) <-> row-pos 14 trial_id 189 (obj 18.0, img 18_0.163_0.143.png)
+  swap run 8 | row-pos 7 trial_id 216 (obj 22.0, img 13b_0.939_0.714.png) <-> row-pos 8 trial_id 217 (obj 18.0, img 18_0.571_0.286.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-036_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-036_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 1 trial_id 210 (obj 2.0, img 2_0.327_0.755.png) <-> row-pos 2 trial_id 211 (obj 22.0, img 13b_0.490_0.796.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 22.0, img 13b_0.755_0.796.png) <-> row-pos 7 trial_id 216 (obj 18.0, img 18_1.000_0.878.png)
+  swap run 8 | row-pos 19 trial_id 228 (obj 22.0, img 13b_0.000_0.163.png) <-> row-pos 20 trial_id 229 (obj 18.0, img 18_0.000_0.388.png)
+  swap run 8 | row-pos 29 trial_id 238 (obj 3.0, img 3_1.000_0.959.png) <-> row-pos 0 trial_id 209 (obj 2.0, img 2_1.000_0.245.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-037_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-037_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 1 trial_id 210 (obj 22.0, img 13b_1.000_0.551.png) <-> row-pos 2 trial_id 211 (obj 3.0, img 3_0.776_0.020.png)
+  swap run 8 | row-pos 12 trial_id 221 (obj 18.0, img 18_1.000_0.755.png) <-> row-pos 16 trial_id 225 (obj 22.0, img 13b_0.735_0.510.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-038_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-038_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 8 trial_id 183 (obj 2.0, img 2_0.592_0.265.png) <-> row-pos 9 trial_id 184 (obj 3.0, img 3_0.878_0.755.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-039_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-039_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 9 trial_id 218 (obj 18.0, img 18_0.163_0.143.png) <-> row-pos 10 trial_id 219 (obj 22.0, img 13b_0.000_0.061.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-040_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-040_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 10 trial_id 185 (obj 18.0, img 18_0.939_1.000.png) <-> row-pos 15 trial_id 190 (obj 22.0, img 13b_0.000_0.000.png)
+  swap run 7 | row-pos 29 trial_id 204 (obj 2.0, img 2_0.102_0.939.png) <-> row-pos 30 trial_id 205 (obj 22.0, img 13b_0.776_0.408.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-041_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-041_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 4 trial_id 179 (obj 3.0, img 3_1.000_0.776.png) <-> row-pos 11 trial_id 186 (obj 2.0, img 2_0.204_0.980.png)
+  swap run 8 | row-pos 12 trial_id 221 (obj 22.0, img 13b_0.163_0.163.png) <-> row-pos 13 trial_id 222 (obj 2.0, img 2_0.163_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-042_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-042_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 12 trial_id 187 (obj 22.0, img 13b_0.143_0.000.png) <-> row-pos 13 trial_id 188 (obj 3.0, img 3_1.000_1.000.png)
+  swap run 7 | row-pos 18 trial_id 193 (obj 3.0, img 3_0.510_0.163.png) <-> row-pos 19 trial_id 194 (obj 2.0, img 2_0.143_1.000.png)
+  swap run 8 | row-pos 5 trial_id 214 (obj 18.0, img 18_1.000_0.918.png) <-> row-pos 6 trial_id 215 (obj 22.0, img 13b_0.490_0.429.png)
+  swap run 8 | row-pos 8 trial_id 217 (obj 2.0, img 2_0.449_0.000.png) <-> row-pos 9 trial_id 218 (obj 22.0, img 13b_0.000_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-043_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-043_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 2 trial_id 211 (obj 18.0, img 18_0.816_0.980.png) <-> row-pos 7 trial_id 216 (obj 2.0, img 2_0.776_0.714.png)
+  swap run 8 | row-pos 18 trial_id 227 (obj 2.0, img 2_0.571_0.490.png) <-> row-pos 24 trial_id 233 (obj 18.0, img 18_0.347_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-044_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-044_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 19 trial_id 194 (obj 22.0, img 13b_0.041_0.000.png) <-> row-pos 23 trial_id 198 (obj 2.0, img 2_0.898_0.469.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 18.0, img 18_0.041_0.306.png) <-> row-pos 12 trial_id 221 (obj 22.0, img 13b_0.347_0.204.png)
+  swap run 8 | row-pos 9 trial_id 218 (obj 3.0, img 3_0.327_0.184.png) <-> row-pos 10 trial_id 219 (obj 18.0, img 18_0.653_0.939.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-045_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-045_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 5 trial_id 214 (obj 3.0, img 3_0.878_0.837.png) <-> row-pos 6 trial_id 215 (obj 2.0, img 2_0.163_0.776.png)
+  swap run 8 | row-pos 13 trial_id 222 (obj 22.0, img 13b_0.878_0.633.png) <-> row-pos 14 trial_id 223 (obj 3.0, img 3_0.388_0.714.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-046_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-046_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 14 trial_id 189 (obj 3.0, img 3_0.306_0.041.png) <-> row-pos 19 trial_id 194 (obj 2.0, img 2_0.857_0.286.png)
+  swap run 8 | row-pos 25 trial_id 234 (obj 22.0, img 13b_0.327_0.000.png) <-> row-pos 26 trial_id 235 (obj 2.0, img 2_1.000_0.286.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-047_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-047_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 5 trial_id 180 (obj 2.0, img 2_0.367_0.490.png) <-> row-pos 15 trial_id 190 (obj 18.0, img 18_0.878_1.000.png)
+  swap run 7 | row-pos 13 trial_id 188 (obj 3.0, img 3_0.918_1.000.png) <-> row-pos 14 trial_id 189 (obj 22.0, img 13b_0.796_0.796.png)
+  swap run 7 | row-pos 23 trial_id 198 (obj 18.0, img 18_0.245_0.469.png) <-> row-pos 29 trial_id 204 (obj 22.0, img 13b_0.061_0.122.png)
+  swap run 8 | row-pos 9 trial_id 218 (obj 2.0, img 2_0.735_0.163.png) <-> row-pos 10 trial_id 219 (obj 18.0, img 18_1.000_0.918.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-048_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-048_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 8 trial_id 183 (obj 18.0, img 18_0.286_0.408.png) <-> row-pos 9 trial_id 184 (obj 22.0, img 13b_0.776_0.633.png)
+  swap run 8 | row-pos 19 trial_id 228 (obj 2.0, img 2_0.224_1.000.png) <-> row-pos 20 trial_id 229 (obj 18.0, img 18_1.000_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-049_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-049_sess-2_3event.csv
+CHANGED: True
+SWAPS: 5
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 1 trial_id 176 (obj 22.0, img 13b_0.041_0.082.png) <-> row-pos 2 trial_id 177 (obj 2.0, img 2_0.000_1.000.png)
+  swap run 7 | row-pos 13 trial_id 188 (obj 18.0, img 18_0.367_0.245.png) <-> row-pos 28 trial_id 203 (obj 3.0, img 3_0.082_0.000.png)
+  swap run 8 | row-pos 3 trial_id 212 (obj 18.0, img 18_1.000_1.000.png) <-> row-pos 7 trial_id 216 (obj 3.0, img 3_1.000_1.000.png)
+  swap run 8 | row-pos 14 trial_id 223 (obj 2.0, img 2_0.633_0.143.png) <-> row-pos 15 trial_id 224 (obj 3.0, img 3_0.918_0.673.png)
+  swap run 8 | row-pos 27 trial_id 236 (obj 3.0, img 3_0.388_0.714.png) <-> row-pos 0 trial_id 209 (obj 22.0, img 13b_0.327_0.673.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-050_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-050_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 14 trial_id 189 (obj 22.0, img 13b_0.592_0.714.png) <-> row-pos 15 trial_id 190 (obj 18.0, img 18_0.939_0.959.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-051_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-051_sess-2_3event.csv
+CHANGED: True
+SWAPS: 5
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 2 trial_id 177 (obj 2.0, img 2_0.959_0.469.png) <-> row-pos 3 trial_id 178 (obj 22.0, img 13b_0.755_0.694.png)
+  swap run 7 | row-pos 5 trial_id 180 (obj 18.0, img 18_0.020_0.306.png) <-> row-pos 6 trial_id 181 (obj 3.0, img 3_0.939_0.918.png)
+  swap run 8 | row-pos 9 trial_id 218 (obj 2.0, img 2_0.531_0.408.png) <-> row-pos 10 trial_id 219 (obj 3.0, img 3_0.878_1.000.png)
+  swap run 8 | row-pos 17 trial_id 226 (obj 2.0, img 2_0.918_0.184.png) <-> row-pos 18 trial_id 227 (obj 18.0, img 18_0.388_0.265.png)
+  swap run 8 | row-pos 21 trial_id 230 (obj 18.0, img 18_0.551_0.184.png) <-> row-pos 22 trial_id 231 (obj 2.0, img 2_0.000_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-052_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-052_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 3 trial_id 178 (obj 18.0, img 18_0.653_0.735.png) <-> row-pos 6 trial_id 181 (obj 22.0, img 13b_0.388_0.531.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-053_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-053_sess-2_3event.csv
+CHANGED: True
+SWAPS: 5
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 2 trial_id 177 (obj 2.0, img 2_0.531_0.816.png) <-> row-pos 7 trial_id 182 (obj 3.0, img 3_0.388_0.469.png)
+  swap run 7 | row-pos 11 trial_id 186 (obj 2.0, img 2_1.000_0.204.png) <-> row-pos 12 trial_id 187 (obj 18.0, img 18_0.633_0.755.png)
+  swap run 8 | row-pos 4 trial_id 213 (obj 3.0, img 3_0.878_0.980.png) <-> row-pos 5 trial_id 214 (obj 18.0, img 18_0.041_0.184.png)
+  swap run 8 | row-pos 21 trial_id 230 (obj 2.0, img 2_0.061_1.000.png) <-> row-pos 25 trial_id 234 (obj 22.0, img 13b_0.122_0.000.png)
+  swap run 8 | row-pos 28 trial_id 237 (obj 2.0, img 2_0.000_1.000.png) <-> row-pos 1 trial_id 210 (obj 3.0, img 3_0.224_0.429.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-054_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-054_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 21 trial_id 230 (obj 2.0, img 2_0.306_0.347.png) <-> row-pos 24 trial_id 233 (obj 22.0, img 13b_0.837_0.939.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-055_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-055_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 6 trial_id 181 (obj 18.0, img 18_0.000_0.204.png) <-> row-pos 7 trial_id 182 (obj 3.0, img 3_0.061_0.531.png)
+  swap run 7 | row-pos 11 trial_id 186 (obj 2.0, img 2_0.612_0.408.png) <-> row-pos 17 trial_id 192 (obj 22.0, img 13b_0.857_0.694.png)
+  swap run 8 | row-pos 2 trial_id 211 (obj 18.0, img 18_0.000_0.306.png) <-> row-pos 3 trial_id 212 (obj 3.0, img 3_0.000_0.490.png)
+  swap run 8 | row-pos 18 trial_id 227 (obj 18.0, img 18_0.306_0.245.png) <-> row-pos 19 trial_id 228 (obj 3.0, img 3_1.000_0.918.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-056_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-056_sess-2_3event.csv
+CHANGED: True
+SWAPS: 6
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 2 trial_id 177 (obj 2.0, img 2_0.000_0.776.png) <-> row-pos 3 trial_id 178 (obj 3.0, img 3_0.878_1.000.png)
+  swap run 7 | row-pos 5 trial_id 180 (obj 3.0, img 3_1.000_1.000.png) <-> row-pos 6 trial_id 181 (obj 18.0, img 18_0.592_0.694.png)
+  swap run 7 | row-pos 10 trial_id 185 (obj 22.0, img 13b_0.837_0.673.png) <-> row-pos 13 trial_id 188 (obj 18.0, img 18_0.327_0.020.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 3.0, img 3_1.000_1.000.png) <-> row-pos 7 trial_id 216 (obj 22.0, img 13b_0.449_0.653.png)
+  swap run 8 | row-pos 11 trial_id 220 (obj 3.0, img 3_0.224_0.347.png) <-> row-pos 15 trial_id 224 (obj 22.0, img 13b_0.816_0.898.png)
+  swap run 8 | row-pos 17 trial_id 226 (obj 18.0, img 18_1.000_0.857.png) <-> row-pos 28 trial_id 237 (obj 2.0, img 2_0.000_0.939.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-057_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-057_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 26 trial_id 201 (obj 22.0, img 13b_0.694_0.531.png) <-> row-pos 31 trial_id 206 (obj 18.0, img 18_0.429_0.184.png)
+  swap run 8 | row-pos 7 trial_id 216 (obj 2.0, img 2_0.918_0.449.png) <-> row-pos 11 trial_id 220 (obj 18.0, img 18_0.959_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-058_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-058_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 11 trial_id 186 (obj 2.0, img 2_0.000_1.000.png) <-> row-pos 15 trial_id 190 (obj 3.0, img 3_0.551_0.776.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-059_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-059_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 12 trial_id 187 (obj 2.0, img 2_0.000_0.939.png) <-> row-pos 13 trial_id 188 (obj 18.0, img 18_0.796_0.857.png)
+  swap run 8 | row-pos 17 trial_id 226 (obj 2.0, img 2_0.755_0.408.png) <-> row-pos 26 trial_id 235 (obj 18.0, img 18_0.102_0.122.png)
+  swap run 8 | row-pos 20 trial_id 229 (obj 22.0, img 13b_0.531_0.878.png) <-> row-pos 21 trial_id 230 (obj 2.0, img 2_0.245_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-060_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-060_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 1 trial_id 176 (obj 18.0, img 18_0.796_0.000.png) <-> row-pos 2 trial_id 177 (obj 22.0, img 13b_0.000_0.000.png)
+  swap run 8 | row-pos 17 trial_id 226 (obj 22.0, img 13b_0.735_0.612.png) <-> row-pos 18 trial_id 227 (obj 18.0, img 18_0.449_0.429.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-061_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-061_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 2 trial_id 177 (obj 22.0, img 13b_0.694_0.735.png) <-> row-pos 3 trial_id 178 (obj 3.0, img 3_0.408_0.490.png)
+  swap run 7 | row-pos 19 trial_id 194 (obj 2.0, img 2_0.204_1.000.png) <-> row-pos 20 trial_id 195 (obj 22.0, img 13b_0.143_0.000.png)
+  swap run 8 | row-pos 4 trial_id 213 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 15 trial_id 224 (obj 2.0, img 2_0.000_1.000.png)
+  swap run 8 | row-pos 10 trial_id 219 (obj 2.0, img 2_0.959_0.000.png) <-> row-pos 11 trial_id 220 (obj 22.0, img 13b_0.592_0.408.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-062_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-062_sess-2_3event.csv
+CHANGED: True
+SWAPS: 5
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 16 trial_id 191 (obj 18.0, img 18_0.510_0.592.png) <-> row-pos 20 trial_id 195 (obj 3.0, img 3_0.653_0.449.png)
+  swap run 7 | row-pos 23 trial_id 198 (obj 2.0, img 2_0.224_1.000.png) <-> row-pos 24 trial_id 199 (obj 3.0, img 3_1.000_0.918.png)
+  swap run 8 | row-pos 2 trial_id 211 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 3 trial_id 212 (obj 2.0, img 2_0.714_0.041.png)
+  swap run 8 | row-pos 15 trial_id 224 (obj 3.0, img 3_0.245_0.469.png) <-> row-pos 18 trial_id 227 (obj 22.0, img 13b_0.714_0.367.png)
+  swap run 8 | row-pos 25 trial_id 234 (obj 18.0, img 18_0.224_0.592.png) <-> row-pos 30 trial_id 239 (obj 22.0, img 13b_0.122_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-063_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-063_sess-2_3event.csv
+CHANGED: True
+SWAPS: 5
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 16 trial_id 191 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 17 trial_id 192 (obj 18.0, img 18_0.918_0.878.png)
+  swap run 7 | row-pos 19 trial_id 194 (obj 2.0, img 2_0.653_0.265.png) <-> row-pos 29 trial_id 204 (obj 18.0, img 18_0.265_0.163.png)
+  swap run 8 | row-pos 1 trial_id 210 (obj 3.0, img 3_0.714_0.939.png) <-> row-pos 2 trial_id 211 (obj 18.0, img 18_0.224_0.551.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 18.0, img 18_0.980_1.000.png) <-> row-pos 7 trial_id 216 (obj 3.0, img 3_0.122_0.204.png)
+  swap run 8 | row-pos 25 trial_id 234 (obj 22.0, img 13b_0.633_0.653.png) <-> row-pos 28 trial_id 237 (obj 3.0, img 3_1.000_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-064_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-064_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 9 trial_id 184 (obj 22.0, img 13b_0.694_0.408.png) <-> row-pos 10 trial_id 185 (obj 18.0, img 18_1.000_0.918.png)
+  swap run 7 | row-pos 15 trial_id 190 (obj 22.0, img 13b_0.918_0.449.png) <-> row-pos 16 trial_id 191 (obj 2.0, img 2_0.653_0.224.png)
+  swap run 7 | row-pos 22 trial_id 197 (obj 3.0, img 3_0.388_0.245.png) <-> row-pos 25 trial_id 200 (obj 2.0, img 2_0.000_0.959.png)
+  swap run 8 | row-pos 2 trial_id 211 (obj 18.0, img 18_1.000_0.755.png) <-> row-pos 3 trial_id 212 (obj 22.0, img 13b_0.000_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-065_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-065_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 9 trial_id 184 (obj 2.0, img 2_0.714_0.633.png) <-> row-pos 13 trial_id 188 (obj 22.0, img 13b_0.122_0.000.png)
+  swap run 7 | row-pos 20 trial_id 195 (obj 2.0, img 2_0.837_0.143.png) <-> row-pos 21 trial_id 196 (obj 22.0, img 13b_0.000_0.041.png)
+  swap run 8 | row-pos 4 trial_id 213 (obj 3.0, img 3_0.510_0.286.png) <-> row-pos 5 trial_id 214 (obj 18.0, img 18_0.306_0.449.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-066_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-066_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 19 trial_id 194 (obj 18.0, img 18_0.449_0.102.png) <-> row-pos 22 trial_id 197 (obj 22.0, img 13b_0.755_0.735.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 3.0, img 3_0.673_0.449.png) <-> row-pos 7 trial_id 216 (obj 22.0, img 13b_0.510_0.959.png)
+  swap run 8 | row-pos 16 trial_id 225 (obj 3.0, img 3_1.000_1.000.png) <-> row-pos 17 trial_id 226 (obj 2.0, img 2_0.122_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-067_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-067_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 5 trial_id 180 (obj 3.0, img 3_1.000_1.000.png) <-> row-pos 6 trial_id 181 (obj 22.0, img 13b_0.000_0.041.png)
+  swap run 7 | row-pos 17 trial_id 192 (obj 18.0, img 18_1.000_0.816.png) <-> row-pos 20 trial_id 195 (obj 2.0, img 2_0.612_0.469.png)
+  swap run 8 | row-pos 19 trial_id 228 (obj 2.0, img 2_0.000_1.000.png) <-> row-pos 20 trial_id 229 (obj 22.0, img 13b_0.163_0.000.png)
+  swap run 8 | row-pos 25 trial_id 234 (obj 3.0, img 3_0.367_0.612.png) <-> row-pos 26 trial_id 235 (obj 22.0, img 13b_0.000_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-068_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-068_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 13 trial_id 188 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 14 trial_id 189 (obj 18.0, img 18_1.000_1.000.png)
+  swap run 7 | row-pos 24 trial_id 199 (obj 2.0, img 2_0.449_0.102.png) <-> row-pos 25 trial_id 200 (obj 18.0, img 18_0.939_1.000.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 3.0, img 3_1.000_0.898.png) <-> row-pos 9 trial_id 218 (obj 18.0, img 18_0.959_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-069_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-069_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 3 trial_id 212 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 8 trial_id 217 (obj 18.0, img 18_0.510_0.531.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-070_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-070_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 1 trial_id 176 (obj 18.0, img 18_1.000_1.000.png) <-> row-pos 5 trial_id 180 (obj 22.0, img 13b_0.184_0.000.png)
+  swap run 8 | row-pos 3 trial_id 212 (obj 2.0, img 2_0.000_1.000.png) <-> row-pos 7 trial_id 216 (obj 22.0, img 13b_0.694_0.878.png)
+  swap run 8 | row-pos 16 trial_id 225 (obj 22.0, img 13b_0.000_0.102.png) <-> row-pos 19 trial_id 228 (obj 2.0, img 2_0.918_0.612.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-071_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-071_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 1 trial_id 176 (obj 3.0, img 3_0.082_0.367.png) <-> row-pos 2 trial_id 177 (obj 18.0, img 18_1.000_1.000.png)
+  swap run 7 | row-pos 17 trial_id 192 (obj 18.0, img 18_0.837_1.000.png) <-> row-pos 18 trial_id 193 (obj 3.0, img 3_0.959_0.857.png)
+  swap run 8 | row-pos 5 trial_id 214 (obj 3.0, img 3_1.000_0.939.png) <-> row-pos 6 trial_id 215 (obj 2.0, img 2_0.000_0.939.png)
+  swap run 8 | row-pos 8 trial_id 217 (obj 22.0, img 13b_0.531_0.857.png) <-> row-pos 9 trial_id 218 (obj 18.0, img 18_0.163_0.265.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-072_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-072_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 1 trial_id 210 (obj 18.0, img 18_0.122_0.163.png) <-> row-pos 2 trial_id 211 (obj 22.0, img 13b_0.714_0.959.png)
+  swap run 8 | row-pos 5 trial_id 214 (obj 22.0, img 13b_0.367_0.592.png) <-> row-pos 6 trial_id 215 (obj 2.0, img 2_0.612_0.224.png)
+  swap run 8 | row-pos 8 trial_id 217 (obj 3.0, img 3_1.000_1.000.png) <-> row-pos 19 trial_id 228 (obj 2.0, img 2_0.000_0.837.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-073_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-073_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 4 trial_id 179 (obj 22.0, img 13b_0.551_1.000.png) <-> row-pos 9 trial_id 184 (obj 18.0, img 18_0.286_0.000.png)
+  swap run 7 | row-pos 17 trial_id 192 (obj 2.0, img 2_0.000_1.000.png) <-> row-pos 31 trial_id 206 (obj 3.0, img 3_1.000_0.980.png)
+  swap run 8 | row-pos 5 trial_id 214 (obj 18.0, img 18_1.000_1.000.png) <-> row-pos 9 trial_id 218 (obj 22.0, img 13b_1.000_0.653.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-074_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-074_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 12 trial_id 187 (obj 2.0, img 2_1.000_0.306.png) <-> row-pos 13 trial_id 188 (obj 22.0, img 13b_0.020_0.041.png)
+  swap run 8 | row-pos 1 trial_id 210 (obj 22.0, img 13b_0.020_0.000.png) <-> row-pos 4 trial_id 213 (obj 3.0, img 3_0.939_1.000.png)
+  swap run 8 | row-pos 10 trial_id 219 (obj 2.0, img 2_1.000_0.163.png) <-> row-pos 11 trial_id 220 (obj 18.0, img 18_0.449_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-075_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-075_sess-2_3event.csv
+CHANGED: True
+SWAPS: 7
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 5 trial_id 180 (obj 22.0, img 13b_0.796_0.510.png) <-> row-pos 6 trial_id 181 (obj 2.0, img 2_0.755_0.653.png)
+  swap run 7 | row-pos 8 trial_id 183 (obj 3.0, img 3_0.857_1.000.png) <-> row-pos 9 trial_id 184 (obj 2.0, img 2_0.673_0.327.png)
+  swap run 7 | row-pos 11 trial_id 186 (obj 18.0, img 18_1.000_1.000.png) <-> row-pos 16 trial_id 191 (obj 3.0, img 3_0.837_0.878.png)
+  swap run 7 | row-pos 20 trial_id 195 (obj 3.0, img 3_0.388_0.122.png) <-> row-pos 21 trial_id 196 (obj 22.0, img 13b_0.429_0.837.png)
+  swap run 7 | row-pos 24 trial_id 199 (obj 22.0, img 13b_0.551_1.000.png) <-> row-pos 31 trial_id 206 (obj 2.0, img 2_0.020_1.000.png)
+  swap run 8 | row-pos 11 trial_id 220 (obj 2.0, img 2_0.082_1.000.png) <-> row-pos 12 trial_id 221 (obj 3.0, img 3_0.449_0.184.png)
+  swap run 8 | row-pos 14 trial_id 223 (obj 22.0, img 13b_1.000_0.571.png) <-> row-pos 21 trial_id 230 (obj 18.0, img 18_0.041_0.122.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-076_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-076_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 10 trial_id 185 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 16 trial_id 191 (obj 18.0, img 18_0.776_0.776.png)
+  swap run 7 | row-pos 24 trial_id 199 (obj 3.0, img 3_1.000_1.000.png) <-> row-pos 25 trial_id 200 (obj 2.0, img 2_1.000_0.061.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-077_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-077_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 10 trial_id 185 (obj 2.0, img 2_0.429_0.449.png) <-> row-pos 11 trial_id 186 (obj 22.0, img 13b_0.633_0.612.png)
+  swap run 7 | row-pos 24 trial_id 199 (obj 18.0, img 18_0.551_0.531.png) <-> row-pos 27 trial_id 202 (obj 22.0, img 13b_0.082_0.122.png)
+  swap run 8 | row-pos 4 trial_id 213 (obj 18.0, img 18_0.857_1.000.png) <-> row-pos 5 trial_id 214 (obj 22.0, img 13b_0.469_0.510.png)
+  swap run 8 | row-pos 21 trial_id 230 (obj 18.0, img 18_0.082_0.653.png) <-> row-pos 22 trial_id 231 (obj 22.0, img 13b_0.551_0.857.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-078_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-078_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 2 trial_id 211 (obj 18.0, img 18_0.735_0.878.png) <-> row-pos 6 trial_id 215 (obj 3.0, img 3_1.000_0.980.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-079_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-079_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 1 trial_id 176 (obj 2.0, img 2_0.694_0.306.png) <-> row-pos 2 trial_id 177 (obj 18.0, img 18_0.469_0.224.png)
+  swap run 7 | row-pos 10 trial_id 185 (obj 18.0, img 18_0.327_0.265.png) <-> row-pos 11 trial_id 186 (obj 3.0, img 3_0.918_0.898.png)
+  swap run 7 | row-pos 18 trial_id 193 (obj 2.0, img 2_0.837_0.184.png) <-> row-pos 19 trial_id 194 (obj 22.0, img 13b_0.673_0.653.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 3.0, img 3_0.000_0.429.png) <-> row-pos 10 trial_id 219 (obj 2.0, img 2_0.714_0.327.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-080_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-080_sess-2_3event.csv
+CHANGED: True
+SWAPS: 4
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 9 trial_id 184 (obj 22.0, img 13b_0.918_0.735.png) <-> row-pos 10 trial_id 185 (obj 2.0, img 2_0.082_0.878.png)
+  swap run 7 | row-pos 19 trial_id 194 (obj 2.0, img 2_0.061_1.000.png) <-> row-pos 20 trial_id 195 (obj 3.0, img 3_0.673_0.735.png)
+  swap run 8 | row-pos 7 trial_id 216 (obj 3.0, img 3_0.918_1.000.png) <-> row-pos 12 trial_id 221 (obj 2.0, img 2_0.000_0.694.png)
+  swap run 8 | row-pos 21 trial_id 230 (obj 18.0, img 18_0.327_0.265.png) <-> row-pos 26 trial_id 235 (obj 3.0, img 3_0.551_0.388.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-081_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-081_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 14 trial_id 189 (obj 3.0, img 3_0.122_0.327.png) <-> row-pos 22 trial_id 197 (obj 22.0, img 13b_1.000_0.571.png)
+  swap run 8 | row-pos 7 trial_id 216 (obj 2.0, img 2_0.102_1.000.png) <-> row-pos 8 trial_id 217 (obj 3.0, img 3_0.959_0.694.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-082_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-082_sess-2_3event.csv
+CHANGED: True
+SWAPS: 6
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 15 trial_id 190 (obj 2.0, img 2_0.163_1.000.png) <-> row-pos 16 trial_id 191 (obj 18.0, img 18_0.347_0.204.png)
+  swap run 7 | row-pos 21 trial_id 196 (obj 18.0, img 18_0.408_0.347.png) <-> row-pos 22 trial_id 197 (obj 3.0, img 3_0.224_0.265.png)
+  swap run 8 | row-pos 5 trial_id 214 (obj 18.0, img 18_1.000_0.878.png) <-> row-pos 6 trial_id 215 (obj 3.0, img 3_0.041_0.327.png)
+  swap run 8 | row-pos 8 trial_id 217 (obj 3.0, img 3_0.959_0.980.png) <-> row-pos 13 trial_id 222 (obj 2.0, img 2_0.000_0.939.png)
+  swap run 8 | row-pos 11 trial_id 220 (obj 3.0, img 3_0.143_0.163.png) <-> row-pos 15 trial_id 224 (obj 2.0, img 2_0.245_0.878.png)
+  swap run 8 | row-pos 19 trial_id 228 (obj 18.0, img 18_1.000_1.000.png) <-> row-pos 20 trial_id 229 (obj 3.0, img 3_0.980_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-083_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-083_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 14 trial_id 189 (obj 3.0, img 3_0.347_0.429.png) <-> row-pos 15 trial_id 190 (obj 2.0, img 2_0.061_0.878.png)
+  swap run 8 | row-pos 8 trial_id 217 (obj 3.0, img 3_0.939_0.857.png) <-> row-pos 9 trial_id 218 (obj 22.0, img 13b_0.633_0.633.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-084_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-084_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 13 trial_id 222 (obj 2.0, img 2_0.490_0.408.png) <-> row-pos 16 trial_id 225 (obj 3.0, img 3_1.000_1.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-085_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-085_sess-2_3event.csv
+CHANGED: True
+SWAPS: 5
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 6 trial_id 181 (obj 22.0, img 13b_0.082_0.000.png) <-> row-pos 9 trial_id 184 (obj 3.0, img 3_0.265_0.286.png)
+  swap run 7 | row-pos 15 trial_id 190 (obj 2.0, img 2_0.959_0.286.png) <-> row-pos 16 trial_id 191 (obj 22.0, img 13b_0.714_0.653.png)
+  swap run 8 | row-pos 1 trial_id 210 (obj 2.0, img 2_0.694_0.347.png) <-> row-pos 5 trial_id 214 (obj 3.0, img 3_0.918_0.939.png)
+  swap run 8 | row-pos 7 trial_id 216 (obj 18.0, img 18_0.776_0.918.png) <-> row-pos 8 trial_id 217 (obj 3.0, img 3_0.102_0.102.png)
+  swap run 8 | row-pos 26 trial_id 235 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 0 trial_id 209 (obj 2.0, img 2_0.898_0.102.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-086_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-086_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 19 trial_id 228 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 20 trial_id 229 (obj 18.0, img 18_0.000_0.265.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-087_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-087_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 15 trial_id 190 (obj 3.0, img 3_1.000_1.000.png) <-> row-pos 19 trial_id 194 (obj 18.0, img 18_0.204_0.388.png)
+  swap run 8 | row-pos 17 trial_id 226 (obj 22.0, img 13b_0.061_0.082.png) <-> row-pos 18 trial_id 227 (obj 3.0, img 3_0.245_0.000.png)
+  swap run 8 | row-pos 24 trial_id 233 (obj 2.0, img 2_0.122_1.000.png) <-> row-pos 30 trial_id 239 (obj 3.0, img 3_0.367_0.000.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-088_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-088_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 2 trial_id 211 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 5 trial_id 214 (obj 18.0, img 18_0.000_0.224.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-089_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-089_sess-2_3event.csv
+CHANGED: True
+SWAPS: 1
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 12 trial_id 221 (obj 3.0, img 3_0.041_0.000.png) <-> row-pos 24 trial_id 233 (obj 18.0, img 18_1.000_0.531.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-090_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-090_sess-2_3event.csv
+CHANGED: False
+SWAPS: 0
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: False
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-091_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-091_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 2 trial_id 177 (obj 2.0, img 2_0.163_0.837.png) <-> row-pos 3 trial_id 178 (obj 22.0, img 13b_1.000_0.796.png)
+  swap run 7 | row-pos 12 trial_id 187 (obj 22.0, img 13b_0.429_0.592.png) <-> row-pos 13 trial_id 188 (obj 2.0, img 2_0.714_0.612.png)
+  swap run 8 | row-pos 12 trial_id 221 (obj 3.0, img 3_0.714_0.939.png) <-> row-pos 13 trial_id 222 (obj 22.0, img 13b_0.143_0.082.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-092_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-092_sess-2_3event.csv
+CHANGED: True
+SWAPS: 6
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 1 trial_id 176 (obj 3.0, img 3_0.347_0.551.png) <-> row-pos 2 trial_id 177 (obj 2.0, img 2_0.143_1.000.png)
+  swap run 7 | row-pos 4 trial_id 179 (obj 18.0, img 18_0.469_0.204.png) <-> row-pos 5 trial_id 180 (obj 3.0, img 3_0.306_0.449.png)
+  swap run 7 | row-pos 9 trial_id 184 (obj 3.0, img 3_0.776_1.000.png) <-> row-pos 10 trial_id 185 (obj 22.0, img 13b_0.612_0.714.png)
+  swap run 8 | row-pos 9 trial_id 218 (obj 3.0, img 3_1.000_0.816.png) <-> row-pos 10 trial_id 219 (obj 2.0, img 2_0.061_1.000.png)
+  swap run 8 | row-pos 13 trial_id 222 (obj 22.0, img 13b_0.000_0.102.png) <-> row-pos 14 trial_id 223 (obj 3.0, img 3_1.000_1.000.png)
+  swap run 8 | row-pos 16 trial_id 225 (obj 18.0, img 18_0.816_1.000.png) <-> row-pos 19 trial_id 228 (obj 2.0, img 2_0.020_0.918.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-093_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-093_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 17 trial_id 192 (obj 3.0, img 3_0.163_0.449.png) <-> row-pos 18 trial_id 193 (obj 18.0, img 18_0.000_0.388.png)
+  swap run 7 | row-pos 25 trial_id 200 (obj 3.0, img 3_0.694_0.367.png) <-> row-pos 30 trial_id 205 (obj 2.0, img 2_0.449_0.082.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-094_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-094_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 8 | row-pos 12 trial_id 221 (obj 2.0, img 2_0.571_0.714.png) <-> row-pos 13 trial_id 222 (obj 22.0, img 13b_0.592_0.571.png)
+  swap run 8 | row-pos 17 trial_id 226 (obj 18.0, img 18_0.918_1.000.png) <-> row-pos 18 trial_id 227 (obj 22.0, img 13b_0.878_0.388.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-095_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-095_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 4 trial_id 179 (obj 22.0, img 13b_0.000_0.020.png) <-> row-pos 5 trial_id 180 (obj 2.0, img 2_0.000_0.959.png)
+  swap run 7 | row-pos 12 trial_id 187 (obj 18.0, img 18_0.939_0.633.png) <-> row-pos 13 trial_id 188 (obj 3.0, img 3_0.204_0.265.png)
+  swap run 7 | row-pos 29 trial_id 204 (obj 2.0, img 2_0.571_0.469.png) <-> row-pos 6 trial_id 181 (obj 3.0, img 3_0.306_0.204.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-096_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-096_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 1 trial_id 176 (obj 18.0, img 18_1.000_1.000.png) <-> row-pos 2 trial_id 177 (obj 22.0, img 13b_0.633_0.633.png)
+  swap run 7 | row-pos 22 trial_id 197 (obj 22.0, img 13b_0.531_0.735.png) <-> row-pos 23 trial_id 198 (obj 2.0, img 2_0.000_0.898.png)
+  swap run 8 | row-pos 2 trial_id 211 (obj 18.0, img 18_0.755_1.000.png) <-> row-pos 6 trial_id 215 (obj 3.0, img 3_0.469_0.490.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-097_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-097_sess-2_3event.csv
+CHANGED: True
+SWAPS: 2
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 8 trial_id 183 (obj 3.0, img 3_0.265_0.327.png) <-> row-pos 9 trial_id 184 (obj 18.0, img 18_1.000_0.980.png)
+  swap run 7 | row-pos 24 trial_id 199 (obj 2.0, img 2_0.000_1.000.png) <-> row-pos 29 trial_id 204 (obj 18.0, img 18_0.551_0.429.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-098_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-098_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 15 trial_id 190 (obj 2.0, img 2_0.000_0.796.png) <-> row-pos 16 trial_id 191 (obj 18.0, img 18_1.000_0.735.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 3.0, img 3_1.000_0.918.png) <-> row-pos 9 trial_id 218 (obj 22.0, img 13b_0.898_0.592.png)
+  swap run 8 | row-pos 11 trial_id 220 (obj 18.0, img 18_0.061_0.449.png) <-> row-pos 12 trial_id 221 (obj 3.0, img 3_0.796_0.878.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-099_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-099_sess-2_3event.csv
+CHANGED: True
+SWAPS: 3
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 5 trial_id 180 (obj 18.0, img 18_0.980_1.000.png) <-> row-pos 6 trial_id 181 (obj 22.0, img 13b_0.592_0.837.png)
+  swap run 8 | row-pos 6 trial_id 215 (obj 18.0, img 18_1.000_0.816.png) <-> row-pos 7 trial_id 216 (obj 2.0, img 2_0.000_0.959.png)
+  swap run 8 | row-pos 23 trial_id 232 (obj 22.0, img 13b_0.000_0.000.png) <-> row-pos 27 trial_id 236 (obj 18.0, img 18_0.367_0.490.png)
+
+--------------------------------------------------------------------------------
+
+FILE: C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\final\session-2\final_sub-100_sess-2_3event.csv
+OUT : C:\Users\arech\repos\novel_concept_learning_fMRI\experimental_task\task_designs\fixed\session-2\final_sub-100_sess-2_3event.csv
+CHANGED: True
+SWAPS: 5
+UNRESOLVED: 0
+TRIAL_ID_REINDEXED: True
+DETAILS:
+  swap run 7 | row-pos 1 trial_id 176 (obj 22.0, img 13b_0.551_0.408.png) <-> row-pos 2 trial_id 177 (obj 2.0, img 2_0.041_1.000.png)
+  swap run 7 | row-pos 9 trial_id 184 (obj 18.0, img 18_1.000_0.898.png) <-> row-pos 10 trial_id 185 (obj 22.0, img 13b_0.020_0.000.png)
+  swap run 8 | row-pos 1 trial_id 210 (obj 2.0, img 2_0.000_0.939.png) <-> row-pos 6 trial_id 215 (obj 3.0, img 3_0.163_0.551.png)
+  swap run 8 | row-pos 8 trial_id 217 (obj 18.0, img 18_0.082_0.265.png) <-> row-pos 14 trial_id 223 (obj 3.0, img 3_0.612_0.755.png)
+  swap run 8 | row-pos 24 trial_id 233 (obj 3.0, img 3_0.878_1.000.png) <-> row-pos 25 trial_id 234 (obj 22.0, img 13b_0.000_0.245.png)
+
+--------------------------------------------------------------------------------
+
