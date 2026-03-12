@@ -1,0 +1,1 @@
+This folder contains the localiser design files from PID 009 --> due to a fix in the script logic. These files do not have repeats of the same image for the same participant and utilise all localiser images per category.
